@@ -1,9 +1,9 @@
 @extends('layouts.insurance')
 
-@section('title', 'Policies - Insurance Management System 2.0')
+@section('title', 'Policies - Insurance Management System')
 
 @section('content')
-<div class="page" id="policies">
+<div class="page active" id="policies">
     <div class="page-header">
         <h1>Policies</h1>
         <p>Manage all insurance policies</p>
@@ -45,7 +45,7 @@
 
         <!-- Policies Statistics -->
         <div class="policies-stats">
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon active">
                     <i class="fas fa-check-circle"></i>
                 </div>
@@ -54,7 +54,7 @@
                     <p class="stat-value" id="activePoliciesCount">0</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon expired">
                     <i class="fas fa-times-circle"></i>
                 </div>
@@ -63,7 +63,7 @@
                     <p class="stat-value" id="expiredPoliciesCount">0</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon pending">
                     <i class="fas fa-clock"></i>
                 </div>
@@ -72,7 +72,7 @@
                     <p class="stat-value" id="pendingRenewalsCount">0</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon total">
                     <i class="fas fa-file-contract"></i>
                 </div>
@@ -84,7 +84,7 @@
         </div>
 
         <!-- Policies Data Table -->
-        <div class="data-table-container">
+        <div class="data-table-container glass-effect">
             <div class="table-header">
                 <h3>All Policies</h3>
                 <div class="table-controls">
@@ -105,10 +105,10 @@
                     <thead>
                         <tr>
                             <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
-                            <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
-                            <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
+                            <th data-sort="policyType">Policy Type <i class="fas fa-sort"></i></th>
+                            <th data-sort="customerName">Customer Name <i class="fas fa-sort"></i></th>
                             <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
-                            <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
+                            <th data-sort="companyName">Insurance Company <i class="fas fa-sort"></i></th>
                             <th data-sort="endDate">End Date <i class="fas fa-sort"></i></th>
                             <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
                             <th data-sort="status">Status <i class="fas fa-sort"></i></th>
@@ -116,73 +116,20 @@
                         </tr>
                     </thead>
                     <tbody id="policiesPageTableBody">
-                        <!-- Sample data for demonstration -->
-                        <tr>
-                            <td>1</td>
-                            <td><span class="policy-type-badge motor">Motor</span></td>
-                            <td>John Doe</td>
-                            <td>+91 9876543210</td>
-                            <td>HDFC ERGO</td>
-                            <td>2025-01-15</td>
-                            <td>₹25,000</td>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td><span class="policy-type-badge health">Health</span></td>
-                            <td>Jane Smith</td>
-                            <td>+91 9876543211</td>
-                            <td>Star Health</td>
-                            <td>2025-02-01</td>
-                            <td>₹15,000</td>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td><span class="policy-type-badge life">Life</span></td>
-                            <td>Bob Johnson</td>
-                            <td>+91 9876543212</td>
-                            <td>LIC</td>
-                            <td>2024-12-31</td>
-                            <td>₹50,000</td>
-                            <td><span class="status-badge expired">Expired</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Table data will be populated by JavaScript -->
                     </tbody>
                 </table>
             </div>
             <div class="table-pagination">
                 <div class="pagination-info">
-                    Showing <span id="policiesStartRecord">1</span> to <span id="policiesEndRecord">10</span> of <span id="policiesTotalRecords">50</span> entries
+                    Showing <span id="policiesStartRecord">1</span> to <span id="policiesEndRecord">10</span> of <span id="policiesTotalRecords">0</span> entries
                 </div>
                 <div class="pagination-controls">
                     <button class="pagination-btn" id="policiesPrevPage" disabled>
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="page-numbers" id="policiesPageNumbers">
-                        <button class="page-number active">1</button>
-                        <button class="page-number">2</button>
-                        <button class="page-number">3</button>
+                        <!-- Page numbers will be generated by JavaScript -->
                     </div>
                     <button class="pagination-btn" id="policiesNextPage">
                         <i class="fas fa-chevron-right"></i>
@@ -193,449 +140,490 @@
     </div>
 </div>
 
-<style>
-/* Policy Type Badges */
-.policy-type-badge {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+<!-- Include Modals -->
+@include('components.policy-modal')
+@include('components.view-policy-modal')
 
-.policy-type-badge.motor {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.policy-type-badge.health {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.policy-type-badge.life {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
-</style>
-
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize policies statistics
-    updatePoliciesStats();
-});
+    // Global variables
+    let policies = [];
+    let filteredPolicies = [];
+    let currentPage = 1;
+    let rowsPerPage = 10;
+    let currentSortColumn = '';
+    let currentSortDirection = 'asc';
+    let currentEditingPolicyId = null;
 
-function updatePoliciesStats() {
-    // Update statistics (this would normally come from your backend)
-    document.getElementById('activePoliciesCount').textContent = '142';
-    document.getElementById('expiredPoliciesCount').textContent = '23';
-    document.getElementById('pendingRenewalsCount').textContent = '8';
-    document.getElementById('totalPoliciesCount').textContent = '173';
-}
-</script>
+    // Policies page initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Policies page initialized');
+        
+        // Load policies data
+        loadPolicies();
+        
+        // Initialize event listeners
+        initializeEventListeners();
+        
+        // Initialize search and filters
+        initializeSearchAndFilters();
+    });
 
-<!-- Add/Edit Policy Modal -->
-<div class="modal" id="policyModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="policyModalTitle">Add New Policy</h2>
-            <button class="modal-close" id="closePolicyModal">
+    // Load policies from API
+    function loadPolicies() {
+        fetch('/api/policies')
+            .then(response => response.json())
+            .then(data => {
+                policies = data.policies || [];
+                filteredPolicies = [...policies];
+                renderPoliciesTable();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Error loading policies:', error);
+                showNotification('Error loading policies. Please refresh the page.', 'error');
+            });
+    }
+
+    // Initialize event listeners
+    function initializeEventListeners() {
+        // Add policy button
+        const addPolicyBtn = document.getElementById('addPolicyFromPoliciesBtn');
+        if (addPolicyBtn) {
+            addPolicyBtn.addEventListener('click', () => openPolicyModal());
+        }
+
+        // Rows per page
+        const rowsPerPageSelect = document.getElementById('policiesRowsPerPage');
+        if (rowsPerPageSelect) {
+            rowsPerPageSelect.addEventListener('change', function() {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderPoliciesTable();
+            });
+        }
+
+        // Export button
+        const exportBtn = document.getElementById('exportPolicies');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportPoliciesData);
+        }
+
+        // Pagination buttons
+        const prevBtn = document.getElementById('policiesPrevPage');
+        const nextBtn = document.getElementById('policiesNextPage');
+        if (prevBtn) prevBtn.addEventListener('click', () => changePage(currentPage - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => changePage(currentPage + 1));
+
+        // Sort headers
+        const sortHeaders = document.querySelectorAll('#policiesPageTable th[data-sort]');
+        sortHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.getAttribute('data-sort');
+                sortPolicies(column);
+            });
+        });
+    }
+
+    // Initialize search and filters
+    function initializeSearchAndFilters() {
+        // Search functionality
+        const searchInput = document.getElementById('policiesSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(function() {
+                filterPolicies();
+            }, 300));
+        }
+
+        // Policy type filter
+        const policyTypeFilter = document.getElementById('policyTypeFilter');
+        if (policyTypeFilter) {
+            policyTypeFilter.addEventListener('change', filterPolicies);
+        }
+
+        // Status filter
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterPolicies);
+        }
+    }
+
+    // Filter policies
+    function filterPolicies() {
+        const searchTerm = document.getElementById('policiesSearch').value.toLowerCase();
+        const policyType = document.getElementById('policyTypeFilter').value;
+        const status = document.getElementById('statusFilter').value;
+
+        filteredPolicies = policies.filter(policy => {
+            const matchesSearch = !searchTerm || 
+                policy.customerName.toLowerCase().includes(searchTerm) ||
+                policy.policyNumber.toLowerCase().includes(searchTerm) ||
+                policy.phone.includes(searchTerm) ||
+                policy.companyName.toLowerCase().includes(searchTerm);
+
+            const matchesType = !policyType || policy.policyType === policyType;
+            const matchesStatus = !status || policy.status === status;
+
+            return matchesSearch && matchesType && matchesStatus;
+        });
+
+        currentPage = 1;
+        renderPoliciesTable();
+        updateStatistics();
+    }
+
+    // Sort policies
+    function sortPolicies(column) {
+        if (currentSortColumn === column) {
+            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSortColumn = column;
+            currentSortDirection = 'asc';
+        }
+
+        filteredPolicies.sort((a, b) => {
+            let aVal = a[column];
+            let bVal = b[column];
+
+            if (column === 'premium' || column === 'revenue') {
+                aVal = parseFloat(aVal);
+                bVal = parseFloat(bVal);
+            }
+
+            if (aVal < bVal) return currentSortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return currentSortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        renderPoliciesTable();
+    }
+
+    // Render policies table
+    function renderPoliciesTable() {
+        const tableBody = document.getElementById('policiesPageTableBody');
+        if (!tableBody) return;
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = filteredPolicies.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = pageData.map(policy => `
+            <tr>
+                <td>${policy.id}</td>
+                <td><span class="policy-type-badge ${policy.policyType.toLowerCase()}">${policy.policyType}</span></td>
+                <td>${policy.customerName || 'N/A'}</td>
+                <td>${policy.phone || 'N/A'}</td>
+                <td>${policy.companyName || 'N/A'}</td>
+                <td>${policy.endDate || 'N/A'}</td>
+                <td>₹${(policy.premium || 0).toLocaleString()}</td>
+                <td><span class="status-badge ${(policy.status || 'Active').toLowerCase()}">${policy.status || 'Active'}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn edit" onclick="editPolicy(${policy.id})" title="Edit Policy">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn view" onclick="viewPolicy(${policy.id})" title="View Policy">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deletePolicy(${policy.id})" title="Delete Policy">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        updatePagination();
+    }
+
+    // Update pagination
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredPolicies.length / rowsPerPage);
+        const startRecord = (currentPage - 1) * rowsPerPage + 1;
+        const endRecord = Math.min(currentPage * rowsPerPage, filteredPolicies.length);
+
+        // Update pagination info
+        document.getElementById('policiesStartRecord').textContent = startRecord;
+        document.getElementById('policiesEndRecord').textContent = endRecord;
+        document.getElementById('policiesTotalRecords').textContent = filteredPolicies.length;
+
+        // Update pagination buttons
+        document.getElementById('policiesPrevPage').disabled = currentPage === 1;
+        document.getElementById('policiesNextPage').disabled = currentPage === totalPages;
+
+        // Generate page numbers
+        const pageNumbersContainer = document.getElementById('policiesPageNumbers');
+        let pageNumbersHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                pageNumbersHTML += `<button class="page-number ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                pageNumbersHTML += '<span class="page-ellipsis">...</span>';
+            }
+        }
+
+        pageNumbersContainer.innerHTML = pageNumbersHTML;
+    }
+
+    // Change page
+    function changePage(page) {
+        const totalPages = Math.ceil(filteredPolicies.length / rowsPerPage);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            renderPoliciesTable();
+        }
+    }
+
+    // Update statistics
+    function updateStatistics() {
+        const activeCount = filteredPolicies.filter(p => p.status === 'Active').length;
+        const expiredCount = filteredPolicies.filter(p => p.status === 'Expired').length;
+        const pendingCount = filteredPolicies.filter(p => p.status === 'Pending').length;
+        const totalCount = filteredPolicies.length;
+
+        document.getElementById('activePoliciesCount').textContent = activeCount;
+        document.getElementById('expiredPoliciesCount').textContent = expiredCount;
+        document.getElementById('pendingRenewalsCount').textContent = pendingCount;
+        document.getElementById('totalPoliciesCount').textContent = totalCount;
+    }
+
+    // CRUD Functions
+    function openPolicyModal(policy = null) {
+        const modal = document.getElementById('policyModal');
+        if (!modal) return;
+        
+        if (policy) {
+            // Edit mode
+            document.getElementById('policyModalTitle').textContent = 'Edit Policy';
+            // Populate form fields with policy data
+            populatePolicyForm(policy);
+        } else {
+            // Add mode
+            document.getElementById('policyModalTitle').textContent = 'Add New Policy';
+            resetPolicyForm();
+        }
+        
+        modal.classList.add('show');
+    }
+
+    function populatePolicyForm(policy) {
+        // Populate form fields with policy data
+        document.getElementById('policyTypeSelect').value = policy.policyType || '';
+        document.getElementById('businessTypeSelect').value = policy.businessType || '';
+        document.getElementById('customerName').value = policy.customerName || '';
+        document.getElementById('customerPhone').value = policy.phone || '';
+        document.getElementById('customerEmail').value = policy.email || '';
+        document.getElementById('companyName').value = policy.companyName || '';
+        document.getElementById('insuranceType').value = policy.insuranceType || '';
+        document.getElementById('startDate').value = policy.startDate || '';
+        document.getElementById('endDate').value = policy.endDate || '';
+        document.getElementById('premium').value = policy.premium || '';
+        document.getElementById('payout').value = policy.payout || '';
+        document.getElementById('customerPaidAmount').value = policy.customerPaidAmount || '';
+        document.getElementById('revenue').value = policy.revenue || '';
+        document.getElementById('vehicleNumber').value = policy.vehicleNumber || '';
+        document.getElementById('vehicleType').value = policy.vehicleType || '';
+    }
+
+    function resetPolicyForm() {
+        // Reset all form fields
+        const form = document.getElementById('policyForm');
+        if (form) form.reset();
+    }
+
+    function savePolicy() {
+        const formData = new FormData(document.getElementById('policyForm'));
+        const isEdit = document.getElementById('policyModalTitle').textContent.includes('Edit');
+        const policyId = isEdit ? currentEditingPolicyId : null;
+
+        const url = isEdit ? `/policies/${policyId}` : '/policies';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showNotification(data.message, 'success');
+                closePolicyModal();
+                loadPolicies(); // Reload data
+            } else if (data.errors) {
+                showNotification('Please check the form and try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving policy:', error);
+            showNotification('Error saving policy. Please try again.', 'error');
+        });
+    }
+
+    function closePolicyModal() {
+        const modal = document.getElementById('policyModal');
+        if (modal) {
+            modal.classList.remove('show');
+            resetPolicyForm();
+        }
+    }
+
+    // Global functions for table actions
+    window.editPolicy = function(id) {
+        const policy = policies.find(p => p.id === id);
+        if (policy) {
+            currentEditingPolicyId = id;
+            openPolicyModal(policy);
+        }
+    };
+
+    window.viewPolicy = function(id) {
+        const policy = policies.find(p => p.id === id);
+        if (policy) {
+            openViewPolicyModal(policy);
+        }
+    };
+
+    window.deletePolicy = function(id) {
+        if (confirm('Are you sure you want to delete this policy? This action cannot be undone.')) {
+            fetch(`/policies/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.message, 'success');
+                loadPolicies(); // Reload data
+            })
+            .catch(error => {
+                console.error('Error deleting policy:', error);
+                showNotification('Error deleting policy. Please try again.', 'error');
+            });
+        }
+    };
+
+    function openViewPolicyModal(policy) {
+        const modal = document.getElementById('viewPolicyModal');
+        if (!modal || !policy) return;
+        
+        // Populate view modal with policy data
+        document.getElementById('viewPolicyNumber').textContent = policy.policyNumber || 'N/A';
+        document.getElementById('viewCustomerName').textContent = policy.customerName || 'N/A';
+        document.getElementById('viewCustomerPhone').textContent = policy.phone || 'N/A';
+        document.getElementById('viewCustomerEmail').textContent = policy.email || 'N/A';
+        document.getElementById('viewPolicyType').textContent = policy.policyType || 'N/A';
+        document.getElementById('viewCompanyName').textContent = policy.companyName || 'N/A';
+        document.getElementById('viewInsuranceType').textContent = policy.insuranceType || 'N/A';
+        document.getElementById('viewStartDate').textContent = policy.startDate || 'N/A';
+        document.getElementById('viewEndDate').textContent = policy.endDate || 'N/A';
+        document.getElementById('viewPremium').textContent = `₹${(policy.premium || 0).toLocaleString()}`;
+        document.getElementById('viewRevenue').textContent = `₹${(policy.revenue || 0).toLocaleString()}`;
+        document.getElementById('viewStatus').textContent = policy.status || 'N/A';
+        document.getElementById('viewAgentName').textContent = policy.agentName || 'N/A';
+        
+        modal.classList.add('show');
+    }
+
+    function closeViewPolicyModal() {
+        const modal = document.getElementById('viewPolicyModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    function exportPoliciesData() {
+        const csvContent = generatePoliciesCSV();
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `policies_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function generatePoliciesCSV() {
+        const headers = ['ID', 'Policy Number', 'Customer Name', 'Phone', 'Email', 'Policy Type', 'Company', 'Insurance Type', 'Start Date', 'End Date', 'Premium', 'Revenue', 'Status', 'Agent'];
+        const rows = filteredPolicies.map(policy => [
+            policy.id,
+            policy.policyNumber,
+            policy.customerName,
+            policy.phone,
+            policy.email,
+            policy.policyType,
+            policy.companyName,
+            policy.insuranceType,
+            policy.startDate,
+            policy.endDate,
+            policy.premium,
+            policy.revenue,
+            policy.status,
+            policy.agentName
+        ]);
+        
+        return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
                 <i class="fas fa-times"></i>
             </button>
-        </div>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
 
-        <!-- Step 1: Policy Type Selection -->
-        <div class="modal-body" id="step1">
-            <h3 style="text-align: center; margin-bottom: 20px;">Select Policy Type</h3>
-            <div class="form-section">
-                <div class="form-group">
-                    <label for="policyTypeSelect">Policy Type *</label>
-                    <select id="policyTypeSelect" required>
-                        <option value="">Select Policy Type</option>
-                        <option value="Motor">Motor Insurance</option>
-                        <option value="Health">Health Insurance</option>
-                        <option value="Life">Life Insurance</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelPolicy">Cancel</button>
-                <button type="button" class="btn btn-primary" id="nextStep1" disabled>Next</button>
-            </div>
-        </div>
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 
-        <!-- Step 2: Business Type Selection -->
-        <div class="modal-body" id="step2" style="display: none;">
-            <h3 style="text-align: center; margin-bottom: 20px;">Select Business Type</h3>
-            <div class="form-section">
-                <div class="form-group">
-                    <label for="businessTypeSelect">Business Type *</label>
-                    <select id="businessTypeSelect" required>
-                        <option value="">Select Business Type</option>
-                        <option value="Self">Self</option>
-                        <option value="Agent1">Agent 1</option>
-                        <option value="Agent2">Agent 2</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="prevStep2">Previous</button>
-                <button type="button" class="btn btn-primary" id="nextStep2" disabled>Next</button>
-            </div>
-        </div>
-
-        <!-- Step 3: Policy Details Form -->
-        <div class="modal-body" id="step3" style="display: none;">
-            <form id="policyForm">
-                <!-- Motor Insurance Form -->
-                <div class="policy-form" id="motorForm">
-                    <!-- Vehicle Info Section -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-car"></i> Vehicle Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vehicleNumber">Vehicle Number *</label>
-                                <input type="text" id="vehicleNumber" name="vehicleNumber" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="vehicleType">Vehicle Type *</label>
-                                <select id="vehicleType" name="vehicleType" required>
-                                    <option value="">Select Vehicle Type</option>
-                                    <option value="Auto">Auto</option>
-                                    <option value="Bus">Bus</option>
-                                    <option value="Lorry">Lorry</option>
-                                    <option value="Car">Car</option>
-                                    <option value="Bike">Bike</option>
-                                    <option value="Truck">Truck</option>
-                                    <option value="Tractor">Tractor</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Customer Info Section -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-user"></i> Customer Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="customerName">Customer Name *</label>
-                                <input type="text" id="customerName" name="customerName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="customerPhone">Phone Number *</label>
-                                <input type="tel" id="customerPhone" name="customerPhone" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="customerEmail">Email Address</label>
-                            <input type="email" id="customerEmail" name="customerEmail">
-                        </div>
-                    </div>
-
-                    <!-- Insurance Info Section -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyName">Company Name *</label>
-                                <select id="companyName" name="companyName" required>
-                                    <option value="">Select Company</option>
-                                    <!-- General Insurance Companies -->
-                                    <optgroup label="General Insurance">
-                                        <option value="The New India Assurance Co. Ltd.">The New India Assurance Co. Ltd.</option>
-                                        <option value="United India Insurance Co. Ltd.">United India Insurance Co. Ltd.</option>
-                                        <option value="National Insurance Co. Ltd.">National Insurance Co. Ltd.</option>
-                                        <option value="The Oriental Insurance Co. Ltd.">The Oriental Insurance Co. Ltd.</option>
-                                        <option value="ICICI Lombard General Insurance Co. Ltd.">ICICI Lombard General Insurance Co. Ltd.</option>
-                                        <option value="Bajaj Allianz General Insurance Co. Ltd.">Bajaj Allianz General Insurance Co. Ltd.</option>
-                                        <option value="HDFC ERGO General Insurance Co. Ltd.">HDFC ERGO General Insurance Co. Ltd.</option>
-                                        <option value="Tata AIG General Insurance Co. Ltd.">Tata AIG General Insurance Co. Ltd.</option>
-                                        <option value="Reliance General Insurance Co. Ltd.">Reliance General Insurance Co. Ltd.</option>
-                                        <option value="SBI General Insurance Co. Ltd.">SBI General Insurance Co. Ltd.</option>
-                                        <option value="IFFCO Tokio General Insurance Co. Ltd.">IFFCO Tokio General Insurance Co. Ltd.</option>
-                                        <option value="Future Generali India Insurance Co. Ltd.">Future Generali India Insurance Co. Ltd.</option>
-                                        <option value="Kotak Mahindra General Insurance Co. Ltd.">Kotak Mahindra General Insurance Co. Ltd.</option>
-                                        <option value="Cholamandalam MS General Insurance Co. Ltd.">Cholamandalam MS General Insurance Co. Ltd.</option>
-                                        <option value="Magma HDI General Insurance Co. Ltd.">Magma HDI General Insurance Co. Ltd.</option>
-                                        <option value="Zuno General Insurance Ltd.">Zuno General Insurance Ltd.</option>
-                                        <option value="Liberty General Insurance Ltd.">Liberty General Insurance Ltd.</option>
-                                        <option value="Royal Sundaram General Insurance Co. Ltd.">Royal Sundaram General Insurance Co. Ltd.</option>
-                                        <option value="Shriram General Insurance Co. Ltd.">Shriram General Insurance Co. Ltd.</option>
-                                        <option value="Universal Sompo General Insurance Co. Ltd.">Universal Sompo General Insurance Co. Ltd.</option>
-                                        <option value="Go Digit General Insurance Ltd.">Go Digit General Insurance Ltd.</option>
-                                        <option value="Raheja QBE General Insurance Co. Ltd.">Raheja QBE General Insurance Co. Ltd.</option>
-                                        <option value="ACKO General Insurance Ltd.">ACKO General Insurance Ltd.</option>
-                                        <option value="Navi General Insurance Ltd.">Navi General Insurance Ltd.</option>
-                                        <option value="Aditya Birla General Insurance Ltd.">Aditya Birla General Insurance Ltd.</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="insuranceType">Insurance Type *</label>
-                                <select id="insuranceType" name="insuranceType" required>
-                                    <option value="">Select Insurance Type</option>
-                                    <option value="Comprehensive">Comprehensive</option>
-                                    <option value="Stand Alone OD">Stand Alone OD</option>
-                                    <option value="Third Party">Third Party</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="startDate">Start Date *</label>
-                                <input type="date" id="startDate" name="startDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="endDate">End Date *</label>
-                                <input type="date" id="endDate" name="endDate" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="premium">Premium Amount (₹) *</label>
-                                <input type="number" id="premium" name="premium" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="payout">Payout Amount (₹)</label>
-                                <input type="number" id="payout" name="payout" step="0.01">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="customerPaidAmount">Customer Paid (₹) *</label>
-                                <input type="number" id="customerPaidAmount" name="customerPaidAmount" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="revenue">Revenue (₹) *</label>
-                                <input type="number" id="revenue" name="revenue" step="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Upload Section -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-upload"></i> Documents</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="policyCopy">Policy Copy</label>
-                                <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
-                            <div class="form-group">
-                                <label for="rcCopy">RC Copy</label>
-                                <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="aadharCopy">Aadhar Copy</label>
-                                <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
-                            <div class="form-group">
-                                <label for="panCopy">PAN Copy</label>
-                                <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Health Insurance Form -->
-                <div class="policy-form" id="healthForm" style="display: none;">
-                    <div class="form-section">
-                        <h3><i class="fas fa-user"></i> Customer Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthCustomerName">Customer Name *</label>
-                                <input type="text" id="healthCustomerName" name="customerName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="healthCustomerPhone">Phone Number *</label>
-                                <input type="tel" id="healthCustomerPhone" name="customerPhone" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthCustomerEmail">Email Address</label>
-                                <input type="email" id="healthCustomerEmail" name="customerEmail">
-                            </div>
-                            <div class="form-group">
-                                <label for="healthCustomerAge">Age *</label>
-                                <input type="number" id="healthCustomerAge" name="customerAge" min="1" max="120" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthCustomerGender">Gender *</label>
-                                <select id="healthCustomerGender" name="customerGender" required>
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="healthSumInsured">Sum Insured (₹) *</label>
-                                <input type="number" id="healthSumInsured" name="sumInsured" step="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthCompanyName">Company Name *</label>
-                                <select id="healthCompanyName" name="companyName" required>
-                                    <option value="">Select Company</option>
-                                    <!-- Health Insurance Companies -->
-                                    <optgroup label="Health Insurance">
-                                        <option value="Star Health and Allied Insurance Co. Ltd.">Star Health and Allied Insurance Co. Ltd.</option>
-                                        <option value="Niva Bupa Health Insurance Co. Ltd.">Niva Bupa Health Insurance Co. Ltd.</option>
-                                        <option value="Care Health Insurance Ltd.">Care Health Insurance Ltd.</option>
-                                        <option value="ManipalCigna Health Insurance Co. Ltd.">ManipalCigna Health Insurance Co. Ltd.</option>
-                                        <option value="Aditya Birla Health Insurance Co. Ltd.">Aditya Birla Health Insurance Co. Ltd.</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="healthPlanType">Plan Type *</label>
-                                <select id="healthPlanType" name="planType" required>
-                                    <option value="">Select Plan Type</option>
-                                    <option value="Individual">Individual</option>
-                                    <option value="Family Floater">Family Floater</option>
-                                    <option value="Senior Citizen">Senior Citizen</option>
-                                    <option value="Critical Illness">Critical Illness</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthStartDate">Start Date *</label>
-                                <input type="date" id="healthStartDate" name="startDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="healthEndDate">End Date *</label>
-                                <input type="date" id="healthEndDate" name="endDate" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthPremium">Premium Amount (₹) *</label>
-                                <input type="number" id="healthPremium" name="premium" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="healthCustomerPaid">Customer Paid (₹) *</label>
-                                <input type="number" id="healthCustomerPaid" name="customerPaidAmount" step="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Life Insurance Form -->
-                <div class="policy-form" id="lifeForm" style="display: none;">
-                    <div class="form-section">
-                        <h3><i class="fas fa-user"></i> Customer Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeCustomerName">Customer Name *</label>
-                                <input type="text" id="lifeCustomerName" name="customerName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="lifeCustomerPhone">Phone Number *</label>
-                                <input type="tel" id="lifeCustomerPhone" name="customerPhone" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeCustomerEmail">Email Address</label>
-                                <input type="email" id="lifeCustomerEmail" name="customerEmail">
-                            </div>
-                            <div class="form-group">
-                                <label for="lifeCustomerAge">Age *</label>
-                                <input type="number" id="lifeCustomerAge" name="customerAge" min="18" max="75" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeCustomerGender">Gender *</label>
-                                <select id="lifeCustomerGender" name="customerGender" required>
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="lifeSumAssured">Sum Assured (₹) *</label>
-                                <input type="number" id="lifeSumAssured" name="sumAssured" step="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeCompanyName">Company Name *</label>
-                                <select id="lifeCompanyName" name="companyName" required>
-                                    <option value="">Select Company</option>
-                                    <!-- Life Insurance Companies -->
-                                    <optgroup label="Life Insurance">
-                                        <option value="Life Insurance Corporation of India">Life Insurance Corporation of India</option>
-                                        <option value="HDFC Life Insurance Co. Ltd.">HDFC Life Insurance Co. Ltd.</option>
-                                        <option value="ICICI Prudential Life Insurance Co. Ltd.">ICICI Prudential Life Insurance Co. Ltd.</option>
-                                        <option value="SBI Life Insurance Co. Ltd.">SBI Life Insurance Co. Ltd.</option>
-                                        <option value="Max Life Insurance Co. Ltd.">Max Life Insurance Co. Ltd.</option>
-                                        <option value="Bajaj Allianz Life Insurance Co. Ltd.">Bajaj Allianz Life Insurance Co. Ltd.</option>
-                                        <option value="Kotak Mahindra Life Insurance Co. Ltd.">Kotak Mahindra Life Insurance Co. Ltd.</option>
-                                        <option value="Aditya Birla Sun Life Insurance Co. Ltd.">Aditya Birla Sun Life Insurance Co. Ltd.</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="lifePlanType">Plan Type *</label>
-                                <select id="lifePlanType" name="planType" required>
-                                    <option value="">Select Plan Type</option>
-                                    <option value="Term Life">Term Life</option>
-                                    <option value="Whole Life">Whole Life</option>
-                                    <option value="Endowment">Endowment</option>
-                                    <option value="Money Back">Money Back</option>
-                                    <option value="ULIP">ULIP</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeStartDate">Start Date *</label>
-                                <input type="date" id="lifeStartDate" name="startDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="lifeEndDate">End Date *</label>
-                                <input type="date" id="lifeEndDate" name="endDate" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifePremium">Premium Amount (₹) *</label>
-                                <input type="number" id="lifePremium" name="premium" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="lifeCustomerPaid">Customer Paid (₹) *</label>
-                                <input type="number" id="lifeCustomerPaid" name="customerPaidAmount" step="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="prevStep3">Previous</button>
-                <button type="submit" form="policyForm" class="btn btn-primary">Submit Policy</button>
-            </div>
-        </div>
-    </div>
-</div>
+    // Modal close event listeners
+    document.addEventListener('click', function(event) {
+        const policyModal = document.getElementById('policyModal');
+        const viewPolicyModal = document.getElementById('viewPolicyModal');
+        
+        if (event.target === policyModal) {
+            closePolicyModal();
+        }
+        if (event.target === viewPolicyModal) {
+            closeViewPolicyModal();
+        }
+    });
+</script>
+@endpush
 
 @endsection

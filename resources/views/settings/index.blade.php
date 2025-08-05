@@ -1,9 +1,9 @@
 @extends('layouts.insurance')
 
-@section('title', 'Settings - Insurance Management System 2.0')
+@section('title', 'Settings - Insurance Management System')
 
 @section('content')
-<div class="page" id="settings">
+<div class="page active" id="settings">
     <div class="page-header">
         <h1>Settings</h1>
         <p>System configuration and preferences</p>
@@ -39,7 +39,7 @@
 
         <!-- General Settings Tab -->
         <div class="settings-content active" id="generalSettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Company Information</h3>
                 <div class="form-section">
                     <div class="form-row">
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Business Settings</h3>
                 <div class="form-section">
                     <div class="form-row">
@@ -107,7 +107,7 @@
 
         <!-- Notifications Settings Tab -->
         <div class="settings-content" id="notificationsSettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Email Configuration</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -139,7 +139,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>SMS Notifications</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -169,7 +169,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>WhatsApp Business Integration</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -197,7 +197,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Notification Preferences</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -235,7 +235,7 @@
 
         <!-- Email Templates Settings Tab -->
         <div class="settings-content" id="emailTemplatesSettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Email Templates</h3>
                 <div class="template-list">
                     <div class="template-item">
@@ -362,7 +362,7 @@
 
         <!-- Security Settings Tab -->
         <div class="settings-content" id="securitySettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Password Policy</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -396,7 +396,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Session Management</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -422,7 +422,7 @@
 
         <!-- Appearance Settings Tab -->
         <div class="settings-content" id="appearanceSettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Theme Settings</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -440,7 +440,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Display Settings</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -471,7 +471,7 @@
 
         <!-- Backup & Export Settings Tab -->
         <div class="settings-content" id="backupSettings">
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Automatic Backup</h3>
                 <div class="form-section">
                     <div class="form-group">
@@ -499,7 +499,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section glass-effect">
                 <h3>Manual Backup & Export</h3>
                 <div class="backup-actions">
                     <button class="btn btn-primary">
@@ -773,25 +773,62 @@
 }
 </style>
 
-<script>
-// Settings Tab Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const tabButtons = document.querySelectorAll('.settings-tab-btn');
-    const tabContents = document.querySelectorAll('.settings-content');
+</style>
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            
-            // Remove active class from all tabs and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked tab and corresponding content
-            this.classList.add('active');
-            document.getElementById(targetTab + 'Settings').classList.add('active');
+@push('scripts')
+<script>
+    // Settings page initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Settings page initialized');
+        
+        // Settings Tab Functionality
+        const tabButtons = document.querySelectorAll('.settings-tab-btn');
+        const tabContents = document.querySelectorAll('.settings-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Remove active class from all tabs and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                this.classList.add('active');
+                document.getElementById(targetTab + 'Settings').classList.add('active');
+            });
+        });
+        
+        // Save settings functionality
+        const saveButtons = document.querySelectorAll('.btn-primary');
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('Saving settings...');
+                // Add save functionality here
+            });
+        });
+        
+        // Reset functionality
+        const resetButtons = document.querySelectorAll('.btn-secondary');
+        resetButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset to defaults?')) {
+                    console.log('Resetting settings...');
+                    // Add reset functionality here
+                }
+            });
+        });
+        
+        // Backup functionality
+        const backupButtons = document.querySelectorAll('.backup-actions .btn');
+        backupButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('Creating backup...');
+                // Add backup functionality here
+            });
         });
     });
-});
 </script>
+@endpush
+
 @endsection

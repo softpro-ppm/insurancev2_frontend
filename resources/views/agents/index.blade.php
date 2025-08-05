@@ -1,9 +1,10 @@
 @extends('layouts.insurance')
 
-@section('title', 'Agents - Insurance Management System 2.0')
+@section('title', 'Agents - Insurance Management System')
 
 @section('content')
-<div class="page-header">
+<div class="page active" id="agents">
+    <div class="page-header">
     <h1>Agents</h1>
     <p>Manage insurance agents</p>
 </div>
@@ -22,7 +23,7 @@
 
     <!-- Agents Statistics -->
     <div class="agents-stats">
-        <div class="stat-card">
+        <div class="stat-card glass-effect">
             <div class="stat-icon total">
                 <i class="fas fa-users"></i>
             </div>
@@ -31,7 +32,7 @@
                 <p class="stat-value" id="totalAgentsCount">0</p>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card glass-effect">
             <div class="stat-icon active">
                 <i class="fas fa-user-check"></i>
             </div>
@@ -40,7 +41,7 @@
                 <p class="stat-value" id="activeAgentsCount">0</p>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card glass-effect">
             <div class="stat-icon performance">
                 <i class="fas fa-chart-line"></i>
             </div>
@@ -49,7 +50,7 @@
                 <p class="stat-value" id="avgPerformanceCount">0%</p>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card glass-effect">
             <div class="stat-icon policies">
                 <i class="fas fa-file-contract"></i>
             </div>
@@ -61,7 +62,7 @@
     </div>
 
     <!-- Agents Data Table -->
-    <div class="data-table-container">
+    <div class="data-table-container glass-effect">
         <div class="table-header">
             <h3>Agent Management</h3>
             <div class="table-controls">
@@ -115,4 +116,601 @@
         </div>
     </div>
 </div>
+
+<!-- Include Modals -->
+@include('components.agent-modal')
+
+@push('scripts')
+<script>
+    // Global variables
+    let agents = [];
+    let filteredAgents = [];
+    let currentPage = 1;
+    let rowsPerPage = 10;
+    let currentSortColumn = '';
+    let currentSortDirection = 'asc';
+    let currentEditingAgentId = null;
+
+    // Agents page initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Agents page initialized');
+        
+        // Load agents data
+        loadAgents();
+        
+        // Initialize event listeners
+        initializeEventListeners();
+        
+        // Initialize search and filters
+        initializeSearchAndFilters();
+    });
+
+    // Load agents from API
+    function loadAgents() {
+        fetch('/api/agents')
+            .then(response => response.json())
+            .then(data => {
+                agents = data.agents || [];
+                filteredAgents = [...agents];
+                renderAgentsTable();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Error loading agents:', error);
+                showNotification('Error loading agents. Please refresh the page.', 'error');
+            });
+    }
+
+    // Initialize event listeners
+    function initializeEventListeners() {
+        // Add agent button
+        const addAgentBtn = document.getElementById('addAgentBtn');
+        if (addAgentBtn) {
+            addAgentBtn.addEventListener('click', () => openAgentModal());
+        }
+
+        // Rows per page
+        const rowsPerPageSelect = document.getElementById('agentsRowsPerPage');
+        if (rowsPerPageSelect) {
+            rowsPerPageSelect.addEventListener('change', function() {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderAgentsTable();
+            });
+        }
+
+        // Export button
+        const exportBtn = document.getElementById('exportAgents');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportAgentsData);
+        }
+
+        // Pagination buttons
+        const prevBtn = document.getElementById('agentsPrevPage');
+        const nextBtn = document.getElementById('agentsNextPage');
+        if (prevBtn) prevBtn.addEventListener('click', () => changePage(currentPage - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => changePage(currentPage + 1));
+
+        // Sort headers
+        const sortHeaders = document.querySelectorAll('#agentsTable th[data-sort]');
+        sortHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.getAttribute('data-sort');
+                sortAgents(column);
+            });
+        });
+
+        // Form submission
+        const agentForm = document.getElementById('agentForm');
+        if (agentForm) {
+            agentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveAgent();
+            });
+        }
+
+        // Modal close buttons
+        const closeAgentBtn = document.getElementById('closeAgentModal');
+        const cancelAgentBtn = document.getElementById('cancelAgent');
+        const saveAgentBtn = document.getElementById('saveAgentBtn');
+        const closeViewAgentBtn = document.getElementById('closeViewAgentModal');
+        const closeViewBtn = document.getElementById('closeViewAgent');
+        
+        if (closeAgentBtn) closeAgentBtn.addEventListener('click', closeAgentModal);
+        if (cancelAgentBtn) cancelAgentBtn.addEventListener('click', closeAgentModal);
+        if (saveAgentBtn) saveAgentBtn.addEventListener('click', saveAgent);
+        if (closeViewAgentBtn) closeViewAgentBtn.addEventListener('click', closeViewAgentModal);
+        if (closeViewBtn) closeViewBtn.addEventListener('click', closeViewAgentModal);
+    }
+
+    // Initialize search and filters
+    function initializeSearchAndFilters() {
+        // Search functionality
+        const searchInput = document.getElementById('agentsSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(function() {
+                filterAgents();
+            }, 300));
+        }
+    }
+
+    // Filter agents
+    function filterAgents() {
+        const searchTerm = document.getElementById('agentsSearch').value.toLowerCase();
+
+        filteredAgents = agents.filter(agent => {
+            return !searchTerm || 
+                agent.name.toLowerCase().includes(searchTerm) ||
+                agent.email.toLowerCase().includes(searchTerm) ||
+                agent.phone.includes(searchTerm) ||
+                agent.userId.toLowerCase().includes(searchTerm);
+        });
+
+        currentPage = 1;
+        renderAgentsTable();
+        updateStatistics();
+    }
+
+    // Sort agents
+    function sortAgents(column) {
+        if (currentSortColumn === column) {
+            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSortColumn = column;
+            currentSortDirection = 'asc';
+        }
+
+        filteredAgents.sort((a, b) => {
+            let aVal = a[column];
+            let bVal = b[column];
+
+            if (column === 'policies' || column === 'performance') {
+                aVal = parseFloat(aVal);
+                bVal = parseFloat(bVal);
+            }
+
+            if (aVal < bVal) return currentSortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return currentSortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        renderAgentsTable();
+    }
+
+    // Render agents table
+    function renderAgentsTable() {
+        const tableBody = document.getElementById('agentsTableBody');
+        if (!tableBody) return;
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = filteredAgents.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = pageData.map(agent => `
+            <tr>
+                <td>${agent.id}</td>
+                <td>${agent.name || 'N/A'}</td>
+                <td>${agent.phone || 'N/A'}</td>
+                <td>${agent.email || 'N/A'}</td>
+                <td><span class="user-id-badge">${agent.userId || 'N/A'}</span></td>
+                <td><span class="status-badge ${(agent.status || 'Active').toLowerCase()}">${agent.status || 'Active'}</span></td>
+                <td>${agent.policies || 0}</td>
+                <td><span class="performance-badge">${agent.performance || '0%'}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn edit" onclick="editAgent(${agent.id})" title="Edit Agent">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn view" onclick="viewAgent(${agent.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteAgent(${agent.id})" title="Delete Agent">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        updatePagination();
+    }
+
+    // Update pagination
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredAgents.length / rowsPerPage);
+        const startRecord = (currentPage - 1) * rowsPerPage + 1;
+        const endRecord = Math.min(currentPage * rowsPerPage, filteredAgents.length);
+
+        // Update pagination info
+        document.getElementById('agentsStartRecord').textContent = startRecord;
+        document.getElementById('agentsEndRecord').textContent = endRecord;
+        document.getElementById('agentsTotalRecords').textContent = filteredAgents.length;
+
+        // Update pagination buttons
+        document.getElementById('agentsPrevPage').disabled = currentPage === 1;
+        document.getElementById('agentsNextPage').disabled = currentPage === totalPages;
+
+        // Generate page numbers
+        const pageNumbersContainer = document.getElementById('agentsPageNumbers');
+        let pageNumbersHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                pageNumbersHTML += `<button class="page-number ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                pageNumbersHTML += '<span class="page-ellipsis">...</span>';
+            }
+        }
+
+        pageNumbersContainer.innerHTML = pageNumbersHTML;
+    }
+
+    // Change page
+    function changePage(page) {
+        const totalPages = Math.ceil(filteredAgents.length / rowsPerPage);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            renderAgentsTable();
+        }
+    }
+
+    // Update statistics
+    function updateStatistics() {
+        const totalCount = filteredAgents.length;
+        const activeCount = filteredAgents.filter(a => a.status === 'Active').length;
+        const avgPerformance = agents.length > 0 ? 
+            (agents.reduce((sum, agent) => sum + parseFloat(agent.performance || 0), 0) / agents.length).toFixed(1) : 0;
+        const totalPolicies = agents.reduce((sum, agent) => sum + (parseInt(agent.policies) || 0), 0);
+
+        document.getElementById('totalAgentsCount').textContent = totalCount;
+        document.getElementById('activeAgentsCount').textContent = activeCount;
+        document.getElementById('avgPerformanceCount').textContent = avgPerformance + '%';
+        document.getElementById('totalPoliciesCount').textContent = totalPolicies;
+    }
+
+    // CRUD Functions
+    function openAgentModal(agent = null) {
+        const modal = document.getElementById('agentModal');
+        if (!modal) return;
+        
+        if (agent) {
+            // Edit mode
+            document.getElementById('agentModalTitle').textContent = 'Edit Agent';
+            populateAgentForm(agent);
+            currentEditingAgentId = agent.id;
+        } else {
+            // Add mode
+            document.getElementById('agentModalTitle').textContent = 'Add New Agent';
+            resetAgentForm();
+            currentEditingAgentId = null;
+        }
+        
+        modal.classList.add('show');
+    }
+
+    function populateAgentForm(agent) {
+        document.getElementById('agentName').value = agent.name || '';
+        document.getElementById('agentPhone').value = agent.phone || '';
+        document.getElementById('agentEmail').value = agent.email || '';
+        document.getElementById('agentStatus').value = agent.status || 'Active';
+        document.getElementById('agentAddress').value = agent.address || '';
+        document.getElementById('agentPassword').value = '';
+    }
+
+    function resetAgentForm() {
+        const form = document.getElementById('agentForm');
+        if (form) form.reset();
+    }
+
+    function saveAgent() {
+        const formData = new FormData(document.getElementById('agentForm'));
+        const isEdit = currentEditingAgentId !== null;
+
+        const url = isEdit ? `/agents/${currentEditingAgentId}` : '/agents';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showNotification(data.message, 'success');
+                closeAgentModal();
+                loadAgents(); // Reload data
+            } else if (data.errors) {
+                showNotification('Please check the form and try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving agent:', error);
+            showNotification('Error saving agent. Please try again.', 'error');
+        });
+    }
+
+    function closeAgentModal() {
+        const modal = document.getElementById('agentModal');
+        if (modal) {
+            modal.classList.remove('show');
+            resetAgentForm();
+        }
+    }
+
+    // Global functions for table actions
+    window.editAgent = function(id) {
+        const agent = agents.find(a => a.id === id);
+        if (agent) {
+            openAgentModal(agent);
+        }
+    };
+
+    window.viewAgent = function(id) {
+        const agent = agents.find(a => a.id === id);
+        if (agent) {
+            openViewAgentModal(agent);
+        }
+    };
+
+    window.deleteAgent = function(id) {
+        if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+            fetch(`/agents/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.message, 'success');
+                loadAgents(); // Reload data
+            })
+            .catch(error => {
+                console.error('Error deleting agent:', error);
+                showNotification('Error deleting agent. Please try again.', 'error');
+            });
+        }
+    };
+
+    function openViewAgentModal(agent) {
+        const modal = document.getElementById('viewAgentModal');
+        if (!modal || !agent) return;
+        
+        // Populate view modal with agent data
+        document.getElementById('viewAgentName').textContent = agent.name || 'N/A';
+        document.getElementById('viewAgentPhone').textContent = agent.phone || 'N/A';
+        document.getElementById('viewAgentEmail').textContent = agent.email || 'N/A';
+        document.getElementById('viewAgentUserId').textContent = agent.userId || 'N/A';
+        document.getElementById('viewAgentStatus').textContent = agent.status || 'N/A';
+        document.getElementById('viewAgentPolicies').textContent = agent.policies || 0;
+        document.getElementById('viewAgentPerformance').textContent = agent.performance || '0%';
+        document.getElementById('viewAgentAddress').textContent = agent.address || 'N/A';
+        
+        modal.classList.add('show');
+    }
+
+    function closeViewAgentModal() {
+        const modal = document.getElementById('viewAgentModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    function exportAgentsData() {
+        const csvContent = generateAgentsCSV();
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `agents_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function generateAgentsCSV() {
+        const headers = ['ID', 'Name', 'Phone', 'Email', 'User ID', 'Status', 'Policies', 'Performance', 'Address'];
+        const rows = filteredAgents.map(agent => [
+            agent.id,
+            agent.name,
+            agent.phone,
+            agent.email,
+            agent.userId,
+            agent.status,
+            agent.policies,
+            agent.performance,
+            agent.address
+        ]);
+        
+        return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Modal close event listeners
+    document.addEventListener('click', function(event) {
+        const agentModal = document.getElementById('agentModal');
+        const viewAgentModal = document.getElementById('viewAgentModal');
+        
+        if (event.target === agentModal) {
+            closeAgentModal();
+        }
+        if (event.target === viewAgentModal) {
+            closeViewAgentModal();
+        }
+    });
+</script>
+
+<style>
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    border-left: 4px solid #4F46E5;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    border-left-color: #10B981;
+}
+
+.notification-error {
+    border-left-color: #EF4444;
+}
+
+.notification-info {
+    border-left-color: #3B82F6;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.notification-content i {
+    font-size: 16px;
+}
+
+.notification-success .notification-content i {
+    color: #10B981;
+}
+
+.notification-error .notification-content i {
+    color: #EF4444;
+}
+
+.notification-info .notification-content i {
+    color: #3B82F6;
+}
+
+.notification-content span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1F2937;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.notification-close:hover {
+    background: #F3F4F6;
+    color: #374151;
+}
+
+/* Agent specific styles */
+.agents-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.add-agent-btn {
+    background: linear-gradient(135deg, #4F46E5, #6366F1);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-agent-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+}
+
+.user-id-badge {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4F46E5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+.performance-badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+</style>
+@endpush
+
 @endsection

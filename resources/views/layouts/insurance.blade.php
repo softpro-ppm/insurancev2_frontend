@@ -17,12 +17,64 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <!-- Remove Vite for now to avoid conflicts -->
-    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    
+    <!-- Force hide loading overlay -->
+    <style>
+        #loadingOverlay {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        
+        .loading-spinner {
+            display: none !important;
+        }
+        
+        /* Ensure main content is visible */
+        .main-container {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+    </style>
     
     @stack('styles')
 </head>
 <body class="light-theme">
+    <!-- Immediate fix for loading overlay -->
+    <script>
+        // Immediately hide loading overlay
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+                loadingOverlay.remove();
+            }
+        });
+        
+        // Also hide on window load
+        window.addEventListener('load', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+                loadingOverlay.remove();
+            }
+        });
+        
+        // Force hide immediately
+        setTimeout(function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+                loadingOverlay.remove();
+            }
+        }, 100);
+    </script>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none !important;">
+        <div class="loading-spinner"></div>
+    </div>
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
@@ -78,37 +130,53 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}" data-page="dashboard">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+                    <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard') }}" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('policies.*') ? 'active' : '' }}" data-page="policies">
-                        <i class="fas fa-file-contract"></i>
-                        <span>Policies</span>
+                    <li class="nav-item {{ request()->routeIs('policies.*') ? 'active' : '' }}">
+                        <a href="{{ route('policies.index') }}" class="nav-link">
+                            <i class="fas fa-file-contract"></i>
+                            <span>Policies</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('renewals.*') ? 'active' : '' }}" data-page="renewals">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>Renewals</span>
+                    <li class="nav-item {{ request()->routeIs('renewals.*') ? 'active' : '' }}">
+                        <a href="{{ route('renewals.index') }}" class="nav-link">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Renewals</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('followups.*') ? 'active' : '' }}" data-page="followups">
-                        <i class="fas fa-bell"></i>
-                        <span>Follow Ups</span>
+                    <li class="nav-item {{ request()->routeIs('followups.*') ? 'active' : '' }}">
+                        <a href="{{ route('followups.index') }}" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span>Follow Ups</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}" data-page="reports">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Reports</span>
+                    <li class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                        <a href="{{ route('reports.index') }}" class="nav-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('agents.*') ? 'active' : '' }}" data-page="agents">
-                        <i class="fas fa-users"></i>
-                        <span>Agents</span>
+                    <li class="nav-item {{ request()->routeIs('agents.*') ? 'active' : '' }}">
+                        <a href="{{ route('agents.index') }}" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Agents</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}" data-page="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span>Notifications</span>
+                    <li class="nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+                        <a href="{{ route('notifications.index') }}" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('settings.*') ? 'active' : '' }}" data-page="settings">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
+                    <li class="nav-item {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                        <a href="{{ route('settings.index') }}" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
                     </li>
                 </ul>
             </nav>
@@ -123,6 +191,33 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/script.js') }}"></script>
+    
+    <!-- Fix loading overlay issue -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loading overlay after page loads
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+            
+            // Initialize basic functionality if main scripts fail
+            setTimeout(function() {
+                if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+                    loadingOverlay.style.display = 'none';
+                }
+            }, 3000); // Force hide after 3 seconds
+        });
+        
+        // Fallback: hide loading overlay on window load
+        window.addEventListener('load', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 </html>

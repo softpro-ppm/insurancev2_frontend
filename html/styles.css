@@ -7,17 +7,32 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #F9FAFB;
+    background: linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%);
     color: #111827;
     line-height: 1.6;
     transition: all 0.3s ease;
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
 /* Dark Theme */
 body.dark-theme {
-    background: #0F172A;
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
     color: #F1F5F9;
+}
+
+/* Enhanced Glassmorphism Effects */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .glass-effect {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Top Navigation */
@@ -35,13 +50,14 @@ body.dark-theme {
     justify-content: space-between;
     padding: 0 24px;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .dark-theme .top-nav {
     background: rgba(15, 23, 42, 0.8);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .nav-left {
@@ -209,11 +225,13 @@ body.dark-theme {
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
     z-index: 100;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.1);
 }
 
 .dark-theme .sidebar {
     background: rgba(15, 23, 42, 0.7);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar.collapsed {
@@ -348,20 +366,28 @@ body.dark-theme {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 28px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
 }
 
 .dark-theme .card {
     background: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+    border-color: rgba(79, 70, 229, 0.3);
+}
+
+.dark-theme .card:hover {
+    border-color: rgba(79, 70, 229, 0.5);
 }
 
 .card-header {
@@ -434,16 +460,28 @@ body.dark-theme {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     position: relative;
     min-height: 400px;
+    transition: all 0.3s ease;
 }
 
 .dark-theme .chart-container {
     background: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(79, 70, 229, 0.2);
+}
+
+.dark-theme .chart-container:hover {
+    border-color: rgba(79, 70, 229, 0.4);
 }
 
 .chart-container canvas {

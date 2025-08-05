@@ -1,9 +1,9 @@
 @extends('layouts.insurance')
 
-@section('title', 'Notifications - Insurance Management System 2.0')
+@section('title', 'Notifications - Insurance Management System')
 
 @section('content')
-<div class="page" id="notifications">
+<div class="page active" id="notifications">
     <div class="page-header">
         <h1>Notifications</h1>
         <p>Manage bulk notifications and communication channels</p>
@@ -11,7 +11,7 @@
     <div class="page-content">
         <!-- Notification Statistics -->
         <div class="notifications-stats">
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
@@ -20,7 +20,7 @@
                     <p>Urgent Notifications</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon">
                     <i class="fas fa-clock"></i>
                 </div>
@@ -29,7 +29,7 @@
                     <p>Scheduled Notifications</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
@@ -38,7 +38,7 @@
                     <p>Completed Today</p>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card glass-effect">
                 <div class="stat-icon">
                     <i class="fas fa-paper-plane"></i>
                 </div>
@@ -84,7 +84,7 @@
         <div class="analytics-overview">
             <h3>Performance Analytics</h3>
             <div class="analytics-grid">
-                <div class="analytics-card">
+                <div class="analytics-card glass-effect">
                     <div class="analytics-header">
                         <h4>Delivery Rate</h4>
                         <i class="fas fa-check-circle"></i>
@@ -95,7 +95,7 @@
                         <canvas id="deliveryRateChart" width="200" height="60"></canvas>
                     </div>
                 </div>
-                <div class="analytics-card">
+                <div class="analytics-card glass-effect">
                     <div class="analytics-header">
                         <h4>Open Rate</h4>
                         <i class="fas fa-envelope-open"></i>
@@ -106,7 +106,7 @@
                         <canvas id="openRateChart" width="200" height="60"></canvas>
                     </div>
                 </div>
-                <div class="analytics-card">
+                <div class="analytics-card glass-effect">
                     <div class="analytics-header">
                         <h4>Response Rate</h4>
                         <i class="fas fa-reply"></i>
@@ -117,7 +117,7 @@
                         <canvas id="responseRateChart" width="200" height="60"></canvas>
                     </div>
                 </div>
-                <div class="analytics-card">
+                <div class="analytics-card glass-effect">
                     <div class="analytics-header">
                         <h4>Channel Performance</h4>
                         <i class="fas fa-chart-pie"></i>
@@ -712,5 +712,183 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
+/* Notifications specific styles */
+.notification-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.controls-left {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.controls-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
 </style>
+
+<!-- Include Modals -->
+@include('components.bulk-notification-modal')
+@include('components.schedule-notification-modal')
+
+@push('scripts')
+<script>
+    // Notifications page initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Notifications page initialized');
+        
+        // Initialize analytics charts if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            // Delivery Rate Chart
+            const deliveryRateCtx = document.getElementById('deliveryRateChart');
+            if (deliveryRateCtx) {
+                new Chart(deliveryRateCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Delivery Rate',
+                            data: [92, 94, 95, 96, 95, 97, 95],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Open Rate Chart
+            const openRateCtx = document.getElementById('openRateChart');
+            if (openRateCtx) {
+                new Chart(openRateCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Open Rate',
+                            data: [65, 68, 70, 72, 69, 71, 68],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Response Rate Chart
+            const responseRateCtx = document.getElementById('responseRateChart');
+            if (responseRateCtx) {
+                new Chart(responseRateCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Response Rate',
+                            data: [12, 14, 13, 15, 12, 11, 13],
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 20
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Button functionality
+        const sendBulkBtn = document.getElementById('sendBulkNotifications');
+        if (sendBulkBtn) {
+            sendBulkBtn.addEventListener('click', function() {
+                const bulkModal = document.getElementById('bulkNotificationModal');
+                if (bulkModal) {
+                    bulkModal.classList.add('show');
+                }
+            });
+        }
+        
+        const scheduleBtn = document.getElementById('scheduleNotifications');
+        if (scheduleBtn) {
+            scheduleBtn.addEventListener('click', function() {
+                const scheduleModal = document.getElementById('scheduleNotificationModal');
+                if (scheduleModal) {
+                    scheduleModal.classList.add('show');
+                }
+            });
+        }
+        
+        const analyticsBtn = document.getElementById('viewAnalytics');
+        if (analyticsBtn) {
+            analyticsBtn.addEventListener('click', function() {
+                console.log('Viewing analytics...');
+                // Add analytics view functionality here
+            });
+        }
+        
+        const templatesBtn = document.getElementById('manageTemplates');
+        if (templatesBtn) {
+            templatesBtn.addEventListener('click', function() {
+                console.log('Managing templates...');
+                // Add template management functionality here
+            });
+        }
+    });
+</script>
+@endpush
+
 @endsection

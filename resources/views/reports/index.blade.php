@@ -1,9 +1,9 @@
 @extends('layouts.insurance')
 
-@section('title', 'Reports & Analytics - Insurance Management System 2.0')
+@section('title', 'Reports & Analytics - Insurance Management System')
 
 @section('content')
-<div class="page" id="reports">
+<div class="page active" id="reports">
     <div class="page-header">
         <h1>Reports & Analytics</h1>
         <p>Comprehensive insights and performance analytics</p>
@@ -46,7 +46,7 @@
         <div class="kpi-section">
             <h3>Key Performance Indicators</h3>
             <div class="kpi-grid">
-                <div class="kpi-card">
+                <div class="kpi-card glass-effect">
                     <div class="kpi-icon premium">
                         <i class="fas fa-rupee-sign"></i>
                     </div>
@@ -56,7 +56,7 @@
                         <span class="kpi-change positive" id="premiumChange">+12.5%</span>
                     </div>
                 </div>
-                <div class="kpi-card">
+                <div class="kpi-card glass-effect">
                     <div class="kpi-icon revenue">
                         <i class="fas fa-chart-line"></i>
                     </div>
@@ -66,7 +66,7 @@
                         <span class="kpi-change positive" id="revenueChange">+8.3%</span>
                     </div>
                 </div>
-                <div class="kpi-card">
+                <div class="kpi-card glass-effect">
                     <div class="kpi-icon policies">
                         <i class="fas fa-file-contract"></i>
                     </div>
@@ -76,7 +76,7 @@
                         <span class="kpi-change positive" id="policiesChange">+5.4%</span>
                     </div>
                 </div>
-                <div class="kpi-card">
+                <div class="kpi-card glass-effect">
                     <div class="kpi-icon conversion">
                         <i class="fas fa-percentage"></i>
                     </div>
@@ -92,7 +92,7 @@
         <!-- Charts Section -->
         <div class="charts-section">
             <div class="chart-row">
-                <div class="chart-container">
+                <div class="chart-container glass-effect">
                     <div class="chart-header">
                         <h3>Premium vs Revenue Trend</h3>
                         <div class="chart-controls">
@@ -106,7 +106,7 @@
                     </div>
                     <canvas id="trendChart"></canvas>
                 </div>
-                <div class="chart-container">
+                <div class="chart-container glass-effect">
                     <div class="chart-header">
                         <h3>Policy Type Distribution</h3>
                         <div class="chart-controls">
@@ -121,7 +121,7 @@
                 </div>
             </div>
             <div class="chart-row">
-                <div class="chart-container">
+                <div class="chart-container glass-effect">
                     <div class="chart-header">
                         <h3>Agent Performance</h3>
                         <div class="chart-controls">
@@ -134,7 +134,7 @@
                     </div>
                     <canvas id="agentPerformanceChart"></canvas>
                 </div>
-                <div class="chart-container">
+                <div class="chart-container glass-effect">
                     <div class="chart-header">
                         <h3>Renewal Status</h3>
                         <div class="chart-controls">
@@ -680,5 +680,191 @@
 .report-table td {
     color: #6B7280;
 }
+
+/* Reports specific styles */
+.reports-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.generate-report-btn, .export-report-btn {
+    background: linear-gradient(135deg, #4F46E5, #6366F1);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.generate-report-btn:hover, .export-report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+}
+
+.export-report-btn {
+    background: linear-gradient(135deg, #10B981, #059669);
+}
+
+.export-report-btn:hover {
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
 </style>
+
+@push('scripts')
+<script>
+    // Reports page initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Reports page initialized');
+        
+        // Initialize charts if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart');
+            if (trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Premium',
+                            data: [45000, 52000, 48000, 61000],
+                            borderColor: '#4F46E5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Revenue',
+                            data: [18000, 22000, 19000, 25000],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Policy Type Distribution Chart
+            const policyTypeCtx = document.getElementById('policyTypeChart');
+            if (policyTypeCtx) {
+                new Chart(policyTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Motor', 'Health', 'Life', 'Others'],
+                        datasets: [{
+                            data: [45, 30, 20, 5],
+                            backgroundColor: [
+                                '#4F46E5',
+                                '#10B981',
+                                '#F59E0B',
+                                '#6B7280'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Agent Performance Chart
+            const agentPerformanceCtx = document.getElementById('agentPerformanceChart');
+            if (agentPerformanceCtx) {
+                new Chart(agentPerformanceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Agent 1', 'Agent 2', 'Agent 3', 'Agent 4'],
+                        datasets: [{
+                            label: 'Policies Sold',
+                            data: [25, 18, 22, 15],
+                            backgroundColor: 'rgba(79, 70, 229, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Renewal Status Chart
+            const renewalStatusCtx = document.getElementById('renewalStatusChart');
+            if (renewalStatusCtx) {
+                new Chart(renewalStatusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Renewed', 'Pending', 'Expired'],
+                        datasets: [{
+                            data: [65, 25, 10],
+                            backgroundColor: [
+                                '#10B981',
+                                '#F59E0B',
+                                '#EF4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+        
+        // Tab functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // Remove active class from all tabs
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                document.getElementById(tabName + 'Report').classList.add('active');
+            });
+        });
+        
+        // Generate report button functionality
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        if (generateReportBtn) {
+            generateReportBtn.addEventListener('click', function() {
+                console.log('Generating report...');
+                // Add report generation functionality here
+            });
+        }
+        
+        // Export report button functionality
+        const exportReportBtn = document.getElementById('exportReportBtn');
+        if (exportReportBtn) {
+            exportReportBtn.addEventListener('click', function() {
+                console.log('Exporting report...');
+                // Add export functionality here
+            });
+        }
+    });
+</script>
+@endpush
+
 @endsection
