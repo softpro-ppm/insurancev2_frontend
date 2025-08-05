@@ -3,57 +3,114 @@
 @section('title', 'Agents - Insurance Management System 2.0')
 
 @section('content')
-<div class="page" id="agents">
-    <div class="page-header">
-        <h1>Agents</h1>
-        <p>Manage insurance agents and their performance</p>
+<div class="page-header">
+    <h1>Agents</h1>
+    <p>Manage insurance agents</p>
+</div>
+<div class="page-content">
+    <!-- Agents Controls -->
+    <div class="agents-controls">
+        <button class="add-agent-btn" id="addAgentBtn">
+            <i class="fas fa-plus"></i>
+            Add New Agent
+        </button>
+        <div class="search-box">
+            <input type="text" id="agentsSearch" placeholder="Search agents...">
+            <i class="fas fa-search"></i>
+        </div>
     </div>
-    <div class="page-content">
-        <!-- Agents content will be populated by JavaScript -->
-        <div class="agents-controls">
-            <div class="controls-left">
-                <button class="add-agent-btn" id="addAgentBtn">
-                    <i class="fas fa-plus"></i>
-                    Add New Agent
-                </button>
+
+    <!-- Agents Statistics -->
+    <div class="agents-stats">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-users"></i>
             </div>
-            <div class="controls-right">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search agents..." id="agentsSearch">
-                </div>
+            <div class="stat-content">
+                <h3>Total Agents</h3>
+                <p class="stat-value" id="totalAgentsCount">0</p>
             </div>
         </div>
-
-        <div class="data-table-container">
-            <div class="table-header">
-                <h3>Agents Management</h3>
-                <div class="table-controls">
-                    <select class="rows-per-page" id="agentsRowsPerPage">
-                        <option value="10">10 rows</option>
-                        <option value="25">25 rows</option>
-                        <option value="50">50 rows</option>
-                        <option value="100">100 rows</option>
-                    </select>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon active">
+                <i class="fas fa-user-check"></i>
             </div>
-            <div class="table-wrapper">
-                <table class="data-table" id="agentsTable">
-                    <thead>
-                        <tr>
-                            <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
-                            <th data-sort="name">Agent Name <i class="fas fa-sort"></i></th>
-                            <th data-sort="email">Email <i class="fas fa-sort"></i></th>
-                            <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
-                            <th data-sort="policies">Policies <i class="fas fa-sort"></i></th>
-                            <th data-sort="status">Status <i class="fas fa-sort"></i></th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="agentsTableBody">
-                        <!-- Table data will be populated by JavaScript -->
-                    </tbody>
-                </table>
+            <div class="stat-content">
+                <h3>Active Agents</h3>
+                <p class="stat-value" id="activeAgentsCount">0</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon performance">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Avg Performance</h3>
+                <p class="stat-value" id="avgPerformanceCount">0%</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon policies">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Total Policies</h3>
+                <p class="stat-value" id="totalPoliciesCount">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Data Table -->
+    <div class="data-table-container">
+        <div class="table-header">
+            <h3>Agent Management</h3>
+            <div class="table-controls">
+                <select class="rows-per-page" id="agentsRowsPerPage">
+                    <option value="10">10 rows</option>
+                    <option value="25">25 rows</option>
+                    <option value="50">50 rows</option>
+                    <option value="100">100 rows</option>
+                </select>
+                <button class="export-btn" id="exportAgents">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table" id="agentsTable">
+                <thead>
+                    <tr>
+                        <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                        <th data-sort="name">Agent Name <i class="fas fa-sort"></i></th>
+                        <th data-sort="phone">Phone Number <i class="fas fa-sort"></i></th>
+                        <th data-sort="email">Email <i class="fas fa-sort"></i></th>
+                        <th data-sort="userId">User ID <i class="fas fa-sort"></i></th>
+                        <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                        <th data-sort="policies">Policies <i class="fas fa-sort"></i></th>
+                        <th data-sort="performance">Performance <i class="fas fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="agentsTableBody">
+                    <!-- Table data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <div class="table-pagination">
+            <div class="pagination-info">
+                Showing <span id="agentsStartRecord">1</span> to <span id="agentsEndRecord">10</span> of <span id="agentsTotalRecords">0</span> entries
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="agentsPrevPage" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers" id="agentsPageNumbers">
+                    <!-- Page numbers will be generated by JavaScript -->
+                </div>
+                <button class="pagination-btn" id="agentsNextPage">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>
