@@ -873,6 +873,113 @@
             });
         }
     });
+
+    // Load reports from API
+    function loadReports() {
+        fetch('/api/reports')
+            .then(response => response.json())
+            .then(data => {
+                reports = data.reports || [];
+                filteredReports = [...reports];
+                renderReportsTable();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Error loading reports:', error);
+                showNotification('Error loading reports. Please refresh the page.', 'error');
+            });
+    }
+
+    // Render reports table
+    function renderReportsTable() {
+        const tableBody = document.getElementById('reportsTableBody');
+        if (!tableBody) return;
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = filteredReports.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = pageData.map(report => `
+            <tr>
+                <td>${report.id}</td>
+                <td>${report.report_type || 'N/A'}</td>
+                <td>${report.generated_date || 'N/A'}</td>
+                <td>${report.status || 'N/A'}</td>
+                <td>${report.file_size || 'N/A'}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewReport(${report.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="downloadReport(${report.id})">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Update statistics
+    function updateStatistics() {
+        const totalCount = filteredReports.length;
+        const completedCount = filteredReports.filter(r => r.status === 'Completed').length;
+        const pendingCount = filteredReports.filter(r => r.status === 'Pending').length;
+        const failedCount = filteredReports.filter(r => r.status === 'Failed').length;
+
+        // Update KPI cards if they exist
+        const totalElement = document.getElementById('totalReportsCount');
+        const completedElement = document.getElementById('completedReportsCount');
+        const pendingElement = document.getElementById('pendingReportsCount');
+        const failedElement = document.getElementById('failedReportsCount');
+
+        if (totalElement) totalElement.textContent = totalCount;
+        if (completedElement) completedElement.textContent = completedCount;
+        if (pendingElement) pendingElement.textContent = pendingCount;
+        if (failedElement) failedElement.textContent = failedCount;
+    }
+
+    // Global functions
+    window.viewReport = function(id) {
+        const report = reports.find(r => r.id === id);
+        if (report) {
+            console.log('Viewing report:', report);
+            // Add view modal functionality here
+        }
+    };
+
+    window.downloadReport = function(id) {
+        const report = reports.find(r => r.id === id);
+        if (report) {
+            console.log('Downloading report:', report);
+            // Add download functionality here
+        }
+    };
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
 </script>
 @endpush
 
