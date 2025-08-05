@@ -777,9 +777,16 @@
 
 @push('scripts')
 <script>
+    // Global variables
+    let settings = {};
+    let currentSettings = {};
+
     // Settings page initialization
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Settings page initialized');
+        
+        // Load settings data
+        loadSettings();
         
         // Settings Tab Functionality
         const tabButtons = document.querySelectorAll('.settings-tab-btn');
@@ -803,8 +810,7 @@
         const saveButtons = document.querySelectorAll('.btn-primary');
         saveButtons.forEach(button => {
             button.addEventListener('click', function() {
-                console.log('Saving settings...');
-                // Add save functionality here
+                saveSettings();
             });
         });
         
@@ -813,8 +819,7 @@
         resetButtons.forEach(button => {
             button.addEventListener('click', function() {
                 if (confirm('Are you sure you want to reset to defaults?')) {
-                    console.log('Resetting settings...');
-                    // Add reset functionality here
+                    resetSettings();
                 }
             });
         });
@@ -823,11 +828,161 @@
         const backupButtons = document.querySelectorAll('.backup-actions .btn');
         backupButtons.forEach(button => {
             button.addEventListener('click', function() {
-                console.log('Creating backup...');
-                // Add backup functionality here
+                createBackup();
             });
         });
     });
+
+    // Load settings from API
+    function loadSettings() {
+        fetch('/api/settings')
+            .then(response => response.json())
+            .then(data => {
+                settings = data.settings || {};
+                currentSettings = {...settings};
+                populateSettingsForm();
+            })
+            .catch(error => {
+                console.error('Error loading settings:', error);
+                showNotification('Error loading settings. Please refresh the page.', 'error');
+            });
+    }
+
+    // Populate settings form
+    function populateSettingsForm() {
+        // Company Information
+        if (settings.company_name) document.getElementById('companyName').value = settings.company_name;
+        if (settings.company_email) document.getElementById('companyEmail').value = settings.company_email;
+        if (settings.company_phone) document.getElementById('companyPhone').value = settings.company_phone;
+        if (settings.company_address) document.getElementById('companyAddress').value = settings.company_address;
+        
+        // Business Settings
+        if (settings.business_reg_no) document.getElementById('businessRegNo').value = settings.business_reg_no;
+        if (settings.gst_number) document.getElementById('gstNumber').value = settings.gst_number;
+        if (settings.timezone) document.getElementById('timezone').value = settings.timezone;
+        if (settings.currency) document.getElementById('currency').value = settings.currency;
+        
+        // Notification Settings
+        if (settings.email_notifications) document.getElementById('emailNotifications').checked = settings.email_notifications;
+        if (settings.sms_notifications) document.getElementById('smsNotifications').checked = settings.sms_notifications;
+        if (settings.whatsapp_notifications) document.getElementById('whatsappNotifications').checked = settings.whatsapp_notifications;
+        
+        // Security Settings
+        if (settings.session_timeout) document.getElementById('sessionTimeout').value = settings.session_timeout;
+        if (settings.password_expiry) document.getElementById('passwordExpiry').value = settings.password_expiry;
+        if (settings.two_factor_auth) document.getElementById('twoFactorAuth').checked = settings.two_factor_auth;
+    }
+
+    // Save settings
+    function saveSettings() {
+        const formData = new FormData();
+        
+        // Collect all form data
+        formData.append('company_name', document.getElementById('companyName').value);
+        formData.append('company_email', document.getElementById('companyEmail').value);
+        formData.append('company_phone', document.getElementById('companyPhone').value);
+        formData.append('company_address', document.getElementById('companyAddress').value);
+        formData.append('business_reg_no', document.getElementById('businessRegNo').value);
+        formData.append('gst_number', document.getElementById('gstNumber').value);
+        formData.append('timezone', document.getElementById('timezone').value);
+        formData.append('currency', document.getElementById('currency').value);
+        
+        // Notification settings
+        formData.append('email_notifications', document.getElementById('emailNotifications').checked);
+        formData.append('sms_notifications', document.getElementById('smsNotifications').checked);
+        formData.append('whatsapp_notifications', document.getElementById('whatsappNotifications').checked);
+        
+        // Security settings
+        formData.append('session_timeout', document.getElementById('sessionTimeout').value);
+        formData.append('password_expiry', document.getElementById('passwordExpiry').value);
+        formData.append('two_factor_auth', document.getElementById('twoFactorAuth').checked);
+
+        fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showNotification(data.message, 'success');
+                currentSettings = {...settings};
+            } else if (data.errors) {
+                showNotification('Please check the form and try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            showNotification('Error saving settings. Please try again.', 'error');
+        });
+    }
+
+    // Reset settings
+    function resetSettings() {
+        fetch('/api/settings/reset', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showNotification(data.message, 'success');
+            loadSettings(); // Reload settings
+        })
+        .catch(error => {
+            console.error('Error resetting settings:', error);
+            showNotification('Error resetting settings. Please try again.', 'error');
+        });
+    }
+
+    // Create backup
+    function createBackup() {
+        fetch('/api/settings/backup', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showNotification(data.message, 'success');
+        })
+        .catch(error => {
+            console.error('Error creating backup:', error);
+            showNotification('Error creating backup. Please try again.', 'error');
+        });
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
 </script>
 @endpush
 
