@@ -721,9 +721,18 @@
 
 @push('scripts')
 <script>
+    // Global variables
+    let reports = [];
+    let filteredReports = [];
+    let currentPage = 1;
+    let rowsPerPage = 10;
+
     // Reports page initialization
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Reports page initialized');
+        
+        // Load reports data
+        loadReports();
         
         // Initialize charts if Chart.js is available
         if (typeof Chart !== 'undefined') {

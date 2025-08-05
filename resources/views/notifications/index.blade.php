@@ -742,9 +742,18 @@
 
 @push('scripts')
 <script>
+    // Global variables
+    let notifications = [];
+    let filteredNotifications = [];
+    let currentPage = 1;
+    let rowsPerPage = 10;
+
     // Notifications page initialization
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Notifications page initialized');
+        
+        // Load notifications data
+        loadNotifications();
         
         // Initialize analytics charts if Chart.js is available
         if (typeof Chart !== 'undefined') {
@@ -888,6 +897,103 @@
             });
         }
     });
+
+    // Load notifications from API
+    function loadNotifications() {
+        fetch('/api/notifications')
+            .then(response => response.json())
+            .then(data => {
+                notifications = data.notifications || [];
+                filteredNotifications = [...notifications];
+                renderNotificationsTable();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                showNotification('Error loading notifications. Please refresh the page.', 'error');
+            });
+    }
+
+    // Render notifications table
+    function renderNotificationsTable() {
+        const tableBody = document.getElementById('notificationHistoryBody');
+        if (!tableBody) return;
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = filteredNotifications.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = pageData.map(notification => `
+            <tr>
+                <td>${notification.created_at || 'N/A'}</td>
+                <td>${notification.type || 'N/A'}</td>
+                <td>${notification.recipients || 0}</td>
+                <td>${notification.channels || 'N/A'}</td>
+                <td><span class="status-badge ${(notification.status || 'pending').toLowerCase()}">${notification.status || 'Pending'}</span></td>
+                <td>${notification.success_rate || '0%'}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewNotification(${notification.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Update statistics
+    function updateStatistics() {
+        const totalCount = filteredNotifications.length;
+        const pendingCount = filteredNotifications.filter(n => n.status === 'Pending').length;
+        const completedCount = filteredNotifications.filter(n => n.status === 'Completed').length;
+        const failedCount = filteredNotifications.filter(n => n.status === 'Failed').length;
+
+        // Update stats cards if they exist
+        const totalElement = document.getElementById('totalNotificationsCount');
+        const pendingElement = document.getElementById('pendingNotificationsCount');
+        const completedElement = document.getElementById('completedNotificationsCount');
+        const failedElement = document.getElementById('failedNotificationsCount');
+
+        if (totalElement) totalElement.textContent = totalCount;
+        if (pendingElement) pendingElement.textContent = pendingCount;
+        if (completedElement) completedElement.textContent = completedCount;
+        if (failedElement) failedElement.textContent = failedCount;
+    }
+
+    // Global functions
+    window.viewNotification = function(id) {
+        const notification = notifications.find(n => n.id === id);
+        if (notification) {
+            console.log('Viewing notification:', notification);
+            // Add view modal functionality here
+        }
+    };
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
 </script>
 @endpush
 
