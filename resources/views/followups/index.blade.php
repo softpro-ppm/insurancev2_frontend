@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.insurance')
 
 @section('title', 'Follow Ups - Insurance Management System 2.0')
 
