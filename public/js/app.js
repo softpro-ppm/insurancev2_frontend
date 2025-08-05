@@ -999,25 +999,20 @@ const toggleSidebar = () => {
 
 // Navigation
 const navigateToPage = (page) => {
-    $('.nav-item').removeClass('active');
-    $(`.nav-item[data-page="${page}"]`).addClass('active');
+    // Navigate to Laravel routes instead of SPA navigation
+    const routes = {
+        'dashboard': '/dashboard',
+        'policies': '/policies',
+        'renewals': '/renewals',
+        'followups': '/followups',
+        'reports': '/reports',
+        'agents': '/agents',
+        'notifications': '/notifications',
+        'settings': '/settings'
+    };
     
-    $('.page').removeClass('active');
-    $(`#${page}`).addClass('active');
-    
-    // Reset table to first page when navigating
-    if (page === 'dashboard') {
-        currentPage = 1;
-        renderTable();
-        updatePagination();
-    } else if (page === 'policies') {
-        policiesCurrentPage = 1;
-        policiesFilteredData = [...allPolicies];
-        renderPoliciesTable();
-        updatePoliciesPagination();
-        updatePoliciesStats();
-    } else if (page === 'notifications') {
-        initializeNotificationsPage();
+    if (routes[page]) {
+        window.location.href = routes[page];
     }
 };
 

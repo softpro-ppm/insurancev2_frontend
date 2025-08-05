@@ -78,52 +78,36 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}" data-page="dashboard">
-                        <a href="{{ route('dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('policies.*') ? 'active' : '' }}" data-page="policies">
-                        <a href="{{ route('policies.index') }}">
-                            <i class="fas fa-file-contract"></i>
-                            <span>Policies</span>
-                        </a>
+                        <i class="fas fa-file-contract"></i>
+                        <span>Policies</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('renewals.*') ? 'active' : '' }}" data-page="renewals">
-                        <a href="{{ route('renewals.index') }}">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>Renewals</span>
-                        </a>
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Renewals</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('followups.*') ? 'active' : '' }}" data-page="followups">
-                        <a href="{{ route('followups.index') }}">
-                            <i class="fas fa-bell"></i>
-                            <span>Follow Ups</span>
-                        </a>
+                        <i class="fas fa-bell"></i>
+                        <span>Follow Ups</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}" data-page="reports">
-                        <a href="{{ route('reports.index') }}">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Reports</span>
-                        </a>
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('agents.*') ? 'active' : '' }}" data-page="agents">
-                        <a href="{{ route('agents.index') }}">
-                            <i class="fas fa-users"></i>
-                            <span>Agents</span>
-                        </a>
+                        <i class="fas fa-users"></i>
+                        <span>Agents</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}" data-page="notifications">
-                        <a href="{{ route('notifications.index') }}">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
-                        </a>
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
                     </li>
                     <li class="nav-item {{ request()->routeIs('settings.*') ? 'active' : '' }}" data-page="settings">
-                        <a href="{{ route('settings.index') }}">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
                     </li>
                 </ul>
             </nav>
