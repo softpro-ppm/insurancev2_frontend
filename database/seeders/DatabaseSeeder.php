@@ -13,21 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Create default admin user
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
         ]);
 
-        // Seed our application data
-        $this->call([
-            AgentSeeder::class,
-            PolicySeeder::class,
-            RenewalSeeder::class,
-            FollowupSeeder::class,
-            NotificationSeeder::class,
-            SettingSeeder::class,
-        ]);
+        // No demo data - all data will be created dynamically through the application
     }
 }

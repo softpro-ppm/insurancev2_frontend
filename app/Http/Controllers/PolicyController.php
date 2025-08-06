@@ -47,7 +47,7 @@ class PolicyController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'policyType' => 'required|in:Motor,Health,Life',
             'businessType' => 'required|in:Self,Agent1,Agent2',
             'customerName' => 'required|string|max:255',
@@ -62,7 +62,15 @@ class PolicyController extends Controller
             'revenue' => 'required|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
-        ]);
+        ];
+
+        // Add vehicle validation for Motor policies
+        if ($request->policyType === 'Motor') {
+            $rules['vehicleNumber'] = 'required|string|max:20';
+            $rules['vehicleType'] = 'required|string|max:50';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);

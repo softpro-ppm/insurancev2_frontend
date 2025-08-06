@@ -128,8 +128,8 @@ class AgentController extends Controller
             'address' => $request->address ?? $agent->address
         ];
 
-        // Only update password if provided
-        if ($request->password) {
+        // Only update password if provided and not empty
+        if ($request->filled('password')) {
             $updateData['password'] = bcrypt($request->password);
         }
 

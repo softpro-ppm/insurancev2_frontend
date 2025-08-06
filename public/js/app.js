@@ -36,6 +36,332 @@ let currentStep = 1;
 let selectedPolicyType = '';
 let selectedBusinessType = '';
 
+// API Functions
+const API_BASE_URL = window.location.origin;
+
+const apiCall = async (endpoint, options = {}) => {
+    try {
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        };
+
+        // Add CSRF token if available (try both header names for compatibility)
+        if (csrfToken) {
+            defaultOptions.headers['X-CSRF-TOKEN'] = csrfToken;
+            defaultOptions.headers['X-XSRF-TOKEN'] = csrfToken;
+        }
+
+        const response = await fetch(endpoint, {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...options.headers
+            }
+        });
+
+        if (!response.ok) {
+            // Try to get the response body for better error handling
+            let errorData = null;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                // If we can't parse JSON, create a basic error object
+                errorData = { message: `HTTP error! status: ${response.status}` };
+            }
+            
+            const error = new Error(`HTTP error! status: ${response.status}`);
+            error.response = { status: response.status, data: errorData };
+            throw error;
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        throw error;
+    }
+};
+
+// Dashboard API calls
+const fetchDashboardStats = async () => {
+    try {
+        const data = await apiCall('/api/dashboard/stats');
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+        return null;
+    }
+};
+
+const fetchRecentPolicies = async () => {
+    try {
+        const data = await apiCall('/api/dashboard/recent-policies');
+        return data.recentPolicies || [];
+    } catch (error) {
+        console.error('Failed to fetch recent policies:', error);
+        return [];
+    }
+};
+
+const fetchExpiringPolicies = async () => {
+    try {
+        const data = await apiCall('/api/dashboard/expiring-policies');
+        return data.expiringPolicies || [];
+    } catch (error) {
+        console.error('Failed to fetch expiring policies:', error);
+        return [];
+    }
+};
+
+// Policies API calls
+const fetchPolicies = async () => {
+    try {
+        const data = await apiCall('/api/policies');
+        return data.policies || [];
+    } catch (error) {
+        console.error('Failed to fetch policies:', error);
+        return [];
+    }
+};
+
+const createPolicy = async (policyData) => {
+    try {
+        const data = await apiCall('/policies', {
+            method: 'POST',
+            body: JSON.stringify(policyData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to create policy:', error);
+        throw error;
+    }
+};
+
+const updatePolicy = async (id, policyData) => {
+    try {
+        const data = await apiCall(`/policies/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(policyData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update policy:', error);
+        throw error;
+    }
+};
+
+const deletePolicy = async (id) => {
+    try {
+        const data = await apiCall(`/policies/${id}`, {
+            method: 'DELETE'
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to delete policy:', error);
+        throw error;
+    }
+};
+
+// Agents API calls
+const fetchAgents = async () => {
+    try {
+        const data = await apiCall('/api/agents');
+        return data.agents || [];
+    } catch (error) {
+        console.error('Failed to fetch agents:', error);
+        return [];
+    }
+};
+
+const createAgent = async (agentData) => {
+    try {
+        const data = await apiCall('/agents', {
+            method: 'POST',
+            body: JSON.stringify(agentData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to create agent:', error);
+        throw error;
+    }
+};
+
+const updateAgent = async (id, agentData) => {
+    try {
+        const data = await apiCall(`/agents/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(agentData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update agent:', error);
+        throw error;
+    }
+};
+
+const deleteAgent = async (id) => {
+    try {
+        const data = await apiCall(`/agents/${id}`, {
+            method: 'DELETE'
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to delete agent:', error);
+        throw error;
+    }
+};
+
+// Renewals API calls
+const fetchRenewals = async () => {
+    try {
+        const data = await apiCall('/api/renewals');
+        return data.renewals || [];
+    } catch (error) {
+        console.error('Failed to fetch renewals:', error);
+        return [];
+    }
+};
+
+const createRenewal = async (renewalData) => {
+    try {
+        const data = await apiCall('/renewals', {
+            method: 'POST',
+            body: JSON.stringify(renewalData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to create renewal:', error);
+        throw error;
+    }
+};
+
+const updateRenewal = async (id, renewalData) => {
+    try {
+        const data = await apiCall(`/renewals/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(renewalData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update renewal:', error);
+        throw error;
+    }
+};
+
+const deleteRenewal = async (id) => {
+    try {
+        const data = await apiCall(`/renewals/${id}`, {
+            method: 'DELETE'
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to delete renewal:', error);
+        throw error;
+    }
+};
+
+// Followups API calls
+const fetchFollowups = async () => {
+    try {
+        const data = await apiCall('/api/followups');
+        return data.followups || [];
+    } catch (error) {
+        console.error('Failed to fetch followups:', error);
+        return [];
+    }
+};
+
+const createFollowup = async (followupData) => {
+    try {
+        const data = await apiCall('/followups', {
+            method: 'POST',
+            body: JSON.stringify(followupData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to create followup:', error);
+        throw error;
+    }
+};
+
+const updateFollowup = async (id, followupData) => {
+    try {
+        const data = await apiCall(`/followups/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(followupData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update followup:', error);
+        throw error;
+    }
+};
+
+const deleteFollowup = async (id) => {
+    try {
+        const data = await apiCall(`/followups/${id}`, {
+            method: 'DELETE'
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to delete followup:', error);
+        throw error;
+    }
+};
+
+// Reports API calls
+const fetchReports = async () => {
+    try {
+        const data = await apiCall('/api/reports');
+        return data.reports || [];
+    } catch (error) {
+        console.error('Failed to fetch reports:', error);
+        return [];
+    }
+};
+
+// Notifications API calls
+const fetchNotifications = async () => {
+    try {
+        const data = await apiCall('/api/notifications');
+        return data.notifications || [];
+    } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+        return [];
+    }
+};
+
+// Settings API calls
+const fetchSettings = async () => {
+    try {
+        const data = await apiCall('/api/settings');
+        return data.settings || [];
+    } catch (error) {
+        console.error('Failed to fetch settings:', error);
+        return [];
+    }
+};
+
+const updateSettings = async (settingsData) => {
+    try {
+        const data = await apiCall('/settings', {
+            method: 'POST',
+            body: JSON.stringify(settingsData)
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update settings:', error);
+        throw error;
+    }
+};
+
 // Debounce function for search inputs
 const debounce = (func, wait) => {
     let timeout;
@@ -343,15 +669,23 @@ $(document).ready(function() {
     // Show loading state
     showLoadingState();
     
-    // Generate dummy data
-    allPolicies = generateDummyPolicies();
-    allAgents = generateDummyAgents();
-    allRenewals = generateDummyRenewals();
-    allFollowups = generateDummyFollowups();
-    filteredData = [...allPolicies];
-    
-    // Initialize components with slight delay for better performance
-    setTimeout(() => {
+    // Initialize components with real data
+    initializeApplication();
+});
+
+// Main initialization function
+const initializeApplication = async () => {
+    try {
+        // Load all data from APIs
+        await Promise.all([
+            loadDashboardData(),
+            loadPoliciesData(),
+            loadAgentsData(),
+            loadRenewalsData(),
+            loadFollowupsData()
+        ]);
+        
+        // Initialize components
         initializeCharts();
         initializeTable();
         initializeAgents();
@@ -360,6 +694,7 @@ $(document).ready(function() {
         initializeFollowupsPage();
         initializeReportsPage();
         initializeEventListeners();
+        initializeModals(); // Initialize modals
         
         // Set default date for policy form
         const today = new Date();
@@ -372,8 +707,171 @@ $(document).ready(function() {
         
         // Hide loading state
         hideLoadingState();
-    }, 100);
-});
+    } catch (error) {
+        console.error('Failed to initialize application:', error);
+        showNotification('Failed to load application data', 'error');
+        hideLoadingState();
+    }
+};
+
+// Load dashboard data
+const loadDashboardData = async () => {
+    try {
+        const stats = await fetchDashboardStats();
+        if (stats) {
+            updateDashboardStats(stats);
+        }
+        
+        const recentPolicies = await fetchRecentPolicies();
+        if (recentPolicies.length > 0) {
+            updateRecentPoliciesTable(recentPolicies);
+        }
+        
+        const expiringPolicies = await fetchExpiringPolicies();
+        if (expiringPolicies.length > 0) {
+            updateExpiringPoliciesList(expiringPolicies);
+        }
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+    }
+};
+
+// Load policies data
+const loadPoliciesData = async () => {
+    try {
+        allPolicies = await fetchPolicies();
+        filteredData = [...allPolicies];
+        updatePoliciesStats();
+    } catch (error) {
+        console.error('Failed to load policies data:', error);
+        allPolicies = [];
+        filteredData = [];
+    }
+};
+
+// Load agents data
+const loadAgentsData = async () => {
+    try {
+        allAgents = await fetchAgents();
+    } catch (error) {
+        console.error('Failed to load agents data:', error);
+        allAgents = [];
+    }
+};
+
+// Load renewals data
+const loadRenewalsData = async () => {
+    try {
+        allRenewals = await fetchRenewals();
+    } catch (error) {
+        console.error('Failed to load renewals data:', error);
+        allRenewals = [];
+    }
+};
+
+// Load followups data
+const loadFollowupsData = async () => {
+    try {
+        allFollowups = await fetchFollowups();
+    } catch (error) {
+        console.error('Failed to load followups data:', error);
+        allFollowups = [];
+    }
+};
+
+// Update dashboard statistics
+const updateDashboardStats = (stats) => {
+    if (stats.stats) {
+        $('#monthlyPremium').text('₹' + (stats.stats.monthlyPremium || 0).toLocaleString());
+        $('#yearlyPremium').text('₹' + (stats.stats.yearlyPremium || 0).toLocaleString() + ' (FY)');
+        $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
+        $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
+        $('#monthlyRenewals').text(stats.stats.monthlyRenewals || 0);
+        $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
+        $('#monthlyRevenue').text('₹' + (stats.stats.monthlyRevenue || 0).toLocaleString());
+        $('#yearlyRevenue').text('₹' + (stats.stats.yearlyRevenue || 0).toLocaleString() + ' (FY)');
+    }
+    
+    if (stats.chartData) {
+        updateDashboardCharts(stats.chartData, stats.policyTypes);
+    }
+};
+
+// Update recent policies table
+const updateRecentPoliciesTable = (policies) => {
+    const tbody = $('#policiesTable tbody');
+    tbody.empty();
+    
+    policies.forEach((policy, index) => {
+        const row = `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${policy.policyType}</td>
+                <td>${policy.customerName}</td>
+                <td>${policy.phone}</td>
+                <td>${policy.companyName}</td>
+                <td>${policy.endDate}</td>
+                <td>₹${policy.premium}</td>
+                <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+                <td>${policy.createdAt}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+};
+
+// Update expiring policies list
+const updateExpiringPoliciesList = (policies) => {
+    const container = $('#expiringPoliciesList');
+    if (container.length) {
+        container.empty();
+        
+        policies.forEach(policy => {
+            const item = `
+                <div class="expiring-policy-item">
+                    <div class="policy-info">
+                        <h4>${policy.policyNumber}</h4>
+                        <p>${policy.customerName} - ${policy.phone}</p>
+                    </div>
+                    <div class="expiry-info">
+                        <span class="expiry-date">${policy.endDate}</span>
+                        <span class="days-left ${policy.daysUntilExpiry <= 7 ? 'urgent' : ''}">
+                            ${policy.daysUntilExpiry} days left
+                        </span>
+                    </div>
+                </div>
+            `;
+            container.append(item);
+        });
+    }
+};
+
+// Update dashboard charts
+const updateDashboardCharts = (chartData, policyTypes) => {
+    // Update bar chart with real data
+    if (window.barChart && chartData) {
+        const labels = chartData.map(item => item.month);
+        const premiumData = chartData.map(item => item.premium);
+        const revenueData = chartData.map(item => item.revenue);
+        const policiesData = chartData.map(item => item.policies);
+        
+        window.barChart.data.labels = labels;
+        window.barChart.data.datasets[0].data = premiumData;
+        window.barChart.data.datasets[1].data = revenueData;
+        window.barChart.data.datasets[2].data = policiesData;
+        window.barChart.update();
+    }
+    
+    // Update pie chart with real data
+    if (window.pieChart && policyTypes) {
+        const labels = Object.keys(policyTypes);
+        const data = Object.values(policyTypes);
+        
+        window.pieChart.data.labels = labels;
+        window.pieChart.data.datasets[0].data = data;
+        window.pieChart.update();
+    }
+};
 
 // Loading state functions
 const showLoadingState = () => {
@@ -388,13 +886,18 @@ const hideLoadingState = () => {
 
 // Initialize charts
 const initializeCharts = () => {
+    // Only initialize charts on dashboard page
+    if (!$('#dashboard').hasClass('active')) {
+        return;
+    }
+    
     // Wait for DOM to be ready
     setTimeout(() => {
         const barCtx = document.getElementById('barChart');
         const pieCtx = document.getElementById('pieChart');
         
         if (!barCtx || !pieCtx) {
-            console.error('Chart canvases not found');
+            console.log('Chart canvases not found - this is normal on non-dashboard pages');
             return;
         }
         
@@ -600,15 +1103,24 @@ const renderTable = () => {
     pageData.forEach(policy => {
         const row = document.createElement('tr');
         
+        // Use the correct property names from the API response
+        const policyType = policy.policyType || policy.type || 'Unknown';
+        const customerName = policy.customerName || policy.owner || 'Unknown';
+        const phone = policy.phone || 'Unknown';
+        const companyName = policy.companyName || policy.company || 'Unknown';
+        const endDate = policy.endDate || 'Unknown';
+        const premium = policy.premium || 0;
+        const status = policy.status || 'Active';
+        
         row.innerHTML = `
             <td>${policy.id}</td>
-            <td><span class="policy-type-badge ${policy.type.toLowerCase()}">${policy.type}</span></td>
-            <td>${policy.owner}</td>
-            <td>${policy.phone}</td>
-            <td>${getShortCompanyName(policy.company)}</td>
-            <td>${formatDate(policy.endDate)}</td>
-            <td>₹${policy.premium.toLocaleString()}</td>
-            <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+            <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+            <td>${customerName}</td>
+            <td>${phone}</td>
+            <td>${getShortCompanyName(companyName)}</td>
+            <td>${formatDate(endDate)}</td>
+            <td>₹${premium.toLocaleString()}</td>
+            <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" data-policy-id="${policy.id}" title="Edit">
@@ -637,7 +1149,7 @@ const renderTable = () => {
     
     tbody.find('.action-btn.delete').click(function() {
         const policyId = parseInt($(this).data('policy-id'));
-        deletePolicy(policyId);
+        deletePolicyHandler(policyId);
     });
     
     tbody.find('.action-btn.view').click(function() {
@@ -709,10 +1221,27 @@ const initializePoliciesPage = () => {
 
 // Initialize renewals page
 const initializeRenewalsPage = () => {
+    // Only initialize renewals if we're on the renewals page
+    if (!$('#renewals').hasClass('active')) {
+        return;
+    }
+    
+    // Use real data from API
     renewalsFilteredData = [...allRenewals];
     renderRenewalsTable();
     updateRenewalsPagination();
     updateRenewalsStats();
+    
+    // Initialize search and filter functionality
+    $('#renewalsSearch').off('input').on('input', debounce(handleRenewalsSearch, 300));
+    $('#renewalStatusFilter, #renewalPriorityFilter').off('change').on('change', handleRenewalsFilter);
+    $('#renewalsRowsPerPage').off('change').on('change', handleRenewalsRowsPerPageChange);
+    
+    // Initialize sort functionality
+    $('#renewalsTable th[data-sort]').off('click').on('click', function() {
+        const column = $(this).data('sort');
+        handleRenewalsSort(column);
+    });
 };
 
 // Initialize follow-ups page
@@ -725,6 +1254,11 @@ const initializeFollowupsPage = () => {
 
 // Initialize reports page
 const initializeReportsPage = () => {
+    // Only initialize reports if we're on the reports page
+    if (!$('#reports').hasClass('active')) {
+        return;
+    }
+    
     // Set default date range (last 30 days)
     const endDate = new Date();
     const startDate = new Date();
@@ -748,7 +1282,11 @@ const initializeEventListeners = () => {
     $('#themeToggle').click(toggleTheme);
     
     // Sidebar toggle
-    $('#sidebarToggle').click(toggleSidebar);
+    $('#sidebarToggle').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebar();
+    });
     
     // Navigation
     $('.nav-item').click(function() {
@@ -764,18 +1302,45 @@ const initializeEventListeners = () => {
         }
     });
     
-    // Modal controls
-    $('#addPolicyBtn').click(() => openPolicyModal());
-    $('#closePolicyModal').click(() => closePolicyModal());
-    $('#cancelPolicy').click(() => closePolicyModal());
+    // Modal controls - Policy Modal
+    $('#addPolicyBtn, #addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPolicyModal();
+    });
+    $('#closePolicyModal, #cancelPolicy').click(() => closePolicyModal());
     
+    // Modal controls - Agent Modal
     $('#addAgentBtn').click(() => openAgentModal());
-    $('#closeAgentModal').click(() => closeAgentModal());
-    $('#cancelAgent').click(() => closeAgentModal());
+    $('#closeAgentModal, #cancelAgent').click(() => closeAgentModal());
+    
+    // Modal controls - Followup Modal
+    $('#addFollowupBtn').click(() => openFollowupModal());
+    $('#closeFollowupModal, #cancelFollowup').click(() => closeFollowupModal());
+    
+    // Modal controls - Renewal Modal
+    $('#addRenewalBtn').click(() => openRenewalModal());
+    $('#closeRenewalModal, #cancelRenewal').click(() => closeRenewalModal());
     
     // Form submissions
     $('#policyForm').submit(handlePolicySubmit);
     $('#agentForm').submit(handleAgentSubmit);
+    $('#followupForm').submit(handleFollowupSubmit);
+    $('#renewalForm').submit(handleRenewalSubmit);
+    
+    // Modal backdrop clicks
+    $(document).on('click', '.modal', function(e) {
+        if (e.target === this) {
+            $(this).removeClass('show');
+        }
+    });
+    
+    // Escape key to close modals
+    $(document).keydown(function(e) {
+        if (e.key === 'Escape') {
+            $('.modal.show').removeClass('show');
+        }
+    });
     
     // Table controls
     $('#policySearch').on('input', handleSearch);
@@ -795,7 +1360,6 @@ const initializeEventListeners = () => {
     $('#chartPeriod').change(handleChartPeriodChange);
     
     // Policies page controls
-    $('#addPolicyFromPoliciesBtn').click(() => openPolicyModal());
     $('#policiesSearch').on('input', handlePoliciesSearch);
     $('#policyTypeFilter').change(handlePoliciesFilter);
     $('#statusFilter').change(handlePoliciesFilter);
@@ -813,7 +1377,6 @@ const initializeEventListeners = () => {
     });
     
     // Renewals page controls
-    $('#addRenewalBtn').click(() => openRenewalModal());
     $('#renewalsSearch').on('input', handleRenewalsSearch);
     $('#renewalStatusFilter').change(handleRenewalsFilter);
     $('#renewalPriorityFilter').change(handleRenewalsFilter);
@@ -831,7 +1394,6 @@ const initializeEventListeners = () => {
     });
     
     // Follow-ups page controls
-    $('#addFollowupBtn').click(() => openFollowupModal());
     $('#followupsSearch').on('input', handleFollowupsSearch);
     $('#followupStatusFilter').change(handleFollowupsFilter);
     $('#followupTypeFilter').change(handleFollowupsFilter);
@@ -848,20 +1410,8 @@ const initializeEventListeners = () => {
         handleFollowupsSort(column);
     });
     
-    // Reports page controls
-    $('#generateReportBtn').click(generateReports);
-    $('#exportReportBtn').click(exportReport);
-    $('#reportStartDate, #reportEndDate').change(updateReportDateRange);
-    $('#reportTypeFilter').change(updateReportType);
-    
-    // Chart period controls
-    $('#trendPeriod').change(() => updateTrendChart());
-    $('#policyTypePeriod').change(() => updatePolicyTypeChart());
-    $('#agentPerformancePeriod').change(() => updateAgentPerformanceChart());
-    $('#renewalStatusPeriod').change(() => updateRenewalStatusChart());
-    
     // Agents page controls
-    $('#agentsSearch').on('input', debounce(handleAgentsSearch, 300));
+    $('#agentsSearch').on('input', handleAgentsSearch);
     $('#agentsRowsPerPage').change(handleAgentsRowsPerPageChange);
     $('#exportAgents').click(exportAgentsData);
     
@@ -994,8 +1544,59 @@ const updateChartColors = (chart) => {
 
 // Sidebar toggle
 const toggleSidebar = () => {
-    $('#sidebar').toggleClass('collapsed');
+    const sidebar = $('#sidebar');
+    const mainContent = $('#mainContent');
+    
+    if (window.innerWidth <= 1024) {
+        // Mobile/Tablet behavior
+        sidebar.toggleClass('show');
+    } else {
+        // Desktop behavior
+        sidebar.toggleClass('collapsed');
+    }
+    
+    // Update main content margin
+    if (sidebar.hasClass('collapsed') && window.innerWidth > 1024) {
+        mainContent.css('margin-left', '80px');
+    } else if (!sidebar.hasClass('collapsed') && window.innerWidth > 1024) {
+        mainContent.css('margin-left', '280px');
+    } else {
+        mainContent.css('margin-left', '0');
+    }
 };
+
+// Close sidebar on mobile when clicking outside
+$(document).on('click', function(e) {
+    if (window.innerWidth <= 1024) {
+        const sidebar = $('#sidebar');
+        const sidebarToggle = $('#sidebarToggle');
+        
+        if (!sidebar.is(e.target) && 
+            sidebar.has(e.target).length === 0 && 
+            !sidebarToggle.is(e.target) && 
+            sidebar.hasClass('show')) {
+            sidebar.removeClass('show');
+        }
+    }
+});
+
+// Handle window resize
+$(window).on('resize', function() {
+    const sidebar = $('#sidebar');
+    const mainContent = $('#mainContent');
+    
+    if (window.innerWidth > 1024) {
+        sidebar.removeClass('show');
+        if (sidebar.hasClass('collapsed')) {
+            mainContent.css('margin-left', '80px');
+        } else {
+            mainContent.css('margin-left', '280px');
+        }
+    } else {
+        sidebar.removeClass('collapsed');
+        mainContent.css('margin-left', '0');
+    }
+});
 
 // Navigation
 const navigateToPage = (page) => {
@@ -1023,22 +1624,60 @@ const toggleProfileDropdown = () => {
 
 // Modal functions
 const openPolicyModal = () => {
-    $('#policyModal').addClass('show');
     $('#policyModalTitle').text('Add New Policy');
-    resetMultiStepModal();
+    $('#savePolicyBtn').text('Add Policy');
+    $('#policyForm')[0].reset();
+    $('#policyForm').removeData('edit-id');
+    $('#policyModal').addClass('show');
 };
 
 const closePolicyModal = () => {
     $('#policyModal').removeClass('show');
+    
+    // Reset form
+    $('#policyForm')[0].reset();
+    
+    // Reset modal state
+    $('#policyForm').removeData('edit-id');
+    $('#policyModalTitle').text('Add New Policy');
+    $('#savePolicyBtn').text('Add Policy');
+    
+    // Reset steps
+    $('#step1').show();
+    $('#step2, #step3').hide();
+    
+    // Reset policy type and business type selections
+    $('#policyTypeSelect').val('');
+    $('#businessTypeSelect').val('');
+    
+    // Disable next buttons
+    $('#nextStep1, #nextStep2').prop('disabled', true);
+    
+    // Reset global variables
+    selectedPolicyType = null;
+    selectedBusinessType = null;
+    
+    // Disable validation on all hidden fields
+    $('.policy-form input[required], .policy-form select[required]').prop('required', false);
+    
+    // Hide all forms
+    $('.policy-form').hide();
 };
 
 const openAgentModal = () => {
-    $('#agentModal').addClass('show');
+    $('#agentModalTitle').text('Add New Agent');
+    $('#saveAgentBtn').text('Add Agent');
     $('#agentForm')[0].reset();
+    $('#agentForm').removeData('edit-id');
+    $('#agentModal').addClass('show');
 };
 
 const closeAgentModal = () => {
     $('#agentModal').removeClass('show');
+    $('#agentForm')[0].reset();
+    $('#agentForm').removeData('edit-id');
+    $('#agentModalTitle').text('Add New Agent');
+    $('#saveAgentBtn').text('Add Agent');
 };
 
 const closeViewPolicyModal = () => {
@@ -1057,137 +1696,284 @@ const downloadDocument = (documentType) => {
 };
 
 // Form handlers
-const handlePolicySubmit = (e) => {
+const handlePolicySubmit = async (e) => {
     e.preventDefault();
     
-    const formData = new FormData(e.target);
+    // Prepare form for submission to prevent validation errors on hidden fields
+    prepareFormForSubmission();
+    
+    // Determine which policy type is currently active
+    const activePolicyType = $('#policyTypeSelect').val() || 'Motor';
+    const businessType = $('#businessTypeSelect').val() || 'Self';
+    
+    // Build policy data based on the active policy type
     let policyData = {
-        id: allPolicies.length + 1,
-        type: selectedPolicyType,
-        businessType: selectedBusinessType,
-        status: 'Active'
+        policyType: activePolicyType,
+        businessType: businessType,
+        customerName: '',
+        customerPhone: '',
+        customerEmail: '',
+        companyName: '',
+        insuranceType: '',
+        startDate: '',
+        endDate: '',
+        premium: 0,
+        customerPaidAmount: 0,
+        revenue: 0,
+        vehicleNumber: '',
+        vehicleType: '',
+        payout: 0
     };
     
-    // Build policy data based on type
-    if (selectedPolicyType === 'Motor') {
+    // Get data based on active policy type
+    if (activePolicyType === 'Motor') {
         policyData = {
             ...policyData,
-            owner: formData.get('customerName'),
-            vehicle: `${formData.get('vehicleType')} - ${formData.get('vehicleNumber')}`,
-            startDate: formData.get('startDate'),
-            endDate: formData.get('endDate'),
-            premium: parseFloat(formData.get('premium')),
-            revenue: parseFloat(formData.get('revenue')),
-            company: formData.get('companyName'),
-            insuranceType: formData.get('insuranceType'),
-            customerPaid: parseFloat(formData.get('customerPaidAmount')),
-            phone: formData.get('customerPhone'),
-            email: formData.get('customerEmail')
+            customerName: $('#customerName').val() || '',
+            customerPhone: $('#customerPhone').val() || '',
+            customerEmail: $('#customerEmail').val() || '',
+            companyName: $('#companyName').val() || '',
+            insuranceType: $('#insuranceType').val() || '',
+            startDate: $('#startDate').val() || '',
+            endDate: $('#endDate').val() || '',
+            premium: parseFloat($('#premium').val() || 0),
+            customerPaidAmount: parseFloat($('#customerPaidAmount').val() || 0),
+            revenue: parseFloat($('#revenue').val() || 0),
+            vehicleNumber: $('#vehicleNumber').val() || '',
+            vehicleType: $('#vehicleType').val() || '',
+            payout: parseFloat($('#payout').val() || 0)
         };
-    } else if (selectedPolicyType === 'Health') {
+    } else if (activePolicyType === 'Health') {
         policyData = {
             ...policyData,
-            owner: formData.get('customerName'),
-            phone: formData.get('customerPhone'),
-            email: formData.get('customerEmail'),
-            age: parseInt(formData.get('customerAge')),
-            gender: formData.get('customerGender'),
-            sumInsured: parseFloat(formData.get('sumInsured')),
-            startDate: formData.get('startDate'),
-            endDate: formData.get('endDate'),
-            premium: parseFloat(formData.get('premium')),
-            revenue: parseFloat(formData.get('revenue')),
-            company: formData.get('companyName'),
-            planType: formData.get('planType'),
-            customerPaid: parseFloat(formData.get('customerPaidAmount')),
-            payout: parseFloat(formData.get('payout') || 0)
+            customerName: $('#healthCustomerName').val() || '',
+            customerPhone: $('#healthCustomerPhone').val() || '',
+            customerEmail: $('#healthCustomerEmail').val() || '',
+            companyName: $('#healthCompanyName').val() || '',
+            insuranceType: $('#healthPlanType').val() || '',
+            startDate: $('#healthStartDate').val() || '',
+            endDate: $('#healthEndDate').val() || '',
+            premium: parseFloat($('#healthPremium').val() || 0),
+            customerPaidAmount: parseFloat($('#healthCustomerPaid').val() || 0),
+            revenue: parseFloat($('#healthRevenue').val() || 0),
+            payout: parseFloat($('#healthPayout').val() || 0)
         };
-    } else if (selectedPolicyType === 'Life') {
+    } else if (activePolicyType === 'Life') {
         policyData = {
             ...policyData,
-            owner: formData.get('customerName'),
-            phone: formData.get('customerPhone'),
-            email: formData.get('customerEmail'),
-            age: parseInt(formData.get('customerAge')),
-            gender: formData.get('customerGender'),
-            sumAssured: parseFloat(formData.get('sumAssured')),
-            policyTerm: parseInt(formData.get('policyTerm')),
-            premiumFrequency: formData.get('premiumFrequency'),
-            startDate: formData.get('startDate'),
-            endDate: formData.get('endDate'),
-            premium: parseFloat(formData.get('premium')),
-            revenue: parseFloat(formData.get('revenue')),
-            company: formData.get('companyName'),
-            planType: formData.get('planType'),
-            customerPaid: parseFloat(formData.get('customerPaidAmount')),
-            payout: parseFloat(formData.get('payout') || 0)
+            customerName: $('#lifeCustomerName').val() || '',
+            customerPhone: $('#lifeCustomerPhone').val() || '',
+            customerEmail: $('#lifeCustomerEmail').val() || '',
+            companyName: $('#lifeCompanyName').val() || '',
+            insuranceType: $('#lifePlanType').val() || '',
+            startDate: $('#lifeStartDate').val() || '',
+            endDate: $('#lifeEndDate').val() || '',
+            premium: parseFloat($('#lifePremium').val() || 0),
+            customerPaidAmount: parseFloat($('#lifeCustomerPaid').val() || 0),
+            revenue: parseFloat($('#lifeRevenue').val() || 0),
+            payout: parseFloat($('#lifePayout').val() || 0)
         };
     }
     
-    allPolicies.push(policyData);
-    filteredData = [...allPolicies];
-    policiesFilteredData = [...allPolicies]; // Update policies page data
-    
-    closePolicyModal();
-    renderTable();
-    updatePagination();
-    
-    // Update policies page if it's currently active
-    if ($('#policies').hasClass('active')) {
-        renderPoliciesTable();
-        updatePoliciesPagination();
-        updatePoliciesStats();
+    // Validate required fields based on active policy type
+    if (!policyData.customerName || !policyData.customerPhone || !policyData.companyName) {
+        showNotification('Please fill in all required fields (Customer Name, Phone, Company)', 'error');
+        return;
     }
     
-    // Update renewals page if it's currently active
-    if ($('#renewals').hasClass('active')) {
-        renderRenewalsTable();
-        updateRenewalsPagination();
-        updateRenewalsStats();
+    // Validate dates
+    if (!policyData.startDate || !policyData.endDate) {
+        showNotification('Please select start and end dates', 'error');
+        return;
     }
     
-    // Update follow-ups page if it's currently active
-    if ($('#followups').hasClass('active')) {
-        renderFollowupsTable();
-        updateFollowupsPagination();
-        updateFollowupsStats();
+    // Validate amounts
+    if (policyData.premium <= 0 || policyData.revenue <= 0) {
+        showNotification('Premium and revenue must be greater than 0', 'error');
+        return;
     }
     
-    // Update reports page if it's currently active
-    if ($('#reports').hasClass('active')) {
-        updateKPIs();
-        generateReports();
+    // Additional validation for Motor policies
+    if (activePolicyType === 'Motor') {
+        if (!policyData.vehicleNumber || !policyData.vehicleType) {
+            showNotification('Please fill in vehicle number and type for Motor policies', 'error');
+            return;
+        }
     }
     
-    // Update agents page if it's currently active
-    if ($('#agents').hasClass('active')) {
-        renderAgentsTable();
-        updateAgentsPagination();
-        updateAgentsStats();
+    try {
+        const editId = $('#policyForm').data('edit-id');
+        
+        console.log('Submitting policy data:', policyData);
+        
+        if (editId) {
+            // Update existing policy
+            const response = await updatePolicy(editId, policyData);
+            
+            // Update local data
+            const index = allPolicies.findIndex(p => p.id === editId);
+            if (index !== -1) {
+                allPolicies[index] = { ...allPolicies[index], ...response.policy };
+            }
+            
+            showNotification('Policy updated successfully!', 'success');
+        } else {
+            // Create new policy
+            console.log('Creating new policy with data:', JSON.stringify(policyData, null, 2));
+            const response = await createPolicy(policyData);
+            
+            // Add to local data
+            if (response.policy) {
+                allPolicies.push(response.policy);
+            }
+            
+            showNotification('Policy added successfully!', 'success');
+        }
+        
+        // Update filtered data
+        filteredData = [...allPolicies];
+        policiesFilteredData = [...allPolicies];
+        
+        // Close modal and refresh
+        closePolicyModal();
+        renderTable();
+        updatePagination();
+        
+        // Update policies page if it's currently active
+        if ($('#policies').hasClass('active')) {
+            renderPoliciesTable();
+            updatePoliciesPagination();
+            updatePoliciesStats();
+        }
+        
+        // Update renewals page if it's currently active
+        if ($('#renewals').hasClass('active')) {
+            renderRenewalsTable();
+            updateRenewalsPagination();
+            updateRenewalsStats();
+        }
+        
+        // Update follow-ups page if it's currently active
+        if ($('#followups').hasClass('active')) {
+            renderFollowupsTable();
+            updateFollowupsPagination();
+            updateFollowupsStats();
+        }
+        
+        // Update agents page if it's currently active
+        if ($('#agents').hasClass('active')) {
+            renderAgentsTable();
+            updateAgentsPagination();
+            updateAgentsStats();
+        }
+        
+    } catch (error) {
+        console.error('Failed to save policy:', error);
+        
+        // Handle validation errors
+        if (error.response && error.response.data) {
+            if (error.response.data.errors) {
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(', ');
+                showNotification(errorMessages, 'error');
+            } else if (error.response.data.message) {
+                showNotification(error.response.data.message, 'error');
+            } else {
+                showNotification(`Validation failed: ${error.response.status}`, 'error');
+            }
+        } else {
+            showNotification('Failed to save policy. Please check your input and try again.', 'error');
+        }
     }
-    
-    // Show success message
-    showNotification(`${selectedPolicyType} policy added successfully!`, 'success');
 };
 
-const handleAgentSubmit = (e) => {
+const handleAgentSubmit = async (e) => {
     e.preventDefault();
     
-    const formData = new FormData(e.target);
+    // Get form data
     const agentData = {
-        name: formData.get('agentName'),
-        phone: formData.get('agentPhone'),
-        email: formData.get('agentEmail'),
-        userId: formData.get('agentUserId')
+        name: $('#agentName').val().trim(),
+        phone: $('#agentPhone').val().trim(),
+        email: $('#agentEmail').val().trim(),
+        userId: $('#agentUserId').val().trim(),
+        status: $('#agentStatus').val(),
+        address: $('#agentAddress').val().trim()
     };
     
-    allAgents.push(agentData);
+    // Only add password if it's not empty
+    const password = $('#agentPassword').val();
+    if (password && password.trim() !== '') {
+        agentData.password = password;
+    }
     
+    // Validate required fields
+    if (!agentData.name || !agentData.phone || !agentData.email) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    try {
+        const editId = $('#agentForm').data('edit-id');
+        
+        if (editId) {
+            // Update existing agent
+            const response = await updateAgent(editId, agentData);
+            
+            // Update local data
+            const index = allAgents.findIndex(a => a.id === editId);
+            if (index !== -1) {
+                allAgents[index] = { ...allAgents[index], ...agentData };
+            }
+            
+            showNotification('Agent updated successfully!', 'success');
+        } else {
+            // Create new agent - password is required for new agents
+            if (!password || password.trim() === '') {
+                showNotification('Password is required for new agents', 'error');
+                return;
+            }
+            
+            // Validate password length
+            if (password.trim().length < 6) {
+                showNotification('Password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            agentData.password = password;
+            
+            console.log('Creating agent with data:', agentData);
+            const response = await createAgent(agentData);
+            
+            // Add to local data
+            if (response.agent) {
+                allAgents.push(response.agent);
+            }
+            
+            showNotification('Agent added successfully!', 'success');
+        }
+        
+        // Close modal and refresh
     closeAgentModal();
     initializeAgents();
     
-    // Show success message
-    showNotification('Agent added successfully!', 'success');
+    } catch (error) {
+        console.error('Failed to save agent:', error);
+        
+        // Handle validation errors
+        if (error.response && error.response.data) {
+            if (error.response.data.errors) {
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(', ');
+                showNotification(errorMessages, 'error');
+            } else if (error.response.data.message) {
+                showNotification(error.response.data.message, 'error');
+            } else {
+                showNotification(`Validation failed: ${error.response.status}`, 'error');
+            }
+        } else {
+            showNotification('Failed to save agent. Please check your input and try again.', 'error');
+        }
+    }
 };
 
 // Debounce function for search
@@ -1275,27 +2061,117 @@ const editPolicy = (id) => {
     const policy = allPolicies.find(p => p.id === id);
     if (policy) {
         $('#policyModalTitle').text('Edit Policy');
-        $('#policyModal').addClass('show');
         
-        // Populate form with policy data
-        $('#customerName').val(policy.owner);
-        $('#customerPhone').val(policy.phone);
-        $('#customerEmail').val(policy.email);
-        $('#vehicleNumber').val(policy.vehicle.split(' - ')[1]);
-        $('#vehicleType').val(policy.vehicle.split(' - ')[0]);
-        $('#companyName').val(policy.company);
-        $('#insuranceType').val(policy.insuranceType);
-        $('#businessType').val(policy.businessType);
-        $('#startDate').val(policy.startDate);
-        $('#endDate').val(policy.endDate);
-        $('#premium').val(policy.premium);
-        $('#revenue').val(policy.revenue);
-        $('#customerPaidAmount').val(policy.customerPaid);
+        // Get the correct property names from the API response
+        const policyType = policy.policyType || policy.type || 'Motor';
+        const customerName = policy.customerName || policy.owner || '';
+        const customerPhone = policy.phone || '';
+        const customerEmail = policy.customerEmail || policy.email || '';
+        const companyName = policy.companyName || policy.company || '';
+        const insuranceType = policy.insuranceType || '';
+        const businessType = policy.businessType || 'Self';
+        const startDate = policy.startDate || '';
+        const endDate = policy.endDate || '';
+        const premium = policy.premium || '';
+        const customerPaidAmount = policy.customerPaidAmount || policy.customerPaid || '';
+        const revenue = policy.revenue || '';
+        const vehicleNumber = policy.vehicleNumber || '';
+        const vehicleType = policy.vehicleType || '';
+        
+        // Set global variables for the modal
+        selectedPolicyType = policyType;
+        selectedBusinessType = businessType;
+        
+        // Step 1: Set policy type
+        $('#policyTypeSelect').val(policyType);
+        
+        // Step 2: Set business type
+        $('#businessTypeSelect').val(businessType);
+        
+        // Show the modal and go directly to step 3 (form)
+        $('#policyModal').addClass('show');
+        $('#step1, #step2').hide();
+        $('#step3').show();
+        
+        // Show the correct form and populate fields
+        showPolicyForm(policyType);
+        
+        // Populate form fields based on policy type
+        if (policyType === 'Motor') {
+            // Populate motor-specific fields
+            $('#vehicleNumber').val(vehicleNumber);
+            $('#vehicleType').val(vehicleType);
+            $('#customerName').val(customerName);
+            $('#customerPhone').val(customerPhone);
+            $('#customerEmail').val(customerEmail);
+            $('#companyName').val(companyName);
+            $('#insuranceType').val(insuranceType);
+            $('#startDate').val(startDate);
+            $('#endDate').val(endDate);
+            $('#premium').val(premium);
+            $('#customerPaidAmount').val(customerPaidAmount);
+            $('#revenue').val(revenue);
+            
+        } else if (policyType === 'Health') {
+            // Populate health-specific fields
+            $('#healthCustomerName').val(customerName);
+            $('#healthCustomerPhone').val(customerPhone);
+            $('#healthCustomerEmail').val(customerEmail);
+            $('#healthCompanyName').val(companyName);
+            $('#healthPlanType').val(insuranceType);
+            $('#healthStartDate').val(startDate);
+            $('#healthEndDate').val(endDate);
+            $('#healthPremium').val(premium);
+            $('#healthCustomerPaid').val(customerPaidAmount);
+            $('#healthRevenue').val(revenue);
+            
+            // Additional health fields if available
+            if (policy.customerAge) $('#healthCustomerAge').val(policy.customerAge);
+            if (policy.customerGender) $('#healthCustomerGender').val(policy.customerGender);
+            if (policy.sumInsured) $('#healthSumInsured').val(policy.sumInsured);
+            
+        } else if (policyType === 'Life') {
+            // Populate life-specific fields
+            $('#lifeCustomerName').val(customerName);
+            $('#lifeCustomerPhone').val(customerPhone);
+            $('#lifeCustomerEmail').val(customerEmail);
+            $('#lifeCompanyName').val(companyName);
+            $('#lifePlanType').val(insuranceType);
+            $('#lifeStartDate').val(startDate);
+            $('#lifeEndDate').val(endDate);
+            $('#lifePremium').val(premium);
+            $('#lifeCustomerPaid').val(customerPaidAmount);
+            $('#lifeRevenue').val(revenue);
+            
+            // Additional life fields if available
+            if (policy.customerAge) $('#lifeCustomerAge').val(policy.customerAge);
+            if (policy.customerGender) $('#lifeCustomerGender').val(policy.customerGender);
+            if (policy.sumAssured) $('#lifeSumAssured').val(policy.sumAssured);
+            if (policy.policyTerm) $('#lifePolicyTerm').val(policy.policyTerm);
+            if (policy.premiumFrequency) $('#lifePremiumFrequency').val(policy.premiumFrequency);
+        }
+        
+        // Store the policy ID for form submission
+        $('#policyForm').data('edit-id', id);
+        
+        // Update step indicators if they exist
+        $('.step-indicator').removeClass('active');
+        $('.step-indicator[data-step="3"]').addClass('active');
+        
+        // Add event listener for form submission if not already added
+        if (!$('#policyForm').data('edit-listener-added')) {
+            $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
+            $('#policyForm').data('edit-listener-added', true);
+        }
+    } else {
+        showNotification('Policy not found', 'error');
     }
 };
 
-const deletePolicy = (id) => {
+const deletePolicyHandler = async (id) => {
     if (confirm('Are you sure you want to delete this policy?')) {
+        try {
+            await deletePolicy(id);
         allPolicies = allPolicies.filter(p => p.id !== id);
         filteredData = filteredData.filter(p => p.id !== id);
         policiesFilteredData = policiesFilteredData.filter(p => p.id !== id);
@@ -1311,6 +2187,10 @@ const deletePolicy = (id) => {
         }
         
         showNotification('Policy deleted successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to delete policy:', error);
+            showNotification('Failed to delete policy', 'error');
+        }
     }
 };
 
@@ -1430,25 +2310,35 @@ const renderPoliciesTable = () => {
     
     pageData.forEach(policy => {
         const row = document.createElement('tr');
+        
+        // Use the correct property names from the API response with fallbacks
+        const policyType = policy.policyType || policy.type || 'Unknown';
+        const customerName = policy.customerName || policy.owner || 'Unknown';
+        const phone = policy.phone || 'Unknown';
+        const companyName = policy.companyName || policy.company || 'Unknown';
+        const endDate = policy.endDate || 'Unknown';
+        const premium = policy.premium || 0;
+        const status = policy.status || 'Active';
+        
         // Format additional info based on policy type
         let additionalInfo = '';
-        if (policy.type === 'Motor' && policy.vehicle) {
-            additionalInfo = policy.vehicle;
-        } else if (policy.type === 'Health' && policy.sumInsured) {
+        if (policyType === 'Motor' && (policy.vehicleNumber || policy.vehicle)) {
+            additionalInfo = policy.vehicleNumber || policy.vehicle || '';
+        } else if (policyType === 'Health' && policy.sumInsured) {
             additionalInfo = `Sum: ₹${policy.sumInsured.toLocaleString()}`;
-        } else if (policy.type === 'Life' && policy.sumAssured) {
+        } else if (policyType === 'Life' && policy.sumAssured) {
             additionalInfo = `Sum: ₹${policy.sumAssured.toLocaleString()}`;
         }
         
         row.innerHTML = `
             <td>${policy.id}</td>
-            <td><span class="policy-type-badge ${policy.type.toLowerCase()}">${policy.type}</span></td>
-            <td>${policy.owner}</td>
-            <td>${policy.phone}</td>
-            <td>${getShortCompanyName(policy.company)}</td>
-            <td>${formatDate(policy.endDate)}</td>
-            <td>₹${policy.premium.toLocaleString()}</td>
-            <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+            <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+            <td>${customerName}</td>
+            <td>${phone}</td>
+            <td>${getShortCompanyName(companyName)}</td>
+            <td>${formatDate(endDate)}</td>
+            <td>₹${premium.toLocaleString()}</td>
+            <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" data-policy-id="${policy.id}" title="Edit">
@@ -1477,7 +2367,7 @@ const renderPoliciesTable = () => {
     
     tbody.find('.action-btn.delete').click(function() {
         const policyId = parseInt($(this).data('policy-id'));
-        deletePolicy(policyId);
+        deletePolicyHandler(policyId);
     });
     
     tbody.find('.action-btn.view').click(function() {
@@ -1798,27 +2688,13 @@ const closeFollowupModal = () => {
     $('#previousNotesSection').hide();
 };
 
-const handleFollowupSubmit = (e) => {
+const handleFollowupSubmit = async (e) => {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const currentTime = new Date().toLocaleTimeString('en-US', { 
-        hour12: true, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
     
-    const newNote = {
-        date: new Date().toISOString().split('T')[0],
-        time: currentTime,
-        telecaller: formData.get('assignedTo'),
-        note: formData.get('note'),
-        callDuration: parseInt(formData.get('callDuration')) || 0,
-        callResult: formData.get('callResult') || ''
-    };
-    
+    // Build followup data to match controller expectations
     const followupData = {
-        id: allFollowups.length + 1,
         customerName: formData.get('customerName'),
         phone: formData.get('phone'),
         email: formData.get('email'),
@@ -1827,23 +2703,69 @@ const handleFollowupSubmit = (e) => {
         status: formData.get('status'),
         assignedTo: formData.get('assignedTo'),
         priority: formData.get('priority'),
-        lastFollowupDate: new Date().toISOString().split('T')[0],
         nextFollowupDate: formData.get('nextFollowupDate'),
         reminderTime: formData.get('reminderTime'),
-        notesHistory: [newNote],
-        recentNote: newNote.note,
-        createdAt: new Date().toISOString().split('T')[0]
+        notes: formData.get('notes')
     };
     
-    allFollowups.push(followupData);
-    followupsFilteredData = [...allFollowups];
+    // Validate required fields
+    if (!followupData.customerName || !followupData.phone) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
     
+    try {
+        const editId = $('#followupForm').data('edit-id');
+        
+        console.log('Submitting followup data:', followupData);
+        
+        if (editId) {
+            // Update existing followup
+            const response = await updateFollowup(editId, followupData);
+            
+            // Update local data
+            const index = allFollowups.findIndex(f => f.id === editId);
+            if (index !== -1) {
+                allFollowups[index] = { ...allFollowups[index], ...response.followup };
+            }
+            
+            showNotification('Follow-up updated successfully!', 'success');
+        } else {
+            // Create new followup
+            const response = await createFollowup(followupData);
+            
+            // Add to local data
+            if (response.followup) {
+                allFollowups.push(response.followup);
+            }
+            
+            showNotification('Follow-up added successfully!', 'success');
+        }
+        
+        // Close modal and refresh
     closeFollowupModal();
     renderFollowupsTable();
     updateFollowupsPagination();
     updateFollowupsStats();
     
-    showNotification('Follow-up added successfully!', 'success');
+    } catch (error) {
+        console.error('Failed to save followup:', error);
+        
+        // Handle validation errors
+        if (error.response && error.response.data) {
+            if (error.response.data.errors) {
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(', ');
+                showNotification(errorMessages, 'error');
+            } else if (error.response.data.message) {
+                showNotification(error.response.data.message, 'error');
+            } else {
+                showNotification(`Validation failed: ${error.response.status}`, 'error');
+            }
+        } else {
+            showNotification('Failed to save followup. Please check your input and try again.', 'error');
+        }
+    }
 };
 
 const renderFollowupsTable = () => {
@@ -1903,7 +2825,7 @@ const renderFollowupsTable = () => {
     
     tbody.find('.action-btn.delete').click(function() {
         const followupId = parseInt($(this).data('followup-id'));
-        deleteFollowup(followupId);
+        deleteFollowupHandler(followupId);
     });
     
     tbody.find('.action-btn.view').click(function() {
@@ -2061,27 +2983,43 @@ const editFollowup = (id) => {
     if (followup) {
         $('#followupModalTitle').text('Edit Follow Up');
         
-        // Populate form
-        $('#followupCustomerName').val(followup.customerName);
-        $('#followupPhone').val(followup.phone);
-        $('#followupEmail').val(followup.email);
-        $('#followupPolicyId').val(followup.policyId);
-        $('#followupType').val(followup.followupType);
-        $('#followupStatus').val(followup.status);
-        $('#followupAssignedTo').val(followup.assignedTo);
-        $('#followupPriority').val(followup.priority);
-        $('#followupNextDate').val(followup.nextFollowupDate);
-        $('#followupReminderTime').val(followup.reminderTime);
+        // Populate form fields
+        $('#followupCustomerName').val(followup.customerName || '');
+        $('#followupPhone').val(followup.phone || '');
+        $('#followupEmail').val(followup.email || '');
+        $('#followupPolicyId').val(followup.policyId || '');
+        $('#followupType').val(followup.followupType || '');
+        $('#followupStatus').val(followup.status || '');
+        $('#followupAssignedTo').val(followup.assignedTo || '');
+        $('#followupPriority').val(followup.priority || '');
+        $('#followupNextDate').val(followup.nextFollowupDate || '');
+        $('#followupReminderTime').val(followup.reminderTime || '');
         
-        // Show previous notes
-        showPreviousNotes(followup.notesHistory);
+        // Store the followup ID for form submission
+        $('#followupForm').data('edit-id', id);
         
+        // Show the modal
         $('#followupModal').addClass('show');
+        
+        // Add event listener for form submission if not already added
+        if (!$('#followupForm').data('edit-listener-added')) {
+            $('#saveFollowupBtn').off('click').on('click', handleFollowupSubmit);
+            $('#followupForm').data('edit-listener-added', true);
+        }
+        
+        // Show previous notes if available
+        if (followup.notesHistory && followup.notesHistory.length > 0) {
+            showPreviousNotes(followup.notesHistory);
+        }
+    } else {
+        showNotification('Follow-up not found', 'error');
     }
 };
 
-const deleteFollowup = (id) => {
+const deleteFollowupHandler = async (id) => {
     if (confirm('Are you sure you want to delete this follow-up?')) {
+        try {
+            await deleteFollowup(id);
         allFollowups = allFollowups.filter(f => f.id !== id);
         followupsFilteredData = followupsFilteredData.filter(f => f.id !== id);
         
@@ -2090,6 +3028,10 @@ const deleteFollowup = (id) => {
         updateFollowupsStats();
         
         showNotification('Follow-up deleted successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to delete followup:', error);
+            showNotification('Failed to delete followup', 'error');
+        }
     }
 };
 
@@ -2251,8 +3193,14 @@ const showPolicyForm = (policyType) => {
     // Hide all forms
     $('.policy-form').hide();
     
+    // Disable validation on ALL hidden fields first (including those in hidden forms)
+    $('.policy-form input[required], .policy-form select[required]').prop('required', false);
+    
     // Show selected form
     $(`#${policyType.toLowerCase()}Form`).show();
+    
+    // Enable validation only on visible fields in the current form
+    $(`#${policyType.toLowerCase()}Form input[required], #${policyType.toLowerCase()}Form select[required]`).prop('required', true);
     
     // Set default dates for the visible form
     setDefaultDates(policyType);
@@ -2306,67 +3254,113 @@ const openRenewalModal = () => {
     $('#renewalModalTitle').text('Add Renewal Reminder');
     $('#renewalForm')[0].reset();
     
-    // Populate policy dropdown
+    // Populate policy dropdown with correct property names
     const policySelect = $('#renewalPolicyId');
     policySelect.empty().append('<option value="">Select Policy</option>');
     
     allPolicies.forEach(policy => {
-        policySelect.append(`<option value="${policy.id}">#${policy.id.toString().padStart(3, '0')} - ${policy.owner} (${policy.type})</option>`);
+        const policyId = policy.id || 0;
+        const customerName = policy.customerName || policy.owner || 'Unknown';
+        const policyType = policy.policyType || policy.type || 'Unknown';
+        policySelect.append(`<option value="${policyId}">#${policyId.toString().padStart(3, '0')} - ${customerName} (${policyType})</option>`);
     });
     
-    // Populate agent dropdown
-    const agentSelect = $('#renewalAssignedTo');
-    agentSelect.empty().append('<option value="">Select Agent</option>');
-    
-    allAgents.forEach(agent => {
-        agentSelect.append(`<option value="${agent.name}">${agent.name}</option>`);
-    });
-    
-    // Set default reminder date (30 days before expiry)
+    // Set default reminder date (30 days from today)
     const today = new Date();
     const defaultReminder = new Date(today);
     defaultReminder.setDate(today.getDate() + 30);
     $('#renewalReminderDate').val(defaultReminder.toISOString().split('T')[0]);
+    
+    // Set default priority
+    $('#renewalPriority').val('Medium');
     
     $('#renewalModal').addClass('show');
 };
 
 const closeRenewalModal = () => {
     $('#renewalModal').removeClass('show');
+    
+    // Reset form
     $('#renewalForm')[0].reset();
+    
+    // Reset modal state
+    $('#renewalForm').removeData('edit-id');
+    $('#renewalModalTitle').text('Add Renewal Reminder');
+    
+    // Clear any edit listener
+    $('#renewalForm').removeData('edit-listener-added');
 };
 
-const handleRenewalSubmit = (e) => {
+const handleRenewalSubmit = async (e) => {
     e.preventDefault();
     
-    const formData = new FormData(e.target);
+    // Build renewal data using the correct field names from the modal
     const renewalData = {
-        id: allRenewals.length + 1,
-        policyId: parseInt(formData.get('policyId')),
-        customerName: formData.get('customerName'),
-        policyType: formData.get('policyType'),
-        expiryDate: formData.get('expiryDate'),
-        daysLeft: Math.ceil((new Date(formData.get('expiryDate')) - new Date()) / (1000 * 60 * 60 * 24)),
-        status: formData.get('status'),
-        priority: formData.get('priority'),
-        assignedTo: formData.get('assignedTo'),
-        reminderDate: formData.get('reminderDate'),
-        notes: formData.get('notes'),
-        emailNotification: formData.get('emailNotification') === 'on',
-        smsNotification: formData.get('smsNotification') === 'on',
-        notificationDays: parseInt(formData.get('notificationDays')),
-        createdAt: new Date().toISOString().split('T')[0]
+        policy_id: parseInt($('#renewalPolicyId').val()) || null,
+        customer_name: $('#renewalCustomerName').val() || '',
+        reminder_date: $('#renewalReminderDate').val() || '',
+        priority: $('#renewalPriority').val() || 'Medium',
+        notes: $('#renewalNotes').val() || ''
     };
     
-    allRenewals.push(renewalData);
-    renewalsFilteredData = [...allRenewals];
+    // Validate required fields
+    if (!renewalData.policy_id || !renewalData.customer_name || !renewalData.reminder_date) {
+        showNotification('Please fill in all required fields (Policy ID, Customer Name, Reminder Date)', 'error');
+        return;
+    }
     
-    closeRenewalModal();
-    renderRenewalsTable();
-    updateRenewalsPagination();
-    updateRenewalsStats();
-    
-    showNotification('Renewal reminder added successfully!', 'success');
+    try {
+        const editId = $('#renewalForm').data('edit-id');
+        
+        console.log('Submitting renewal data:', renewalData);
+        
+        if (editId) {
+            // Update existing renewal
+            const response = await updateRenewal(editId, renewalData);
+            
+            // Update local data
+            const index = allRenewals.findIndex(r => r.id === editId);
+            if (index !== -1) {
+                allRenewals[index] = { ...allRenewals[index], ...response.renewal };
+            }
+            
+            showNotification('Renewal updated successfully!', 'success');
+        } else {
+            // Create new renewal
+            const response = await createRenewal(renewalData);
+            
+            // Add to local data
+            if (response.renewal) {
+                allRenewals.push(response.renewal);
+            }
+            
+            showNotification('Renewal reminder added successfully!', 'success');
+        }
+        
+        // Close modal and refresh
+        closeRenewalModal();
+        renderRenewalsTable();
+        updateRenewalsPagination();
+        updateRenewalsStats();
+        
+    } catch (error) {
+        console.error('Failed to save renewal:', error);
+        
+        // Handle validation errors
+        if (error.response && error.response.data) {
+            if (error.response.data.errors) {
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(', ');
+                showNotification(errorMessages, 'error');
+            } else if (error.response.data.message) {
+                showNotification(error.response.data.message, 'error');
+            } else {
+                showNotification(`Validation failed: ${error.response.status}`, 'error');
+            }
+        } else {
+            showNotification('Failed to save renewal. Please check your input and try again.', 'error');
+        }
+    }
 };
 
 const renderRenewalsTable = () => {
@@ -2382,24 +3376,34 @@ const renderRenewalsTable = () => {
     pageData.forEach(renewal => {
         const row = document.createElement('tr');
         
+        // Get the correct property names from the API response with fallbacks
+        const policyId = renewal.policyId || renewal.policy_id || 0;
+        const customerName = renewal.customerName || renewal.customer_name || 'Unknown';
+        const policyType = renewal.policyType || renewal.policy_type || 'Unknown';
+        const expiryDate = renewal.expiryDate || renewal.expiry_date || 'Unknown';
+        const daysLeft = renewal.daysLeft || renewal.days_left || 0;
+        const status = renewal.status || 'Pending';
+        const priority = renewal.priority || 'Medium';
+        const assignedTo = renewal.assignedTo || renewal.assigned_to || 'Unassigned';
+        
         // Determine days left class
         let daysLeftClass = 'safe';
-        if (renewal.daysLeft < 0) {
+        if (daysLeft < 0) {
             daysLeftClass = 'urgent';
-        } else if (renewal.daysLeft <= 7) {
+        } else if (daysLeft <= 7) {
             daysLeftClass = 'warning';
         }
         
         row.innerHTML = `
             <td>${renewal.id}</td>
-            <td>#${renewal.policyId.toString().padStart(3, '0')}</td>
-            <td>${renewal.customerName}</td>
-            <td><span class="policy-type-badge ${renewal.policyType.toLowerCase()}">${renewal.policyType}</span></td>
-            <td>${formatDate(renewal.expiryDate)}</td>
-            <td><span class="days-left ${daysLeftClass}">${renewal.daysLeft < 0 ? Math.abs(renewal.daysLeft) + ' days overdue' : renewal.daysLeft + ' days'}</span></td>
-            <td><span class="status-badge ${renewal.status.toLowerCase().replace(' ', '')}">${renewal.status}</span></td>
-            <td><span class="priority-badge ${renewal.priority.toLowerCase()}">${renewal.priority}</span></td>
-            <td>${renewal.assignedTo}</td>
+            <td>#${policyId.toString().padStart(3, '0')}</td>
+            <td>${customerName}</td>
+            <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+            <td>${formatDate(expiryDate)}</td>
+            <td><span class="days-left ${daysLeftClass}">${daysLeft < 0 ? Math.abs(daysLeft) + ' days overdue' : daysLeft + ' days'}</span></td>
+            <td><span class="status-badge ${status.toLowerCase().replace(' ', '')}">${status}</span></td>
+            <td><span class="priority-badge ${priority.toLowerCase()}">${priority}</span></td>
+            <td>${assignedTo}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" data-renewal-id="${renewal.id}" title="Edit">
@@ -2428,7 +3432,7 @@ const renderRenewalsTable = () => {
     
     tbody.find('.action-btn.delete').click(function() {
         const renewalId = parseInt($(this).data('renewal-id'));
-        deleteRenewal(renewalId);
+        deleteRenewalHandler(renewalId);
     });
     
     tbody.find('.action-btn.view').click(function() {
@@ -2480,9 +3484,9 @@ const goToRenewalsPage = (page) => {
 };
 
 const updateRenewalsStats = () => {
-    const pending = renewalsFilteredData.filter(r => r.status === 'Pending').length;
-    const overdue = renewalsFilteredData.filter(r => r.status === 'Overdue').length;
-    const completed = renewalsFilteredData.filter(r => r.status === 'Completed').length;
+    const pending = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Pending').length;
+    const overdue = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Overdue').length;
+    const completed = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Completed').length;
     const total = renewalsFilteredData.length;
     
     $('#pendingRenewalsCount').text(pending);
@@ -2494,12 +3498,17 @@ const updateRenewalsStats = () => {
 const handleRenewalsSearch = () => {
     const searchTerm = $('#renewalsSearch').val().toLowerCase();
     
-    renewalsFilteredData = allRenewals.filter(renewal => 
-        renewal.customerName.toLowerCase().includes(searchTerm) ||
-        renewal.policyId.toString().includes(searchTerm) ||
-        renewal.policyType.toLowerCase().includes(searchTerm) ||
-        renewal.assignedTo.toLowerCase().includes(searchTerm)
-    );
+    renewalsFilteredData = allRenewals.filter(renewal => {
+        const customerName = renewal.customerName || renewal.customer_name || '';
+        const policyId = renewal.policyId || renewal.policy_id || '';
+        const policyType = renewal.policyType || renewal.policy_type || '';
+        const assignedTo = renewal.assignedTo || renewal.assigned_to || '';
+        
+        return customerName.toLowerCase().includes(searchTerm) ||
+               policyId.toString().includes(searchTerm) ||
+               policyType.toLowerCase().includes(searchTerm) ||
+               assignedTo.toLowerCase().includes(searchTerm);
+    });
     
     renewalsCurrentPage = 1;
     renderRenewalsTable();
@@ -2516,8 +3525,11 @@ const applyRenewalsFilters = () => {
     const priorityFilter = $('#renewalPriorityFilter').val();
     
     renewalsFilteredData = allRenewals.filter(renewal => {
-        const statusMatch = !statusFilter || renewal.status === statusFilter;
-        const priorityMatch = !priorityFilter || renewal.priority === priorityFilter;
+        const status = renewal.status || 'Pending';
+        const priority = renewal.priority || 'Medium';
+        
+        const statusMatch = !statusFilter || status === statusFilter;
+        const priorityMatch = !priorityFilter || priority === priorityFilter;
         return statusMatch && priorityMatch;
     });
     
@@ -2545,6 +3557,16 @@ const handleRenewalsSort = (column) => {
     renewalsFilteredData.sort((a, b) => {
         let aVal = a[column];
         let bVal = b[column];
+        
+        // Handle property name variations
+        if (column === 'customerName' && !aVal) aVal = a.customer_name || '';
+        if (column === 'customerName' && !bVal) bVal = b.customer_name || '';
+        if (column === 'policyId' && !aVal) aVal = a.policy_id || 0;
+        if (column === 'policyId' && !bVal) bVal = b.policy_id || 0;
+        if (column === 'policyType' && !aVal) aVal = a.policy_type || '';
+        if (column === 'policyType' && !bVal) bVal = b.policy_type || '';
+        if (column === 'assignedTo' && !aVal) aVal = a.assigned_to || '';
+        if (column === 'assignedTo' && !bVal) bVal = b.assigned_to || '';
         
         if (typeof aVal === 'string') {
             aVal = aVal.toLowerCase();
@@ -2575,43 +3597,166 @@ const editRenewal = (id) => {
     if (renewal) {
         $('#renewalModalTitle').text('Edit Renewal Reminder');
         
-        // Populate form
-        $('#renewalPolicyId').val(renewal.policyId);
-        $('#renewalCustomerName').val(renewal.customerName);
-        $('#renewalPolicyType').val(renewal.policyType);
-        $('#renewalExpiryDate').val(renewal.expiryDate);
-        $('#renewalReminderDate').val(renewal.reminderDate);
-        $('#renewalPriority').val(renewal.priority);
-        $('#renewalStatus').val(renewal.status);
-        $('#renewalAssignedTo').val(renewal.assignedTo);
-        $('#renewalNotes').val(renewal.notes);
-        $('#renewalEmailNotification').prop('checked', renewal.emailNotification);
-        $('#renewalSMSNotification').prop('checked', renewal.smsNotification);
-        $('#renewalNotificationDays').val(renewal.notificationDays);
+        // Get the correct property names from the API response with fallbacks
+        const policyId = renewal.policyId || renewal.policy_id || '';
+        const customerName = renewal.customerName || renewal.customer_name || '';
+        const reminderDate = renewal.reminderDate || renewal.reminder_date || '';
+        const priority = renewal.priority || 'Medium';
+        const notes = renewal.notes || '';
         
+        // Populate form fields with the correct field names from the modal
+        $('#renewalPolicyId').val(policyId);
+        $('#renewalCustomerName').val(customerName);
+        $('#renewalReminderDate').val(reminderDate);
+        $('#renewalPriority').val(priority);
+        $('#renewalNotes').val(notes);
+        
+        // Store the renewal ID for form submission
+        $('#renewalForm').data('edit-id', id);
+        
+        // Show the modal
         $('#renewalModal').addClass('show');
+        
+        // Add event listener for form submission if not already added
+        if (!$('#renewalForm').data('edit-listener-added')) {
+            $('#renewalForm').off('submit').on('submit', handleRenewalSubmit);
+            $('#renewalForm').data('edit-listener-added', true);
+        }
+    } else {
+        showNotification('Renewal not found', 'error');
     }
 };
 
-const deleteRenewal = (id) => {
+const deleteRenewalHandler = async (id) => {
     if (confirm('Are you sure you want to delete this renewal reminder?')) {
-        allRenewals = allRenewals.filter(r => r.id !== id);
-        renewalsFilteredData = renewalsFilteredData.filter(r => r.id !== id);
-        
-        renderRenewalsTable();
-        updateRenewalsPagination();
-        updateRenewalsStats();
-        
-        showNotification('Renewal reminder deleted successfully!', 'success');
+        try {
+            await deleteRenewal(id);
+            allRenewals = allRenewals.filter(r => r.id !== id);
+            renewalsFilteredData = renewalsFilteredData.filter(r => r.id !== id);
+            
+            renderRenewalsTable();
+            updateRenewalsPagination();
+            updateRenewalsStats();
+            
+            showNotification('Renewal reminder deleted successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to delete renewal:', error);
+            showNotification('Failed to delete renewal', 'error');
+        }
     }
 };
 
 const viewRenewalDetails = (id) => {
     const renewal = allRenewals.find(r => r.id === id);
     if (renewal) {
-        showNotification(`Viewing details for renewal #${renewal.id}`, 'info');
-        // Here you would typically open a detailed view modal
+        // Get the correct property names from the API response with fallbacks
+        const policyId = renewal.policyId || renewal.policy_id || 0;
+        const customerName = renewal.customerName || renewal.customer_name || 'Unknown';
+        const policyType = renewal.policyType || renewal.policy_type || 'Unknown';
+        const expiryDate = renewal.expiryDate || renewal.expiry_date || 'Unknown';
+        const daysLeft = renewal.daysLeft || renewal.days_left || 0;
+        const status = renewal.status || 'Pending';
+        const priority = renewal.priority || 'Medium';
+        const assignedTo = renewal.assignedTo || renewal.assigned_to || 'Unassigned';
+        const reminderDate = renewal.reminderDate || renewal.reminder_date || 'Unknown';
+        const notes = renewal.notes || 'No notes available';
+        
+        // Create a detailed view modal content
+        const modalContent = `
+            <div class="modal" id="viewRenewalModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Renewal Details - #${renewal.id}</h2>
+                        <button class="modal-close" onclick="closeViewRenewalModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="detail-section">
+                            <h3><i class="fas fa-file-contract"></i> Policy Information</h3>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <label>Policy ID:</label>
+                                    <span>#${policyId.toString().padStart(3, '0')}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Customer Name:</label>
+                                    <span>${customerName}</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <label>Policy Type:</label>
+                                    <span><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Expiry Date:</label>
+                                    <span>${formatDate(expiryDate)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h3><i class="fas fa-calendar-alt"></i> Renewal Information</h3>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <label>Status:</label>
+                                    <span><span class="status-badge ${status.toLowerCase().replace(' ', '')}">${status}</span></span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Priority:</label>
+                                    <span><span class="priority-badge ${priority.toLowerCase()}">${priority}</span></span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <label>Reminder Date:</label>
+                                    <span>${formatDate(reminderDate)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Days Left:</label>
+                                    <span><span class="days-left ${daysLeft < 0 ? 'urgent' : daysLeft <= 7 ? 'warning' : 'safe'}">${daysLeft < 0 ? Math.abs(daysLeft) + ' days overdue' : daysLeft + ' days'}</span></span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <label>Assigned To:</label>
+                                    <span>${assignedTo}</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item full-width">
+                                    <label>Notes:</label>
+                                    <span>${notes}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeViewRenewalModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        $('#viewRenewalModal').remove();
+        
+        // Add new modal to body
+        $('body').append(modalContent);
+        
+        // Show the modal
+        $('#viewRenewalModal').addClass('show');
+    } else {
+        showNotification('Renewal not found', 'error');
     }
+};
+
+const closeViewRenewalModal = () => {
+    $('#viewRenewalModal').removeClass('show');
+    setTimeout(() => {
+        $('#viewRenewalModal').remove();
+    }, 300);
 };
 
 const exportRenewalsData = () => {
@@ -2692,6 +3837,11 @@ const updateKPIs = () => {
 };
 
 const initializeReportCharts = () => {
+    // Only initialize report charts on reports page
+    if (!$('#reports').hasClass('active')) {
+        return;
+    }
+    
     // Initialize all report charts
     updateTrendChart();
     updatePolicyTypeChart();
@@ -2967,6 +4117,12 @@ const initializeReportTabs = () => {
 };
 
 const generateReports = () => {
+    // Check if data is available before generating reports
+    if (!allPolicies && !allAgents && !allRenewals && !allFollowups) {
+        console.log('Data not yet loaded, skipping report generation');
+        return;
+    }
+    
     updateKPIs();
     generatePoliciesReport();
     generateRenewalsReport();
@@ -2979,19 +4135,28 @@ const generatePoliciesReport = () => {
     tbody.empty();
     
     // Filter policies based on date range if needed
-    const filteredPolicies = allPolicies;
+    const filteredPolicies = allPolicies || [];
     
     filteredPolicies.forEach(policy => {
+        // Use the correct property names from the API response with fallbacks
+        const policyType = policy.policyType || policy.type || 'Unknown';
+        const customerName = policy.customerName || policy.owner || 'Unknown';
+        const companyName = policy.companyName || policy.company || 'Unknown';
+        const premium = policy.premium || 0;
+        const status = policy.status || 'Active';
+        const startDate = policy.startDate || 'Unknown';
+        const endDate = policy.endDate || 'Unknown';
+        
         const row = `
             <tr>
                 <td>#${policy.id.toString().padStart(3, '0')}</td>
-                <td>${policy.owner}</td>
-                <td><span class="policy-type-badge ${policy.type.toLowerCase()}">${policy.type}</span></td>
-                <td>${getShortCompanyName(policy.company)}</td>
-                <td>₹${parseFloat(policy.premium).toLocaleString()}</td>
-                <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
-                <td>${formatDate(policy.startDate)}</td>
-                <td>${formatDate(policy.endDate)}</td>
+                <td>${customerName}</td>
+                <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+                <td>${getShortCompanyName(companyName)}</td>
+                <td>₹${parseFloat(premium).toLocaleString()}</td>
+                <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
+                <td>${formatDate(startDate)}</td>
+                <td>${formatDate(endDate)}</td>
             </tr>
         `;
         tbody.append(row);
@@ -2999,10 +4164,12 @@ const generatePoliciesReport = () => {
     
     // Update summary stats
     $('#totalPoliciesReport').text(filteredPolicies.length);
-    $('#activePoliciesReport').text(filteredPolicies.filter(p => p.status === 'Active').length);
-    $('#expiredPoliciesReport').text(filteredPolicies.filter(p => p.status === 'Expired').length);
+    $('#activePoliciesReport').text(filteredPolicies.filter(p => (p.status || 'Active') === 'Active').length);
+    $('#expiredPoliciesReport').text(filteredPolicies.filter(p => (p.status || 'Active') === 'Expired').length);
     
-    const avgPremium = filteredPolicies.reduce((sum, p) => sum + parseFloat(p.premium), 0) / filteredPolicies.length;
+    const avgPremium = filteredPolicies.length > 0 
+        ? filteredPolicies.reduce((sum, p) => sum + parseFloat(p.premium || 0), 0) / filteredPolicies.length 
+        : 0;
     $('#avgPremiumReport').text(`₹${avgPremium.toFixed(0)}`);
 };
 
@@ -3010,27 +4177,38 @@ const generateRenewalsReport = () => {
     const tbody = $('#renewalsReportTableBody');
     tbody.empty();
     
-    allRenewals.forEach(renewal => {
+    const renewals = allRenewals || [];
+    
+    renewals.forEach(renewal => {
+        const customerName = renewal.customerName || 'Unknown';
+        const expiryDate = renewal.expiryDate || 'Unknown';
+        const daysLeft = renewal.daysLeft || 0;
+        const status = renewal.status || 'Pending';
+        const priority = renewal.priority || 'Medium';
+        const assignedTo = renewal.assignedTo || 'Unassigned';
+        
         const row = `
             <tr>
-                <td>#${renewal.policyId.toString().padStart(3, '0')}</td>
-                <td>${renewal.customerName}</td>
-                <td>${formatDate(renewal.expiryDate)}</td>
-                <td><span class="days-left ${renewal.daysLeft < 0 ? 'urgent' : renewal.daysLeft <= 7 ? 'warning' : 'safe'}">${renewal.daysLeft < 0 ? Math.abs(renewal.daysLeft) + ' days overdue' : renewal.daysLeft + ' days'}</span></td>
-                <td><span class="status-badge ${renewal.status.toLowerCase().replace(' ', '')}">${renewal.status}</span></td>
-                <td><span class="priority-badge ${renewal.priority.toLowerCase()}">${renewal.priority}</span></td>
-                <td>${renewal.assignedTo}</td>
+                <td>#${renewal.policyId ? renewal.policyId.toString().padStart(3, '0') : '000'}</td>
+                <td>${customerName}</td>
+                <td>${formatDate(expiryDate)}</td>
+                <td><span class="days-left ${daysLeft < 0 ? 'urgent' : daysLeft <= 7 ? 'warning' : 'safe'}">${daysLeft < 0 ? Math.abs(daysLeft) + ' days overdue' : daysLeft + ' days'}</span></td>
+                <td><span class="status-badge ${status.toLowerCase().replace(' ', '')}">${status}</span></td>
+                <td><span class="priority-badge ${priority.toLowerCase()}">${priority}</span></td>
+                <td>${assignedTo}</td>
             </tr>
         `;
         tbody.append(row);
     });
     
     // Update summary stats
-    $('#pendingRenewalsReport').text(allRenewals.filter(r => r.status === 'Pending').length);
-    $('#completedRenewalsReport').text(allRenewals.filter(r => r.status === 'Completed').length);
-    $('#overdueRenewalsReport').text(allRenewals.filter(r => r.status === 'Overdue').length);
+    $('#pendingRenewalsReport').text(renewals.filter(r => (r.status || 'Pending') === 'Pending').length);
+    $('#completedRenewalsReport').text(renewals.filter(r => (r.status || 'Pending') === 'Completed').length);
+    $('#overdueRenewalsReport').text(renewals.filter(r => (r.status || 'Pending') === 'Overdue').length);
     
-    const renewalRate = allRenewals.filter(r => r.status === 'Completed').length / allRenewals.length * 100;
+    const renewalRate = renewals.length > 0 
+        ? renewals.filter(r => (r.status || 'Pending') === 'Completed').length / renewals.length * 100 
+        : 0;
     $('#renewalRateReport').text(`${renewalRate.toFixed(1)}%`);
 };
 
@@ -3038,27 +4216,39 @@ const generateFollowupsReport = () => {
     const tbody = $('#followupsReportTableBody');
     tbody.empty();
     
-    allFollowups.forEach(followup => {
+    const followups = allFollowups || [];
+    
+    followups.forEach(followup => {
+        const customerName = followup.customerName || 'Unknown';
+        const phone = followup.phone || 'Unknown';
+        const followupType = followup.followupType || 'General';
+        const status = followup.status || 'Pending';
+        const assignedTo = followup.assignedTo || 'Unassigned';
+        const lastFollowupDate = followup.lastFollowupDate || 'Unknown';
+        const nextFollowupDate = followup.nextFollowupDate || null;
+        
         const row = `
             <tr>
-                <td>${followup.customerName}</td>
-                <td>${followup.phone}</td>
-                <td><span class="followup-type-badge ${followup.followupType.toLowerCase().replace(' ', '-')}">${followup.followupType}</span></td>
-                <td><span class="status-badge ${followup.status.toLowerCase().replace(' ', '')}">${followup.status}</span></td>
-                <td>${followup.assignedTo}</td>
-                <td>${formatDate(followup.lastFollowupDate)}</td>
-                <td>${followup.nextFollowupDate ? formatDate(followup.nextFollowupDate) : '-'}</td>
+                <td>${customerName}</td>
+                <td>${phone}</td>
+                <td><span class="followup-type-badge ${followupType.toLowerCase().replace(' ', '-')}">${followupType}</span></td>
+                <td><span class="status-badge ${status.toLowerCase().replace(' ', '')}">${status}</span></td>
+                <td>${assignedTo}</td>
+                <td>${formatDate(lastFollowupDate)}</td>
+                <td>${nextFollowupDate ? formatDate(nextFollowupDate) : '-'}</td>
             </tr>
         `;
         tbody.append(row);
     });
     
     // Update summary stats
-    $('#totalFollowupsReport').text(allFollowups.length);
-    $('#completedTodayReport').text(allFollowups.filter(f => f.status === 'Completed' && f.lastFollowupDate === new Date().toISOString().split('T')[0]).length);
-    $('#pendingFollowupsReport').text(allFollowups.filter(f => f.status === 'Pending').length);
+    $('#totalFollowupsReport').text(followups.length);
+    $('#completedTodayReport').text(followups.filter(f => (f.status || 'Pending') === 'Completed' && f.lastFollowupDate === new Date().toISOString().split('T')[0]).length);
+    $('#pendingFollowupsReport').text(followups.filter(f => (f.status || 'Pending') === 'Pending').length);
     
-    const successRate = allFollowups.filter(f => f.status === 'Completed').length / allFollowups.length * 100;
+    const successRate = followups.length > 0 
+        ? followups.filter(f => (f.status || 'Pending') === 'Completed').length / followups.length * 100 
+        : 0;
     $('#successRateReport').text(`${successRate.toFixed(1)}%`);
 };
 
@@ -3066,19 +4256,25 @@ const generateAgentsReport = () => {
     const tbody = $('#agentsReportTableBody');
     tbody.empty();
     
-    const agentStats = allAgents.map(agent => {
-        const policies = allPolicies.filter(p => p.assignedTo === agent.name);
-        const renewals = allRenewals.filter(r => r.assignedTo === agent.name);
-        const followups = allFollowups.filter(f => f.assignedTo === agent.name);
-        const totalPremium = policies.reduce((sum, p) => sum + parseFloat(p.premium), 0);
+    const agents = allAgents || [];
+    const policies = allPolicies || [];
+    const renewals = allRenewals || [];
+    const followups = allFollowups || [];
+    
+    const agentStats = agents.map(agent => {
+        const agentName = agent.name || 'Unknown';
+        const agentPolicies = policies.filter(p => (p.assignedTo || p.customerName) === agentName);
+        const agentRenewals = renewals.filter(r => (r.assignedTo || r.customerName) === agentName);
+        const agentFollowups = followups.filter(f => (f.assignedTo || f.customerName) === agentName);
+        const totalPremium = agentPolicies.reduce((sum, p) => sum + parseFloat(p.premium || 0), 0);
         const performance = Math.floor(Math.random() * 40) + 60; // 60-100%
         
         return {
-            name: agent.name,
-            policies: policies.length,
+            name: agentName,
+            policies: agentPolicies.length,
             totalPremium,
-            renewals: renewals.length,
-            followups: followups.length,
+            renewals: agentRenewals.length,
+            followups: agentFollowups.length,
             performance
         };
     });
@@ -3098,13 +4294,17 @@ const generateAgentsReport = () => {
     });
     
     // Update summary stats
-    $('#totalAgentsReport').text(allAgents.length);
-    $('#activeAgentsReport').text(allAgents.length);
+    $('#totalAgentsReport').text(agents.length);
+    $('#activeAgentsReport').text(agents.length);
     
-    const topPerformer = agentStats.reduce((max, agent) => agent.performance > max.performance ? agent : max, agentStats[0]);
+    const topPerformer = agentStats.length > 0 
+        ? agentStats.reduce((max, agent) => agent.performance > max.performance ? agent : max, agentStats[0])
+        : null;
     $('#topPerformerReport').text(topPerformer ? topPerformer.name : '-');
     
-    const avgPerformance = agentStats.reduce((sum, agent) => sum + agent.performance, 0) / agentStats.length;
+    const avgPerformance = agentStats.length > 0 
+        ? agentStats.reduce((sum, agent) => sum + agent.performance, 0) / agentStats.length 
+        : 0;
     $('#avgPerformanceReport').text(`${avgPerformance.toFixed(1)}%`);
 };
 
@@ -3221,7 +4421,7 @@ const renderAgentsTable = () => {
                     <button class="action-btn edit" onclick="editAgent(${agent.id})" title="Edit Agent">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn delete" onclick="deleteAgent(${agent.id})" title="Delete Agent">
+                    <button class="action-btn delete" onclick="deleteAgentHandler(${agent.id})" title="Delete Agent">
                         <i class="fas fa-trash"></i>
                     </button>
                     <button class="action-btn view" onclick="viewAgentDetails(${agent.id})" title="View Details">
@@ -3388,21 +4588,38 @@ const updateAgentsSortIcons = () => {
 const editAgent = (id) => {
     const agent = allAgents.find(a => a.id === id);
     if (agent) {
+        // Set modal title
         $('#agentModalTitle').text('Edit Agent');
         
-        // Populate form
-        $('#agentName').val(agent.name);
-        $('#agentPhone').val(agent.phone);
-        $('#agentEmail').val(agent.email);
-        $('#agentUserId').val(agent.userId);
-        $('#agentPassword').val(agent.password);
+        // Populate form fields
+        $('#agentName').val(agent.name || '');
+        $('#agentPhone').val(agent.phone || '');
+        $('#agentEmail').val(agent.email || '');
+        $('#agentUserId').val(agent.userId || '');
+        $('#agentStatus').val(agent.status || 'Active');
+        $('#agentAddress').val(agent.address || '');
+        $('#agentPassword').val(''); // Clear password for security
         
+        // Store the agent ID for form submission
+        $('#agentForm').data('edit-id', id);
+        
+        // Show the modal
         $('#agentModal').addClass('show');
+        
+        // Add event listener for form submission if not already added
+        if (!$('#agentForm').data('edit-listener-added')) {
+            $('#saveAgentBtn').off('click').on('click', handleAgentSubmit);
+            $('#agentForm').data('edit-listener-added', true);
+        }
+    } else {
+        showNotification('Agent not found', 'error');
     }
 };
 
-const deleteAgent = (id) => {
+const deleteAgentHandler = async (id) => {
     if (confirm('Are you sure you want to delete this agent?')) {
+        try {
+            await deleteAgent(id);
         allAgents = allAgents.filter(a => a.id !== id);
         agentsFilteredData = agentsFilteredData.filter(a => a.id !== id);
         
@@ -3411,6 +4628,10 @@ const deleteAgent = (id) => {
         updateAgentsStats();
         
         showNotification('Agent deleted successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to delete agent:', error);
+            showNotification('Failed to delete agent', 'error');
+        }
     }
 };
 
@@ -4447,4 +5668,63 @@ const initializeAnalyticsCharts = () => {
             }
         });
     }
+};
+
+// Initialize all modals and their event listeners
+const initializeModals = () => {
+    // Agent Modal
+    $('#addAgentBtn').off('click').on('click', openAgentModal);
+    $('#closeAgentModal, #cancelAgent').off('click').on('click', closeAgentModal);
+    $('#saveAgentBtn').off('click').on('click', handleAgentSubmit);
+    
+    // Policy Modal - Fix for header button
+    $('#addPolicyBtn, #addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPolicyModal();
+    });
+    $('#closePolicyModal, #cancelPolicy').off('click').on('click', closePolicyModal);
+    $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
+    
+    // Followup Modal
+    $('#addFollowupBtn').off('click').on('click', openFollowupModal);
+    $('#closeFollowupModal, #cancelFollowup').off('click').on('click', closeFollowupModal);
+    $('#saveFollowupBtn').off('click').on('click', handleFollowupSubmit);
+    
+    // Renewal Modal
+    $('#addRenewalBtn').off('click').on('click', openRenewalModal);
+    $('#closeRenewalModal, #cancelRenewal').off('click').on('click', closeRenewalModal);
+    $('#renewalForm').off('submit').on('submit', handleRenewalSubmit);
+    
+    // Modal backdrop clicks
+    $(document).off('click', '.modal').on('click', '.modal', function(e) {
+        if (e.target === this) {
+            $(this).removeClass('show');
+        }
+    });
+    
+    // Escape key to close modals
+    $(document).off('keydown.modal').on('keydown.modal', function(e) {
+        if (e.key === 'Escape') {
+            $('.modal.show').removeClass('show');
+        }
+    });
+    
+    console.log('Modals initialized successfully');
+};
+
+// Function to handle form validation before submission
+const prepareFormForSubmission = () => {
+    const activePolicyType = $('#policyTypeSelect').val() || selectedPolicyType || 'Motor';
+    
+    // Disable validation on all hidden forms
+    $('.policy-form').each(function() {
+        const formId = $(this).attr('id');
+        if (formId !== `${activePolicyType.toLowerCase()}Form`) {
+            $(this).find('input[required], select[required]').prop('required', false);
+        }
+    });
+    
+    // Enable validation only on the active form
+    $(`#${activePolicyType.toLowerCase()}Form input[required], #${activePolicyType.toLowerCase()}Form select[required]`).prop('required', true);
 };

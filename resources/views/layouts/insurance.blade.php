@@ -131,49 +131,49 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <a href="{{ route('dashboard') }}" class="nav-link">
+                        <a href="{{ route('dashboard') }}">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('policies.*') ? 'active' : '' }}">
-                        <a href="{{ route('policies.index') }}" class="nav-link">
+                        <a href="{{ route('policies.index') }}">
                             <i class="fas fa-file-contract"></i>
                             <span>Policies</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('renewals.*') ? 'active' : '' }}">
-                        <a href="{{ route('renewals.index') }}" class="nav-link">
+                        <a href="{{ route('renewals.index') }}">
                             <i class="fas fa-sync-alt"></i>
                             <span>Renewals</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('followups.*') ? 'active' : '' }}">
-                        <a href="{{ route('followups.index') }}" class="nav-link">
+                        <a href="{{ route('followups.index') }}">
                             <i class="fas fa-bell"></i>
                             <span>Follow Ups</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                        <a href="{{ route('reports.index') }}" class="nav-link">
+                        <a href="{{ route('reports.index') }}">
                             <i class="fas fa-chart-bar"></i>
                             <span>Reports</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('agents.*') ? 'active' : '' }}">
-                        <a href="{{ route('agents.index') }}" class="nav-link">
+                        <a href="{{ route('agents.index') }}">
                             <i class="fas fa-users"></i>
                             <span>Agents</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-                        <a href="{{ route('notifications.index') }}" class="nav-link">
+                        <a href="{{ route('notifications.index') }}">
                             <i class="fas fa-bell"></i>
                             <span>Notifications</span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                        <a href="{{ route('settings.index') }}" class="nav-link">
+                        <a href="{{ route('settings.index') }}">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
                         </a>
@@ -188,9 +188,12 @@
         </main>
     </div>
 
+    <!-- Global Modals - Available on all pages -->
+    @include('components.policy-modal')
+    @include('components.view-policy-modal')
+
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
-    <script src="{{ asset('js/script.js') }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>
