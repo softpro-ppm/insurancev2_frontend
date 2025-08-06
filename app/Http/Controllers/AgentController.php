@@ -39,8 +39,10 @@ class AgentController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|unique:agents,email|max:255',
             'status' => 'required|in:Active,Inactive',
+            'password' => 'required|string|min:6',
+            'address' => 'nullable|string|max:500'
         ]);
 
         if ($validator->fails()) {
@@ -59,7 +61,7 @@ class AgentController extends Controller
             'policies_count' => 0,
             'performance' => 0.00,
             'address' => $request->address ?? '',
-            'password' => $request->password ?? 'password123'
+            'password' => bcrypt($request->password)
         ]);
 
         return response()->json([
@@ -103,25 +105,35 @@ class AgentController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $agent = Agent::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:agents,email,' . $id,
             'status' => 'required|in:Active,Inactive',
+            'password' => 'nullable|string|min:6',
+            'address' => 'nullable|string|max:500'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $agent = Agent::findOrFail($id);
-        $agent->update([
+        $updateData = [
             'name' => $request->name,
             'phone' => $request->phone,
             'email' => $request->email,
             'status' => $request->status,
             'address' => $request->address ?? $agent->address
-        ]);
+        ];
+
+        // Only update password if provided
+        if ($request->password) {
+            $updateData['password'] = bcrypt($request->password);
+        }
+
+        $agent->update($updateData);
 
         return response()->json([
             'message' => 'Agent updated successfully!',

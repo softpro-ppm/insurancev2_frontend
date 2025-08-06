@@ -122,14 +122,20 @@
 
 @push('scripts')
 <script>
-    // Global variables
-    let agents = [];
-    let filteredAgents = [];
-    let currentPage = 1;
-    let rowsPerPage = 10;
-    let currentSortColumn = '';
-    let currentSortDirection = 'asc';
-    let currentEditingAgentId = null;
+(function() {
+    'use strict';
+    
+    // Agents page namespace to avoid global conflicts
+    const AgentsPage = {
+        // Local variables for agents page
+        agents: [],
+        filteredAgents: [],
+        currentPage: 1,
+        rowsPerPage: 10,
+        currentSortColumn: '',
+        currentSortDirection: 'asc',
+        currentEditingAgentId: null
+    };
 
     // Agents page initialization
     document.addEventListener('DOMContentLoaded', function() {
@@ -147,18 +153,24 @@
 
     // Load agents from API
     function loadAgents() {
-        fetch('/api/agents')
-            .then(response => response.json())
-            .then(data => {
-                agents = data.agents || [];
-                filteredAgents = [...agents];
+        $.ajax({
+            url: '/api/agents',
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            success: function(data) {
+                AgentsPage.agents = data.agents || [];
+                AgentsPage.filteredAgents = [...AgentsPage.agents];
                 renderAgentsTable();
                 updateStatistics();
-            })
-            .catch(error => {
+                console.log('Loaded agents:', AgentsPage.agents.length);
+            },
+            error: function(xhr, status, error) {
                 console.error('Error loading agents:', error);
                 showNotification('Error loading agents. Please refresh the page.', 'error');
-            });
+            }
+        });
     }
 
     // Initialize event listeners
@@ -173,8 +185,8 @@
         const rowsPerPageSelect = document.getElementById('agentsRowsPerPage');
         if (rowsPerPageSelect) {
             rowsPerPageSelect.addEventListener('change', function() {
-                rowsPerPage = parseInt(this.value);
-                currentPage = 1;
+                AgentsPage.rowsPerPage = parseInt(this.value);
+                AgentsPage.currentPage = 1;
                 renderAgentsTable();
             });
         }
@@ -185,11 +197,18 @@
             exportBtn.addEventListener('click', exportAgentsData);
         }
 
+        // Modal close buttons
+        $('#closeAgentModal, #cancelAgent').on('click', closeAgentModal);
+        $('#closeViewAgentModal, #closeViewAgent').on('click', closeViewAgentModal);
+
+        // Save agent button
+        $('#saveAgentBtn').on('click', saveAgent);
+
         // Pagination buttons
         const prevBtn = document.getElementById('agentsPrevPage');
         const nextBtn = document.getElementById('agentsNextPage');
-        if (prevBtn) prevBtn.addEventListener('click', () => changePage(currentPage - 1));
-        if (nextBtn) nextBtn.addEventListener('click', () => changePage(currentPage + 1));
+        if (prevBtn) prevBtn.addEventListener('click', () => changePage(AgentsPage.currentPage - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => changePage(AgentsPage.currentPage + 1));
 
         // Sort headers
         const sortHeaders = document.querySelectorAll('#agentsTable th[data-sort]');
@@ -238,7 +257,7 @@
     function filterAgents() {
         const searchTerm = document.getElementById('agentsSearch').value.toLowerCase();
 
-        filteredAgents = agents.filter(agent => {
+        AgentsPage.filteredAgents = AgentsPage.agents.filter(agent => {
             return !searchTerm || 
                 agent.name.toLowerCase().includes(searchTerm) ||
                 agent.email.toLowerCase().includes(searchTerm) ||
@@ -246,7 +265,7 @@
                 agent.userId.toLowerCase().includes(searchTerm);
         });
 
-        currentPage = 1;
+        AgentsPage.currentPage = 1;
         renderAgentsTable();
         updateStatistics();
     }
@@ -282,13 +301,19 @@
         const tableBody = document.getElementById('agentsTableBody');
         if (!tableBody) return;
 
-        const startIndex = (currentPage - 1) * rowsPerPage;
-        const endIndex = startIndex + rowsPerPage;
-        const pageData = filteredAgents.slice(startIndex, endIndex);
+        const startIndex = (AgentsPage.currentPage - 1) * AgentsPage.rowsPerPage;
+        const endIndex = startIndex + AgentsPage.rowsPerPage;
+        const pageData = AgentsPage.filteredAgents.slice(startIndex, endIndex);
 
-        tableBody.innerHTML = pageData.map(agent => `
-            <tr>
-                <td>${agent.id}</td>
+        console.log('=== AGENTS DEBUG ===', new Date().toISOString());
+        console.log('Total agents:', AgentsPage.filteredAgents.length);
+        console.log('Page data:', pageData.length);
+        console.log('Current page:', AgentsPage.currentPage);
+        console.log('Rows per page:', AgentsPage.rowsPerPage);
+
+        tableBody.innerHTML = pageData.map((agent, index) => `
+            <tr data-agent-id="${agent.id}">
+                <td>${startIndex + index + 1}</td>
                 <td>${agent.name || 'N/A'}</td>
                 <td>${agent.phone || 'N/A'}</td>
                 <td>${agent.email || 'N/A'}</td>
@@ -371,18 +396,31 @@
     // CRUD Functions
     function openAgentModal(agent = null) {
         const modal = document.getElementById('agentModal');
+        const passwordField = document.getElementById('agentPassword');
         if (!modal) return;
         
         if (agent) {
             // Edit mode
             document.getElementById('agentModalTitle').textContent = 'Edit Agent';
+            document.getElementById('saveAgentBtn').textContent = 'Update Agent';
             populateAgentForm(agent);
-            currentEditingAgentId = agent.id;
+            AgentsPage.currentEditingAgentId = agent.id;
+            // Make password optional for editing
+            if (passwordField) {
+                passwordField.required = false;
+                passwordField.placeholder = 'Leave blank to keep current password';
+            }
         } else {
             // Add mode
             document.getElementById('agentModalTitle').textContent = 'Add New Agent';
+            document.getElementById('saveAgentBtn').textContent = 'Add Agent';
             resetAgentForm();
-            currentEditingAgentId = null;
+            AgentsPage.currentEditingAgentId = null;
+            // Make password required for adding
+            if (passwordField) {
+                passwordField.required = true;
+                passwordField.placeholder = 'Enter password';
+            }
         }
         
         modal.classList.add('show');
@@ -404,32 +442,61 @@
 
     function saveAgent() {
         const formData = new FormData(document.getElementById('agentForm'));
-        const isEdit = currentEditingAgentId !== null;
+        const isEdit = AgentsPage.currentEditingAgentId !== null;
 
-        const url = isEdit ? `/agents/${currentEditingAgentId}` : '/agents';
+        const url = isEdit ? `/agents/${AgentsPage.currentEditingAgentId}` : '/agents';
         const method = isEdit ? 'PUT' : 'POST';
 
-        fetch(url, {
+        const agentData = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            email: formData.get('email'),
+            status: formData.get('status'),
+            address: formData.get('address'),
+            password: formData.get('password')
+        };
+
+        // Validation
+        if (!agentData.name || !agentData.phone || !agentData.email) {
+            showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+
+        // For edit mode, remove password if it's empty
+        if (AgentsPage.currentEditingAgentId && !agentData.password) {
+            delete agentData.password;
+        }
+
+        // For add mode, password is required
+        if (!AgentsPage.currentEditingAgentId && !agentData.password) {
+            showNotification('Password is required for new agents', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: url,
             method: method,
             headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'Accept': 'application/json'
             },
-            body: JSON.stringify(Object.fromEntries(formData))
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                showNotification(data.message, 'success');
+            data: JSON.stringify(agentData),
+            success: function(response) {
+                showNotification(response.message || 'Agent saved successfully!', 'success');
                 closeAgentModal();
                 loadAgents(); // Reload data
-            } else if (data.errors) {
-                showNotification('Please check the form and try again.', 'error');
+            },
+            error: function(xhr, status, error) {
+                const response = xhr.responseJSON;
+                if (response && response.errors) {
+                    const errorMessages = Object.values(response.errors).flat().join(', ');
+                    showNotification(errorMessages, 'error');
+                } else {
+                    showNotification('Error saving agent. Please try again.', 'error');
+                }
+                console.error('Save error:', error, response);
             }
-        })
-        .catch(error => {
-            console.error('Error saving agent:', error);
-            showNotification('Error saving agent. Please try again.', 'error');
         });
     }
 
@@ -439,39 +506,47 @@
             modal.classList.remove('show');
             resetAgentForm();
         }
+        AgentsPage.currentEditingAgentId = null;
     }
 
     // Global functions for table actions
     window.editAgent = function(id) {
-        const agent = agents.find(a => a.id === id);
+        const agent = AgentsPage.agents.find(a => a.id === id);
         if (agent) {
             openAgentModal(agent);
         }
     };
 
     window.viewAgent = function(id) {
-        const agent = agents.find(a => a.id === id);
+        const agent = AgentsPage.agents.find(a => a.id === id);
         if (agent) {
             openViewAgentModal(agent);
         }
     };
 
     window.deleteAgent = function(id) {
-        if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
-            fetch(`/agents/${id}`, {
+        const agent = AgentsPage.agents.find(a => a.id === id);
+        if (!agent) {
+            showNotification('Agent not found', 'error');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete ${agent.name}? This action cannot be undone.`)) {
+            $.ajax({
+                url: `/agents/${id}`,
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    showNotification(response.message || 'Agent deleted successfully!', 'success');
+                    loadAgents(); // Reload data
+                },
+                error: function(xhr, status, error) {
+                    showNotification('Error deleting agent. Please try again.', 'error');
+                    console.error('Delete error:', error);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                showNotification(data.message, 'success');
-                loadAgents(); // Reload data
-            })
-            .catch(error => {
-                console.error('Error deleting agent:', error);
-                showNotification('Error deleting agent. Please try again.', 'error');
             });
         }
     };
@@ -581,6 +656,8 @@
             closeViewAgentModal();
         }
     });
+
+})(); // End of AgentsPage namespace
 </script>
 
 <style>
