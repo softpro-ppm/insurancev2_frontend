@@ -15,8 +15,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}?v={{ filemtime(public_path('css/styles.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     
     <!-- Force hide loading overlay -->
     <style>
@@ -78,10 +78,7 @@
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>Insurance MS 2.0</span>
-            </div>
+            <!-- brand moved to sidebar -->
         </div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle">
@@ -124,7 +121,11 @@
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Insurance MS 2.0</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>

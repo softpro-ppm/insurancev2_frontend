@@ -11,8 +11,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/laravel-overrides.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}?v={{ filemtime(public_path('css/styles.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/laravel-overrides.css') }}?v={{ filemtime(public_path('css/laravel-overrides.css')) }}">
     
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -24,10 +24,7 @@
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>Insurance MS 2.0</span>
-            </div>
+            <!-- brand moved to sidebar -->
         </div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle">
@@ -74,7 +71,11 @@
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Insurance MS 2.0</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
