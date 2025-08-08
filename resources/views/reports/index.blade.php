@@ -6,6 +6,7 @@
 <div class="page active" id="reports">
     <div class="page-header">
         <h1>Reports & Analytics</h1>
+        <p>Comprehensive insights and performance analytics</p>
     </div>
     <div class="page-content">
         <!-- Reports Controls -->
