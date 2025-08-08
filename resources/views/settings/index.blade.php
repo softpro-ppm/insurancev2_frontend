@@ -6,7 +6,6 @@
 <div class="page active" id="settings">
     <div class="page-header">
         <h1>Settings</h1>
-        <p>System configuration and preferences</p>
     </div>
     <div class="page-content">
         <!-- Settings Tabs -->

@@ -6,7 +6,6 @@
 <div class="page active" id="followups">
     <div class="page-header">
         <h1>Follow Ups</h1>
-        <p>Track customer interactions and telecaller follow-up activities</p>
     </div>
     <div class="page-content">
         <!-- Follow Ups Controls -->

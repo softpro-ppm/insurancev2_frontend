@@ -994,7 +994,10 @@ const updateChartColors = (chart) => {
 
 // Sidebar toggle
 const toggleSidebar = () => {
-    $('#sidebar').toggleClass('collapsed');
+    const sidebar = $('#sidebar');
+    sidebar.toggleClass('collapsed');
+    const isCollapsed = sidebar.hasClass('collapsed');
+    $('body').toggleClass('sidebar-collapsed', isCollapsed);
 };
 
 // Navigation

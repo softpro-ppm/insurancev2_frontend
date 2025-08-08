@@ -6,7 +6,6 @@
 <div class="page active" id="renewals">
     <div class="page-header">
         <h1>Renewals</h1>
-        <p>Manage policy renewals and track upcoming expirations</p>
     </div>
     <div class="page-content">
         <!-- Renewals Controls -->
