@@ -3204,6 +3204,9 @@ const showPolicyForm = (policyType) => {
     
     // Set default dates for the visible form
     setDefaultDates(policyType);
+
+    // Setup auto calculation for revenue based on inputs
+    setupRevenueAutoCalcForPolicyType(policyType);
 };
 
 const setDefaultDates = (policyType) => {
@@ -3225,6 +3228,59 @@ const setDefaultDates = (policyType) => {
         $('#lifeStartDate').val(startDate);
         $('#lifeEndDate').val(endDate);
     }
+};
+
+// Auto-calculate Revenue field for the active policy form
+const setupRevenueAutoCalcForPolicyType = (policyType) => {
+    let $premiumInput;
+    let $payoutInput;
+    let $customerPaidInput;
+    let $revenueInput;
+
+    if (policyType === 'Motor') {
+        $premiumInput = $('#premium');
+        $payoutInput = $('#payout');
+        $customerPaidInput = $('#customerPaidAmount');
+        $revenueInput = $('#revenue');
+    } else if (policyType === 'Health') {
+        $premiumInput = $('#healthPremium');
+        $payoutInput = $('#healthPayout');
+        $customerPaidInput = $('#healthCustomerPaid');
+        $revenueInput = $('#healthRevenue');
+    } else if (policyType === 'Life') {
+        $premiumInput = $('#lifePremium');
+        $payoutInput = $('#lifePayout');
+        $customerPaidInput = $('#lifeCustomerPaid');
+        $revenueInput = $('#lifeRevenue');
+    } else {
+        return;
+    }
+
+    // Make revenue read-only to reflect auto-calc nature
+    if ($revenueInput && $revenueInput.length) {
+        $revenueInput.prop('readonly', true);
+    }
+
+    const recalcRevenue = () => {
+        const premium = parseFloat($premiumInput.val()) || 0;
+        const payout = parseFloat($payoutInput.val()) || 0;
+        const customerPaid = parseFloat($customerPaidInput.val()) || 0;
+
+        let revenue = customerPaid - (premium - payout);
+        if (!isFinite(revenue)) revenue = 0;
+        // Prevent negative revenue to satisfy backend min:0 validation
+        if (revenue < 0) revenue = 0;
+
+        $revenueInput.val(revenue.toFixed(2));
+    };
+
+    // Remove existing namespaced listeners to avoid duplicates, then attach
+    $premiumInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
+    $payoutInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
+    $customerPaidInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
+
+    // Initial calculation to populate field
+    recalcRevenue();
 };
 
 const resetMultiStepModal = () => {

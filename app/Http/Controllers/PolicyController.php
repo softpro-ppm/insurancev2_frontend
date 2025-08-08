@@ -59,7 +59,8 @@ class PolicyController extends Controller
             'endDate' => 'required|date|after:startDate',
             'premium' => 'required|numeric|min:0',
             'customerPaidAmount' => 'required|numeric|min:0',
-            'revenue' => 'required|numeric|min:0',
+            // revenue is computed server-side
+            'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
         ];
@@ -79,6 +80,15 @@ class PolicyController extends Controller
         // Generate unique Policy Number
         $policyNumber = 'POL' . str_pad(Policy::count() + 1, 3, '0', STR_PAD_LEFT);
 
+        // Compute revenue on server: revenue = customerPaid - (premium - payout)
+        $premium = (float) $request->premium;
+        $payout = (float) ($request->payout ?? 0);
+        $customerPaidAmount = (float) $request->customerPaidAmount;
+        $computedRevenue = $customerPaidAmount - ($premium - $payout);
+        if ($computedRevenue < 0) {
+            $computedRevenue = 0; // keep non-negative to align with UI and storage expectations
+        }
+
         $policy = Policy::create([
             'policy_number' => $policyNumber,
             'customer_name' => $request->customerName,
@@ -91,10 +101,10 @@ class PolicyController extends Controller
             'insurance_type' => $request->insuranceType,
             'start_date' => $request->startDate,
             'end_date' => $request->endDate,
-            'premium' => $request->premium,
-            'payout' => $request->payout ?? 0,
-            'customer_paid_amount' => $request->customerPaidAmount,
-            'revenue' => $request->revenue,
+            'premium' => $premium,
+            'payout' => $payout,
+            'customer_paid_amount' => $customerPaidAmount,
+            'revenue' => $computedRevenue,
             'status' => 'Active',
             'business_type' => $request->businessType,
             'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
@@ -173,7 +183,8 @@ class PolicyController extends Controller
             'endDate' => 'required|date|after:startDate',
             'premium' => 'required|numeric|min:0',
             'customerPaidAmount' => 'required|numeric|min:0',
-            'revenue' => 'required|numeric|min:0',
+            // revenue computed server-side
+            'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
         ]);
@@ -183,6 +194,16 @@ class PolicyController extends Controller
         }
 
         $policy = Policy::findOrFail($id);
+
+        // Compute revenue on server using incoming values
+        $premium = (float) $request->premium;
+        $payout = (float) ($request->payout ?? $policy->payout ?? 0);
+        $customerPaidAmount = (float) $request->customerPaidAmount;
+        $computedRevenue = $customerPaidAmount - ($premium - $payout);
+        if ($computedRevenue < 0) {
+            $computedRevenue = 0;
+        }
+
         $policy->update([
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
@@ -194,10 +215,10 @@ class PolicyController extends Controller
             'insurance_type' => $request->insuranceType,
             'start_date' => $request->startDate,
             'end_date' => $request->endDate,
-            'premium' => $request->premium,
-            'payout' => $request->payout ?? $policy->payout,
-            'customer_paid_amount' => $request->customerPaidAmount,
-            'revenue' => $request->revenue,
+            'premium' => $premium,
+            'payout' => $payout,
+            'customer_paid_amount' => $customerPaidAmount,
+            'revenue' => $computedRevenue,
             'status' => $request->status ?? $policy->status,
             'business_type' => $request->businessType ?? $policy->business_type,
             'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),

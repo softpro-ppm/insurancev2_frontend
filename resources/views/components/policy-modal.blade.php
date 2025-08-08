@@ -160,7 +160,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="revenue">Revenue (₹) *</label>
-                                <input type="number" id="revenue" name="revenue" step="0.01" required>
+                                <input type="number" id="revenue" name="revenue" step="0.01" required readonly>
+                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                         </div>
                     </div>
@@ -283,7 +284,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthRevenue">Revenue (₹) *</label>
-                                <input type="number" id="healthRevenue" name="revenue" step="0.01" required>
+                                <input type="number" id="healthRevenue" name="revenue" step="0.01" required readonly>
+                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                             <div class="form-group">
                                 <label for="healthPayout">Payout Amount (₹)</label>
@@ -431,7 +433,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeRevenue">Revenue (₹) *</label>
-                                <input type="number" id="lifeRevenue" name="revenue" step="0.01" required>
+                                <input type="number" id="lifeRevenue" name="revenue" step="0.01" required readonly>
+                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                             <div class="form-group">
                                 <label for="lifePayout">Payout Amount (₹)</label>
