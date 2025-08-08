@@ -6,6 +6,7 @@
 <div class="page active" id="policies">
     <div class="page-header">
         <h1>Policies</h1>
+        <p>Manage all insurance policies</p>
     </div>
     <div class="page-content">
         <!-- Policies Controls -->

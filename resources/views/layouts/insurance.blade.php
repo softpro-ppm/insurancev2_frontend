@@ -77,7 +77,12 @@
     </div>
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
-        <div class="nav-left"></div>
+        <div class="nav-left">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Insurance MS 2.0</span>
+            </div>
+        </div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle">
                 <i class="fas fa-moon"></i>
@@ -119,11 +124,7 @@
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-brand">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Insurance MS 2.0</span>
-                </div>
-                <button class="sidebar-toggle" id="sidebarToggle" title="Toggle menu">
+                <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>

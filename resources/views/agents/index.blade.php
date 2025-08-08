@@ -5,8 +5,9 @@
 @section('content')
 <div class="page active" id="agents">
     <div class="page-header">
-        <h1>Agents</h1>
-    </div>
+    <h1>Agents</h1>
+    <p>Manage insurance agents</p>
+</div>
 <div class="page-content">
     <!-- Agents Controls -->
     <div class="agents-controls">

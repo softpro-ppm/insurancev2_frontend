@@ -6,6 +6,7 @@
 <div class="page active" id="dashboard">
     <div class="page-header">
         <h1>Dashboard</h1>
+        <p>Welcome to Insurance Management System 2.0</p>
     </div>
 
     <!-- Dashboard Cards -->

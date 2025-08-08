@@ -39,6 +39,7 @@ body.dark-theme {
 .top-nav {
     position: fixed;
     top: 0;
+    left: 0;
     right: 0;
     height: 70px;
     background: rgba(255, 255, 255, 0.8);
@@ -238,11 +239,8 @@ body.dark-theme {
 }
 
 .sidebar-header {
-    padding: 16px 20px;
+    padding: 20px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .dark-theme .sidebar-header {
@@ -256,19 +254,6 @@ body.dark-theme {
     cursor: pointer;
     color: #6B7280;
     transition: color 0.3s ease;
-}
-
-.sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    color: #4F46E5;
-    font-size: 16px;
-}
-
-.sidebar-brand i {
-    font-size: 20px;
 }
 
 .sidebar-toggle:hover {
@@ -361,7 +346,7 @@ body.dark-theme {
 }
 
 .page-header {
-    margin-bottom: 16px;
+    margin-bottom: 32px;
 }
 
 .page-header h1 {
@@ -4271,15 +4256,4 @@ body.dark-theme {
     .checkbox-group {
         grid-template-columns: 1fr;
     }
-}
-
-/* Layout overrides to align top bar with sidebar on desktop */
-@media (min-width: 1025px) {
-    .top-nav {
-        left: 280px;
-    }
-}
-
-body.sidebar-collapsed .top-nav {
-    left: 80px;
 }
