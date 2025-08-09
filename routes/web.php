@@ -39,6 +39,9 @@ Route::get('/policies/{id}', [PolicyController::class, 'show'])->name('policies.
 Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policies.update');
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
+// Policy document download route
+Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController::class, 'downloadDocument'])->name('policies.download-document');
+
 // Renewals routes
 Route::get('/renewals', function () {
     return view('renewals.index');

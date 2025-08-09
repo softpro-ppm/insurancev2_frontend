@@ -813,10 +813,22 @@ const updateRecentPoliciesTable = (policies) => {
                 <td>${policy.endDate}</td>
                 <td>₹${policy.premium}</td>
                 <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
-                <td>${policy.createdAt}</td>
+                <td>
+                    <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
             </tr>
         `;
         tbody.append(row);
+    });
+
+    // Bind view action for recent policies
+    tbody.find('.action-btn.view').off('click').on('click', function() {
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            viewPolicyDetails(policyId);
+        }
     });
 };
 
@@ -1100,7 +1112,7 @@ const renderTable = () => {
     // Use document fragment for better performance
     const fragment = document.createDocumentFragment();
     
-    pageData.forEach(policy => {
+    pageData.forEach((policy, idx) => {
         const row = document.createElement('tr');
         
         // Use the correct property names from the API response
@@ -1113,7 +1125,7 @@ const renderTable = () => {
         const status = policy.status || 'Active';
         
         row.innerHTML = `
-            <td>${policy.id}</td>
+            <td>${startIndex + idx + 1}</td>
             <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
             <td>${customerName}</td>
             <td>${phone}</td>
@@ -1152,9 +1164,11 @@ const renderTable = () => {
         deletePolicyHandler(policyId);
     });
     
-    tbody.find('.action-btn.view').click(function() {
+    tbody.find('.action-btn.view').off('click').on('click', function() {
         const policyId = parseInt($(this).data('policy-id'));
-        viewPolicyDetails(policyId);
+        if (!isNaN(policyId)) {
+            viewPolicyDetails(policyId);
+        }
     });
 };
 
@@ -1685,14 +1699,47 @@ const closeViewPolicyModal = () => {
 };
 
 const downloadDocument = (documentType) => {
-    // This is a placeholder function for document download
-    // In a real application, this would handle actual file downloads
-    showNotification(`${documentType} download started...`, 'info');
+    const policyId = $('#viewPolicyModal').data('policy-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
     
-    // Simulate download delay
-    setTimeout(() => {
-        showNotification(`${documentType} downloaded successfully!`, 'success');
-    }, 2000);
+    // Create download URL
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}`;
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${documentType}_document.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`Downloading ${documentType} document...`, 'info');
+};
+
+const setupDocumentDownloadButtons = (policy) => {
+    // Store policy ID in modal for download functions
+    $('#viewPolicyModal').data('policy-id', policy.id);
+    
+    // Enable/disable download buttons based on document availability
+    const documents = {
+        'policy': policy.policyCopyPath,
+        'rc': policy.rcCopyPath,
+        'aadhar': policy.aadharCopyPath,
+        'pan': policy.panCopyPath,
+        'medical': policy.medicalReportsPath
+    };
+    
+    Object.keys(documents).forEach(docType => {
+        const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
+        if (documents[docType]) {
+            button.prop('disabled', false).removeClass('disabled');
+        } else {
+            button.prop('disabled', true).addClass('disabled');
+        }
+    });
 };
 
 // Form handlers
@@ -1792,6 +1839,13 @@ const handlePolicySubmit = async (e) => {
         showNotification('Premium and revenue must be greater than 0', 'error');
         return;
     }
+
+    // Client-side phone validation: must be exactly 10 digits
+    const phoneDigits = (policyData.customerPhone || '').replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+        showNotification('Phone number must be exactly 10 digits', 'error');
+        return;
+    }
     
     // Additional validation for Motor policies
     if (activePolicyType === 'Motor') {
@@ -1817,6 +1871,8 @@ const handlePolicySubmit = async (e) => {
             }
             
             showNotification('Policy updated successfully!', 'success');
+            // Redirect to dashboard after update
+            window.location.href = '/dashboard';
         } else {
             // Create new policy
             console.log('Creating new policy with data:', JSON.stringify(policyData, null, 2));
@@ -1828,6 +1884,8 @@ const handlePolicySubmit = async (e) => {
             }
             
             showNotification('Policy added successfully!', 'success');
+            // Redirect to dashboard after create
+            window.location.href = '/dashboard';
         }
         
         // Update filtered data
@@ -2075,6 +2133,7 @@ const editPolicy = (id) => {
         const premium = policy.premium || '';
         const customerPaidAmount = policy.customerPaidAmount || policy.customerPaid || '';
         const revenue = policy.revenue || '';
+        const payout = policy.payout || '';
         const vehicleNumber = policy.vehicleNumber || '';
         const vehicleType = policy.vehicleType || '';
         
@@ -2109,6 +2168,7 @@ const editPolicy = (id) => {
             $('#startDate').val(startDate);
             $('#endDate').val(endDate);
             $('#premium').val(premium);
+            $('#payout').val(payout);
             $('#customerPaidAmount').val(customerPaidAmount);
             $('#revenue').val(revenue);
             
@@ -2122,6 +2182,7 @@ const editPolicy = (id) => {
             $('#healthStartDate').val(startDate);
             $('#healthEndDate').val(endDate);
             $('#healthPremium').val(premium);
+            $('#healthPayout').val(payout);
             $('#healthCustomerPaid').val(customerPaidAmount);
             $('#healthRevenue').val(revenue);
             
@@ -2140,6 +2201,7 @@ const editPolicy = (id) => {
             $('#lifeStartDate').val(startDate);
             $('#lifeEndDate').val(endDate);
             $('#lifePremium').val(premium);
+            $('#lifePayout').val(payout);
             $('#lifeCustomerPaid').val(customerPaidAmount);
             $('#lifeRevenue').val(revenue);
             
@@ -2308,7 +2370,7 @@ const renderPoliciesTable = () => {
     // Use document fragment for better performance
     const fragment = document.createDocumentFragment();
     
-    pageData.forEach(policy => {
+    pageData.forEach((policy, index) => {
         const row = document.createElement('tr');
         
         // Use the correct property names from the API response with fallbacks
@@ -2331,7 +2393,7 @@ const renderPoliciesTable = () => {
         }
         
         row.innerHTML = `
-            <td>${policy.id}</td>
+            <td>${startIndex + index + 1}</td>
             <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
             <td>${customerName}</td>
             <td>${phone}</td>
@@ -2360,19 +2422,21 @@ const renderPoliciesTable = () => {
     updatePoliciesPaginationInfo();
     
     // Add event listeners for action buttons
-    tbody.find('.action-btn.edit').click(function() {
+    tbody.find('.action-btn.edit').off('click').on('click', function() {
         const policyId = parseInt($(this).data('policy-id'));
         editPolicy(policyId);
     });
     
-    tbody.find('.action-btn.delete').click(function() {
+    tbody.find('.action-btn.delete').off('click').on('click', function() {
         const policyId = parseInt($(this).data('policy-id'));
         deletePolicyHandler(policyId);
     });
     
-    tbody.find('.action-btn.view').click(function() {
+    tbody.find('.action-btn.view').off('click').on('click', function() {
         const policyId = parseInt($(this).data('policy-id'));
-        viewPolicyDetails(policyId);
+        if (!isNaN(policyId)) {
+            viewPolicyDetails(policyId);
+        }
     });
 };
 
@@ -2510,107 +2574,129 @@ const updatePoliciesSortIcons = () => {
 };
 
 const viewPolicyDetails = (id) => {
-    const policy = allPolicies.find(p => p.id === id);
-    if (policy) {
-        // Populate modal with policy details
-        $('#viewPolicyId').text(`#${policy.id.toString().padStart(3, '0')}`);
-        $('#viewPolicyType').text(policy.type).removeClass().addClass(`policy-type-badge ${policy.type.toLowerCase()}`);
-        $('#viewPolicyStatus').text(policy.status).removeClass().addClass(`status-badge ${policy.status.toLowerCase()}`);
-        
-        // Customer Information
-        $('#viewCustomerName').text(policy.owner);
-        $('#viewCustomerPhone').text(policy.phone);
-        $('#viewCustomerEmail').text(policy.email || 'Not provided');
-        
-        // Show/hide age and gender for Health/Life policies
-        if (policy.type === 'Health' || policy.type === 'Life') {
-            $('#viewCustomerAgeContainer').show();
-            $('#viewCustomerGenderContainer').show();
-            $('#viewCustomerAge').text(policy.customerAge || 'Not provided');
-            $('#viewCustomerGender').text(policy.customerGender || 'Not provided');
-        } else {
-            $('#viewCustomerAgeContainer').hide();
-            $('#viewCustomerGenderContainer').hide();
-        }
-        
-        // Vehicle Information (Motor only)
-        if (policy.type === 'Motor') {
-            $('#viewVehicleSection').show();
-            const vehicleNumber = policy.vehicle.split(' - ')[1] || policy.vehicle;
-            const vehicleType = policy.vehicle.split(' - ')[0] || 'N/A';
-            $('#viewVehicleNumber').text(vehicleNumber);
-            $('#viewVehicleType').text(vehicleType);
-        } else {
-            $('#viewVehicleSection').hide();
-        }
-        
-        // Insurance Information
-        $('#viewCompanyName').text(policy.company);
-        
-        // Show/hide insurance type vs plan type
-        if (policy.type === 'Motor') {
-            $('#viewInsuranceTypeContainer').show();
-            $('#viewPlanTypeContainer').hide();
-            $('#viewInsuranceType').text(policy.insuranceType || 'Not provided');
-        } else {
-            $('#viewInsuranceTypeContainer').hide();
-            $('#viewPlanTypeContainer').show();
-            $('#viewPlanType').text(policy.planType || 'Not provided');
-        }
-        
-        // Show/hide sum insured/assured
-        if (policy.type === 'Health') {
-            $('#viewSumInsuredContainer').show();
-            $('#viewSumAssuredContainer').hide();
-            $('#viewPolicyTermContainer').hide();
-            $('#viewPremiumFrequencyContainer').hide();
-            $('#viewSumInsured').text(policy.sumInsured ? `₹${policy.sumInsured.toLocaleString()}` : 'Not provided');
-        } else if (policy.type === 'Life') {
-            $('#viewSumInsuredContainer').hide();
-            $('#viewSumAssuredContainer').show();
-            $('#viewPolicyTermContainer').show();
-            $('#viewPremiumFrequencyContainer').show();
-            $('#viewSumAssured').text(policy.sumAssured ? `₹${policy.sumAssured.toLocaleString()}` : 'Not provided');
-            $('#viewPolicyTerm').text(policy.policyTerm ? `${policy.policyTerm} years` : 'Not provided');
-            $('#viewPremiumFrequency').text(policy.premiumFrequency || 'Not provided');
-        } else {
-            $('#viewSumInsuredContainer').hide();
-            $('#viewSumAssuredContainer').hide();
-            $('#viewPolicyTermContainer').hide();
-            $('#viewPremiumFrequencyContainer').hide();
-        }
-        
-        // Dates
-        $('#viewStartDate').text(formatDate(policy.startDate));
-        $('#viewEndDate').text(formatDate(policy.endDate));
-        
-        // Financial Information
-        $('#viewPremium').text(`₹${policy.premium.toLocaleString()}`);
-        $('#viewCustomerPaid').text(policy.customerPaidAmount ? `₹${policy.customerPaidAmount.toLocaleString()}` : 'Not provided');
-        $('#viewRevenue').text(`₹${policy.revenue.toLocaleString()}`);
-        $('#viewPayout').text(policy.payout ? `₹${policy.payout.toLocaleString()}` : 'Not provided');
-        $('#viewBusinessType').text(policy.businessType || 'Not provided');
-        
-        // Show/hide medical reports for Health policies
-        if (policy.type === 'Health') {
-            $('#viewMedicalReportsItem').show();
-        } else {
-            $('#viewMedicalReportsItem').hide();
-        }
-        
-        // Show/hide RC copy for Motor policies
-        const rcCopyItem = $('.document-item').filter(function() {
-            return $(this).find('span').text() === 'RC Copy';
-        });
-        if (policy.type === 'Motor') {
-            rcCopyItem.show();
-        } else {
-            rcCopyItem.hide();
-        }
-        
-        // Open the modal
-        $('#viewPolicyModal').addClass('show');
+    let policy = allPolicies.find(p => p.id === id);
+    
+    if (!policy) {
+        // If policy not found in allPolicies, fetch it from API
+        apiCall(`/policies/${id}`)
+            .then(data => {
+                if (data && data.policy) {
+                    policy = data.policy;
+                    populatePolicyModal(policy);
+                } else {
+                    showNotification('Policy not found', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Failed to fetch policy details:', error);
+                showNotification('Failed to load policy details', 'error');
+            });
+        return;
     }
+    
+    populatePolicyModal(policy);
+};
+
+const populatePolicyModal = (policy) => {
+    // Populate modal with policy details
+    $('#viewPolicyNumber').text(policy.policyNumber || `#${policy.id.toString().padStart(3, '0')}`);
+    $('#viewPolicyType').text(policy.type || policy.policyType).removeClass().addClass(`policy-type-badge ${(policy.type || policy.policyType).toLowerCase()}`);
+    $('#viewPolicyStatus').text(policy.status).removeClass().addClass(`status-badge ${policy.status.toLowerCase()}`);
+    
+    // Customer Information
+    $('#viewCustomerName').text(policy.owner || policy.customerName);
+    $('#viewCustomerPhone').text(policy.phone);
+    $('#viewCustomerEmail').text(policy.email || 'Not provided');
+    
+    // Show/hide age and gender for Health/Life policies
+    if ((policy.type || policy.policyType) === 'Health' || (policy.type || policy.policyType) === 'Life') {
+        $('#viewCustomerAgeContainer').show();
+        $('#viewCustomerGenderContainer').show();
+        $('#viewCustomerAge').text(policy.customerAge || 'Not provided');
+        $('#viewCustomerGender').text(policy.customerGender || 'Not provided');
+    } else {
+        $('#viewCustomerAgeContainer').hide();
+        $('#viewCustomerGenderContainer').hide();
+    }
+    
+    // Vehicle Information (Motor only)
+    if ((policy.type || policy.policyType) === 'Motor') {
+        $('#viewVehicleSection').show();
+        const vehicleNumber = policy.vehicle ? policy.vehicle.split(' - ')[1] || policy.vehicle : (policy.vehicleNumber || 'N/A');
+        const vehicleType = policy.vehicle ? policy.vehicle.split(' - ')[0] || 'N/A' : 'N/A';
+        $('#viewVehicleNumber').text(vehicleNumber);
+        $('#viewVehicleType').text(vehicleType);
+    } else {
+        $('#viewVehicleSection').hide();
+    }
+    
+    // Insurance Information
+    $('#viewCompanyName').text(policy.company || policy.companyName);
+    
+    // Show/hide insurance type vs plan type
+    if ((policy.type || policy.policyType) === 'Motor') {
+        $('#viewInsuranceTypeContainer').show();
+        $('#viewPlanTypeContainer').hide();
+        $('#viewInsuranceType').text(policy.insuranceType || 'Not provided');
+    } else {
+        $('#viewInsuranceTypeContainer').hide();
+        $('#viewPlanTypeContainer').show();
+        $('#viewPlanType').text(policy.planType || 'Not provided');
+    }
+    
+    // Show/hide sum insured/assured
+    if ((policy.type || policy.policyType) === 'Health') {
+        $('#viewSumInsuredContainer').show();
+        $('#viewSumAssuredContainer').hide();
+        $('#viewPolicyTermContainer').hide();
+        $('#viewPremiumFrequencyContainer').hide();
+        $('#viewSumInsured').text(policy.sumInsured ? `₹${policy.sumInsured.toLocaleString()}` : 'Not provided');
+    } else if ((policy.type || policy.policyType) === 'Life') {
+        $('#viewSumInsuredContainer').hide();
+        $('#viewSumAssuredContainer').show();
+        $('#viewPolicyTermContainer').show();
+        $('#viewPremiumFrequencyContainer').show();
+        $('#viewSumAssured').text(policy.sumAssured ? `₹${policy.sumAssured.toLocaleString()}` : 'Not provided');
+        $('#viewPolicyTerm').text(policy.policyTerm ? `${policy.policyTerm} years` : 'Not provided');
+        $('#viewPremiumFrequency').text(policy.premiumFrequency || 'Not provided');
+    } else {
+        $('#viewSumInsuredContainer').hide();
+        $('#viewSumAssuredContainer').hide();
+        $('#viewPolicyTermContainer').hide();
+        $('#viewPremiumFrequencyContainer').hide();
+    }
+    
+    // Dates
+    $('#viewStartDate').text(formatDate(policy.startDate));
+    $('#viewEndDate').text(formatDate(policy.endDate));
+    
+    // Financial Information
+    $('#viewPremium').text(`₹${policy.premium.toLocaleString()}`);
+    $('#viewCustomerPaid').text(policy.customerPaidAmount ? `₹${policy.customerPaidAmount.toLocaleString()}` : 'Not provided');
+    $('#viewRevenue').text(`₹${policy.revenue.toLocaleString()}`);
+    $('#viewPayout').text(policy.payout ? `₹${policy.payout.toLocaleString()}` : 'Not provided');
+    $('#viewBusinessType').text(policy.businessType || 'Not provided');
+    $('#viewAgentName').text(policy.agentName || 'Not provided');
+    
+    // Show/hide medical reports for Health policies
+    if ((policy.type || policy.policyType) === 'Health') {
+        $('#medicalReportsItem').show();
+    } else {
+        $('#medicalReportsItem').hide();
+    }
+    
+    // Show/hide RC copy for Motor policies
+    if ((policy.type || policy.policyType) === 'Motor') {
+        $('#rcCopyItem').show();
+    } else {
+        $('#rcCopyItem').hide();
+    }
+    
+    // Handle document download buttons
+    setupDocumentDownloadButtons(policy);
+    
+    // Open the modal
+    $('#viewPolicyModal').addClass('show');
 };
 
 const exportPoliciesData = () => {

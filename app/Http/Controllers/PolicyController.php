@@ -51,7 +51,7 @@ class PolicyController extends Controller
             'policyType' => 'required|in:Motor,Health,Life',
             'businessType' => 'required|in:Self,Agent1,Agent2',
             'customerName' => 'required|string|max:255',
-            'customerPhone' => 'required|string|max:15',
+            'customerPhone' => 'required|digits:10',
             'customerEmail' => 'nullable|email|max:255',
             'companyName' => 'required|string|max:255',
             'insuranceType' => 'required|string|max:255',
@@ -175,7 +175,7 @@ class PolicyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'customerName' => 'required|string|max:255',
-            'customerPhone' => 'required|string|max:15',
+            'customerPhone' => 'required|digits:10',
             'customerEmail' => 'nullable|email|max:255',
             'companyName' => 'required|string|max:255',
             'insuranceType' => 'required|string|max:255',
@@ -263,5 +263,32 @@ class PolicyController extends Controller
             'message' => 'Policy deleted successfully!',
             'id' => $id
         ]);
+    }
+
+    /**
+     * Download a policy document
+     */
+    public function downloadDocument($policyId, $documentType)
+    {
+        $policy = Policy::find($policyId);
+        
+        if (!$policy) {
+            return response()->json(['message' => 'Policy not found'], 404);
+        }
+
+        // Get the latest document of the requested type
+        $document = $policy->getLatestDocument($documentType);
+        
+        if (!$document) {
+            return response()->json(['message' => 'Document not found'], 404);
+        }
+
+        $filePath = storage_path('app/' . $document->file_path);
+        
+        if (!file_exists($filePath)) {
+            return response()->json(['message' => 'File not found on server'], 404);
+        }
+
+        return response()->download($filePath, $document->file_name);
     }
 }

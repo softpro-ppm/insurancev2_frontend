@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Policy extends Model
 {
@@ -43,6 +44,30 @@ class Policy extends Model
         'revenue' => 'decimal:2',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::retrieved(function (Policy $policy) {
+            $policy->refreshStatusIfExpired();
+        });
+
+        static::saving(function (Policy $policy) {
+            $policy->refreshStatusIfExpired();
+        });
+    }
+
+    public function refreshStatusIfExpired(): void
+    {
+        if ($this->end_date instanceof Carbon) {
+            if ($this->end_date->lt(Carbon::today())) {
+                $this->status = 'Expired';
+            } else {
+                $this->status = 'Active';
+            }
+        }
+    }
+
     // Relationships
     public function agent()
     {
@@ -52,6 +77,21 @@ class Policy extends Model
     public function renewals()
     {
         return $this->hasMany(Renewal::class, 'policy_number', 'policy_number');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(PolicyDocument::class);
+    }
+
+    public function latestDocuments()
+    {
+        return $this->hasMany(PolicyDocument::class)->where('is_latest', true);
+    }
+
+    public function getLatestDocument($type)
+    {
+        return $this->documents()->where('document_type', $type)->where('is_latest', true)->first();
     }
 
     // Scopes

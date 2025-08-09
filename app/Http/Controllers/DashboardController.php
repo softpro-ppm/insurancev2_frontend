@@ -15,8 +15,13 @@ class DashboardController extends Controller
      */
     public function getStats()
     {
-        $currentMonth = Carbon::now()->startOfMonth();
-        $currentYear = Carbon::now()->startOfYear();
+        $now = Carbon::now();
+        $currentMonth = $now->copy()->startOfMonth();
+        // Financial Year start: Apr 1 of current year if month >= 4 else Apr 1 of previous year
+        $fyStart = $now->month >= 4
+            ? Carbon::create($now->year, 4, 1)->startOfDay()
+            : Carbon::create($now->year - 1, 4, 1)->startOfDay();
+        $fyEnd = $fyStart->copy()->addYear()->subDay()->endOfDay();
         
         // Policy statistics
         $totalPolicies = Policy::count();
@@ -24,27 +29,27 @@ class DashboardController extends Controller
         $expiredPolicies = Policy::where('status', 'Expired')->count();
         $pendingRenewals = Renewal::where('status', 'Pending')->count();
         
-        // Monthly statistics
-        $monthlyPolicies = Policy::whereMonth('created_at', $currentMonth->month)
-            ->whereYear('created_at', $currentMonth->year)
+        // Monthly statistics (based on policy START DATE)
+        $monthlyPolicies = Policy::whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
             ->count();
         
-        $monthlyPremium = Policy::whereMonth('created_at', $currentMonth->month)
-            ->whereYear('created_at', $currentMonth->year)
+        $monthlyPremium = Policy::whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
             ->sum('premium');
         
-        $monthlyRevenue = Policy::whereMonth('created_at', $currentMonth->month)
-            ->whereYear('created_at', $currentMonth->year)
+        $monthlyRevenue = Policy::whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
             ->sum('revenue');
         
-        // Yearly statistics
-        $yearlyPolicies = Policy::whereYear('created_at', $currentYear->year)->count();
-        $yearlyPremium = Policy::whereYear('created_at', $currentYear->year)->sum('premium');
-        $yearlyRevenue = Policy::whereYear('created_at', $currentYear->year)->sum('revenue');
+        // Financial Year statistics (based on policy START DATE)
+        $yearlyPolicies = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->count();
+        $yearlyPremium = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->sum('premium');
+        $yearlyRevenue = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->sum('revenue');
         
-        // Monthly renewals
-        $monthlyRenewals = Renewal::whereMonth('created_at', $currentMonth->month)
-            ->whereYear('created_at', $currentMonth->year)
+        // Monthly renewals (based on policy END DATE)
+        $monthlyRenewals = Policy::whereMonth('end_date', $currentMonth->month)
+            ->whereYear('end_date', $currentMonth->year)
             ->count();
         
         // Policy type distribution
@@ -54,20 +59,20 @@ class DashboardController extends Controller
             ->pluck('count', 'policy_type')
             ->toArray();
         
-        // Monthly chart data (last 6 months)
+        // Monthly chart data (last 6 months) based on START DATE
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
+            $date = $now->copy()->subMonths($i);
             $chartData[] = [
                 'month' => $date->format('M'),
-                'premium' => Policy::whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
+                'premium' => Policy::whereMonth('start_date', $date->month)
+                    ->whereYear('start_date', $date->year)
                     ->sum('premium'),
-                'revenue' => Policy::whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
+                'revenue' => Policy::whereMonth('start_date', $date->month)
+                    ->whereYear('start_date', $date->year)
                     ->sum('revenue'),
-                'policies' => Policy::whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
+                'policies' => Policy::whereMonth('start_date', $date->month)
+                    ->whereYear('start_date', $date->year)
                     ->count()
             ];
         }
@@ -77,7 +82,11 @@ class DashboardController extends Controller
                 'totalPolicies' => $totalPolicies,
                 'activePolicies' => $activePolicies,
                 'expiredPolicies' => $expiredPolicies,
-                'pendingRenewals' => $pendingRenewals,
+                // Pending renewals for current month: end_date in current month and today not passed
+                'pendingRenewals' => Policy::whereMonth('end_date', $currentMonth->month)
+                    ->whereYear('end_date', $currentMonth->year)
+                    ->whereDate('end_date', '>=', $now->toDateString())
+                    ->count(),
                 'monthlyPolicies' => $monthlyPolicies,
                 'monthlyPremium' => $monthlyPremium,
                 'monthlyRevenue' => $monthlyRevenue,
