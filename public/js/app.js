@@ -44,13 +44,20 @@ const apiCall = async (endpoint, options = {}) => {
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
+        // Check if we're sending FormData (for file uploads)
+        const isFormData = options.body instanceof FormData;
+        
         const defaultOptions = {
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             }
         };
+
+        // Only set Content-Type for JSON, not for FormData
+        if (!isFormData) {
+            defaultOptions.headers['Content-Type'] = 'application/json';
+        }
 
         // Add CSRF token if available (try both header names for compatibility)
         if (csrfToken) {
@@ -144,6 +151,20 @@ const createPolicy = async (policyData) => {
     }
 };
 
+const createPolicyWithFiles = async (formData) => {
+    try {
+        const data = await apiCall('/policies', {
+            method: 'POST',
+            body: formData,
+            headers: {} // Let browser set Content-Type for FormData
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to create policy with files:', error);
+        throw error;
+    }
+};
+
 const updatePolicy = async (id, policyData) => {
     try {
         const data = await apiCall(`/policies/${id}`, {
@@ -153,6 +174,20 @@ const updatePolicy = async (id, policyData) => {
         return data;
     } catch (error) {
         console.error('Failed to update policy:', error);
+        throw error;
+    }
+};
+
+const updatePolicyWithFiles = async (id, formData) => {
+    try {
+        const data = await apiCall(`/policies/${id}`, {
+            method: 'PUT',
+            body: formData,
+            headers: {} // Let browser set Content-Type for FormData
+        });
+        return data;
+    } catch (error) {
+        console.error('Failed to update policy with files:', error);
         throw error;
     }
 };
@@ -1899,11 +1934,35 @@ const handlePolicySubmit = async (e) => {
     try {
         const editId = $('#policyForm').data('edit-id');
         
-        console.log('Submitting policy data:', policyData);
+        // Create FormData for file uploads
+        const formData = new FormData();
+        
+        // Add all policy data to FormData
+        Object.keys(policyData).forEach(key => {
+            formData.append(key, policyData[key]);
+        });
+        
+        // Add file uploads if they exist
+        const fileInputs = {
+            'policyCopy': $('#policyCopy')[0],
+            'rcCopy': $('#rcCopy')[0],
+            'aadharCopy': $('#aadharCopy')[0],
+            'panCopy': $('#panCopy')[0],
+            'medicalReports': $('#medicalReports')[0] || $('#healthMedicalReports')[0] || $('#lifeMedicalReports')[0]
+        };
+        
+        Object.keys(fileInputs).forEach(key => {
+            const fileInput = fileInputs[key];
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                formData.append(key, fileInput.files[0]);
+            }
+        });
+        
+        console.log('Submitting policy data with files:', policyData);
         
         if (editId) {
             // Update existing policy
-            const response = await updatePolicy(editId, policyData);
+            const response = await updatePolicyWithFiles(editId, formData);
             
             // Update local data
             const index = allPolicies.findIndex(p => p.id === editId);
@@ -1916,8 +1975,8 @@ const handlePolicySubmit = async (e) => {
             window.location.href = '/dashboard';
         } else {
             // Create new policy
-            console.log('Creating new policy with data:', JSON.stringify(policyData, null, 2));
-            const response = await createPolicy(policyData);
+            console.log('Creating new policy with data and files');
+            const response = await createPolicyWithFiles(formData);
             
             // Add to local data
             if (response.policy) {

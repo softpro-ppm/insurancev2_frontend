@@ -35,7 +35,12 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d')
+                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'policy_copy_path' => $policy->policy_copy_path,
+                'rc_copy_path' => $policy->rc_copy_path,
+                'aadhar_copy_path' => $policy->aadhar_copy_path,
+                'pan_copy_path' => $policy->pan_copy_path,
+                'medical_reports_path' => $policy->medical_reports_path
             ];
         });
         
@@ -63,6 +68,12 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
+            // File upload validation
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'medicalReports' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
 
         // Add vehicle validation for Motor policies
@@ -110,6 +121,39 @@ class PolicyController extends Controller
             'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
         ]);
 
+        // Handle file uploads
+        $documentPaths = [];
+        
+        if ($request->hasFile('policyCopy')) {
+            $path = $request->file('policyCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['policy_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('rcCopy')) {
+            $path = $request->file('rcCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['rc_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('aadharCopy')) {
+            $path = $request->file('aadharCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['aadhar_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('panCopy')) {
+            $path = $request->file('panCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['pan_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('medicalReports')) {
+            $path = $request->file('medicalReports')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['medical_reports_path'] = $path;
+        }
+        
+        // Update policy with document paths if any files were uploaded
+        if (!empty($documentPaths)) {
+            $policy->update($documentPaths);
+        }
+
         return response()->json([
             'message' => 'Policy created successfully!',
             'policy' => [
@@ -132,7 +176,12 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d')
+                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'policy_copy_path' => $policy->policy_copy_path,
+                'rc_copy_path' => $policy->rc_copy_path,
+                'aadhar_copy_path' => $policy->aadhar_copy_path,
+                'pan_copy_path' => $policy->pan_copy_path,
+                'medical_reports_path' => $policy->medical_reports_path
             ]
         ], 201);
     }
@@ -164,7 +213,12 @@ class PolicyController extends Controller
             'status' => $policy->status,
             'businessType' => $policy->business_type,
             'agentName' => $policy->agent_name,
-            'createdAt' => $policy->created_at->format('Y-m-d')
+            'createdAt' => $policy->created_at->format('Y-m-d'),
+            'policy_copy_path' => $policy->policy_copy_path,
+            'rc_copy_path' => $policy->rc_copy_path,
+            'aadhar_copy_path' => $policy->aadhar_copy_path,
+            'pan_copy_path' => $policy->pan_copy_path,
+            'medical_reports_path' => $policy->medical_reports_path
         ]]);
     }
 
@@ -187,6 +241,12 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
+            // File upload validation
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'medicalReports' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -224,6 +284,39 @@ class PolicyController extends Controller
             'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
         ]);
 
+        // Handle file uploads
+        $documentPaths = [];
+        
+        if ($request->hasFile('policyCopy')) {
+            $path = $request->file('policyCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['policy_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('rcCopy')) {
+            $path = $request->file('rcCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['rc_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('aadharCopy')) {
+            $path = $request->file('aadharCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['aadhar_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('panCopy')) {
+            $path = $request->file('panCopy')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['pan_copy_path'] = $path;
+        }
+        
+        if ($request->hasFile('medicalReports')) {
+            $path = $request->file('medicalReports')->store('private/policies/' . $policy->id . '/documents', 'local');
+            $documentPaths['medical_reports_path'] = $path;
+        }
+        
+        // Update policy with document paths if any files were uploaded
+        if (!empty($documentPaths)) {
+            $policy->update($documentPaths);
+        }
+
         return response()->json([
             'message' => 'Policy updated successfully!',
             'policy' => [
@@ -246,7 +339,12 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d')
+                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'policy_copy_path' => $policy->policy_copy_path,
+                'rc_copy_path' => $policy->rc_copy_path,
+                'aadhar_copy_path' => $policy->aadhar_copy_path,
+                'pan_copy_path' => $policy->pan_copy_path,
+                'medical_reports_path' => $policy->medical_reports_path
             ]
         ]);
     }
@@ -296,13 +394,69 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Document not found'], 404);
         }
 
+        // Try multiple possible paths
         $fullPath = storage_path('app/' . $filePath);
         
         if (!file_exists($fullPath)) {
-            return response()->json(['message' => 'File not found on server'], 404);
+            // Try with 'private/' prefix
+            $privatePath = storage_path('app/private/' . $filePath);
+            if (file_exists($privatePath)) {
+                $fullPath = $privatePath;
+            } else {
+                // Try replacing 'policies/' with 'private/policies/'
+                $privatePath2 = storage_path('app/' . str_replace('policies/', 'private/policies/', $filePath));
+                if (file_exists($privatePath2)) {
+                    $fullPath = $privatePath2;
+                } else {
+                    return response()->json(['message' => 'File not found on server'], 404);
+                }
+            }
         }
 
         $fileName = basename($filePath);
-        return response()->download($fullPath, $fileName);
+        
+        // Detect the actual file type using finfo
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $fullPath);
+        finfo_close($finfo);
+        
+        // Map MIME types to extensions
+        $mimeToExtension = [
+            'application/pdf' => 'pdf',
+            'image/jpeg' => 'jpg',
+            'image/jpg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif'
+        ];
+        
+        // Get the correct extension based on actual file content
+        $fileExtension = $mimeToExtension[$mimeType] ?? 'bin';
+        
+        // Create a more user-friendly filename
+        $friendlyNames = [
+            'policy' => 'Policy_Copy',
+            'rc' => 'RC_Copy',
+            'aadhar' => 'Aadhar_Copy',
+            'pan' => 'PAN_Copy',
+            'medical' => 'Medical_Reports'
+        ];
+        
+        $friendlyName = $friendlyNames[$documentType] ?? $documentType;
+        $downloadFileName = $friendlyName . '.' . $fileExtension;
+        
+        // Set appropriate content type based on detected MIME type
+        $contentTypes = [
+            'pdf' => 'application/pdf',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif'
+        ];
+        
+        $contentType = $contentTypes[$fileExtension] ?? 'application/octet-stream';
+        
+        return response()->download($fullPath, $downloadFileName, [
+            'Content-Type' => $contentType
+        ]);
     }
 }
