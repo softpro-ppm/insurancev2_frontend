@@ -1390,6 +1390,24 @@ const initializeEventListeners = () => {
         handlePoliciesSort(column);
     });
     
+    // Global revenue calculation for all policy types
+    $(document).on('input change', '#premium, #payout, #customerPaidAmount, #healthPremium, #healthPayout, #healthCustomerPaid, #lifePremium, #lifePayout, #lifeCustomerPaid', function() {
+        const $input = $(this);
+        let policyType = '';
+        
+        // Determine which policy type this input belongs to
+        if ($input.attr('id').startsWith('health')) {
+            policyType = 'Health';
+        } else if ($input.attr('id').startsWith('life')) {
+            policyType = 'Life';
+        } else {
+            policyType = 'Motor';
+        }
+        
+        // Trigger revenue calculation for the appropriate policy type
+        setupRevenueAutoCalcForPolicyType(policyType);
+    });
+    
     // Renewals page controls
     $('#renewalsSearch').on('input', handleRenewalsSearch);
     $('#renewalStatusFilter').change(handleRenewalsFilter);
@@ -1698,7 +1716,7 @@ const closeViewPolicyModal = () => {
     $('#viewPolicyModal').removeClass('show');
 };
 
-const downloadDocument = (documentType) => {
+window.downloadDocument = (documentType) => {
     const policyId = $('#viewPolicyModal').data('policy-id');
     if (!policyId) {
         showNotification('Policy ID not found', 'error');
@@ -1708,15 +1726,36 @@ const downloadDocument = (documentType) => {
     // Create download URL
     const downloadUrl = `/api/policies/${policyId}/download/${documentType}`;
     
-    // Create temporary link and trigger download
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `${documentType}_document.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
+    // Show loading notification
     showNotification(`Downloading ${documentType} document...`, 'info');
+    
+    // Use fetch to handle errors properly
+    fetch(downloadUrl)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Download failed');
+                });
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${documentType}_document.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification(`${documentType} document downloaded successfully!`, 'success');
+        })
+        .catch(error => {
+            console.error('Download error:', error);
+            showNotification(error.message || 'Download failed', 'error');
+        });
 };
 
 const setupDocumentDownloadButtons = (policy) => {
@@ -1725,19 +1764,21 @@ const setupDocumentDownloadButtons = (policy) => {
     
     // Enable/disable download buttons based on document availability
     const documents = {
-        'policy': policy.policyCopyPath,
-        'rc': policy.rcCopyPath,
-        'aadhar': policy.aadharCopyPath,
-        'pan': policy.panCopyPath,
-        'medical': policy.medicalReportsPath
+        'policy': policy.policy_copy_path || policy.policyCopyPath,
+        'rc': policy.rc_copy_path || policy.rcCopyPath,
+        'aadhar': policy.aadhar_copy_path || policy.aadharCopyPath,
+        'pan': policy.pan_copy_path || policy.panCopyPath,
+        'medical': policy.medical_reports_path || policy.medicalReportsPath
     };
     
     Object.keys(documents).forEach(docType => {
         const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
-        if (documents[docType]) {
+        if (documents[docType] && documents[docType].trim() !== '') {
             button.prop('disabled', false).removeClass('disabled');
+            button.attr('title', `Download ${docType} document`);
         } else {
             button.prop('disabled', true).addClass('disabled');
+            button.attr('title', `${docType} document not available`);
         }
     });
 };
@@ -3358,6 +3399,19 @@ const setupRevenueAutoCalcForPolicyType = (policyType) => {
         if (revenue < 0) revenue = 0;
 
         $revenueInput.val(revenue.toFixed(2));
+        
+        // Add visual feedback
+        if (revenue > 0) {
+            $revenueInput.addClass('calculated');
+        } else {
+            $revenueInput.removeClass('calculated');
+        }
+        
+        // Show a brief notification for the first calculation
+        if (revenue > 0 && !$revenueInput.data('notified')) {
+            $revenueInput.data('notified', true);
+            showNotification(`Revenue calculated: ₹${revenue.toFixed(2)}`, 'success');
+        }
     };
 
     // Remove existing namespaced listeners to avoid duplicates, then attach
@@ -3367,6 +3421,11 @@ const setupRevenueAutoCalcForPolicyType = (policyType) => {
 
     // Initial calculation to populate field
     recalcRevenue();
+    
+    // Add a small delay to ensure the form is fully rendered
+    setTimeout(() => {
+        recalcRevenue();
+    }, 100);
 };
 
 const resetMultiStepModal = () => {

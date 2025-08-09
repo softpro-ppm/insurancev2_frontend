@@ -276,19 +276,33 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Policy not found'], 404);
         }
 
-        // Get the latest document of the requested type
-        $document = $policy->getLatestDocument($documentType);
-        
-        if (!$document) {
+        // Map document types to policy fields
+        $documentFieldMap = [
+            'policy' => 'policy_copy_path',
+            'rc' => 'rc_copy_path',
+            'aadhar' => 'aadhar_copy_path',
+            'pan' => 'pan_copy_path',
+            'medical' => 'medical_reports_path'
+        ];
+
+        if (!isset($documentFieldMap[$documentType])) {
+            return response()->json(['message' => 'Invalid document type'], 400);
+        }
+
+        $documentField = $documentFieldMap[$documentType];
+        $filePath = $policy->$documentField;
+
+        if (!$filePath) {
             return response()->json(['message' => 'Document not found'], 404);
         }
 
-        $filePath = storage_path('app/' . $document->file_path);
+        $fullPath = storage_path('app/' . $filePath);
         
-        if (!file_exists($filePath)) {
+        if (!file_exists($fullPath)) {
             return response()->json(['message' => 'File not found on server'], 404);
         }
 
-        return response()->download($filePath, $document->file_name);
+        $fileName = basename($filePath);
+        return response()->download($fullPath, $fileName);
     }
 }

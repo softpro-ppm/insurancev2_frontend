@@ -4452,3 +4452,17 @@ body.dark-theme {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 10px;
 }
+
+/* Revenue calculation feedback */
+.form-group input[readonly].calculated {
+    background-color: #f0f9ff;
+    border-color: #3b82f6;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.dark-theme .form-group input[readonly].calculated {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: #60a5fa;
+    color: #93c5fd;
+}
