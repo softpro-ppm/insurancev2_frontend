@@ -114,12 +114,27 @@ class DashboardController extends Controller
                     'policyNumber' => $policy->policy_number,
                     'customerName' => $policy->customer_name,
                     'phone' => $policy->phone,
+                    'email' => $policy->email,
                     'policyType' => $policy->policy_type,
+                    'vehicleNumber' => $policy->vehicle_number,
+                    'vehicleType' => $policy->vehicle_type,
                     'companyName' => $policy->company_name,
+                    'insuranceType' => $policy->insurance_type,
+                    'startDate' => $policy->start_date->format('Y-m-d'),
                     'endDate' => $policy->end_date->format('Y-m-d'),
                     'premium' => $policy->premium,
+                    'payout' => $policy->payout,
+                    'customerPaidAmount' => $policy->customer_paid_amount,
+                    'revenue' => $policy->revenue,
                     'status' => $policy->status,
-                    'createdAt' => $policy->created_at->format('Y-m-d')
+                    'businessType' => $policy->business_type,
+                    'agentName' => $policy->agent_name,
+                    'createdAt' => $policy->created_at->format('Y-m-d'),
+                    'policy_copy_path' => $policy->policy_copy_path,
+                    'rc_copy_path' => $policy->rc_copy_path,
+                    'aadhar_copy_path' => $policy->aadhar_copy_path,
+                    'pan_copy_path' => $policy->pan_copy_path,
+
                 ];
             });
         

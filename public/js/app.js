@@ -109,7 +109,9 @@ const fetchDashboardStats = async () => {
 
 const fetchRecentPolicies = async () => {
     try {
-        const data = await apiCall('/api/dashboard/recent-policies');
+        // Add cache-busting parameter to force fresh data
+        const timestamp = new Date().getTime();
+        const data = await apiCall(`/api/dashboard/recent-policies?t=${timestamp}`);
         return data.recentPolicies || [];
     } catch (error) {
         console.error('Failed to fetch recent policies:', error);
@@ -1772,14 +1774,40 @@ window.downloadDocument = (documentType) => {
                     throw new Error(data.message || 'Download failed');
                 });
             }
-            return response.blob();
+            
+            // Get filename from Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `${documentType}_document.pdf`; // Default fallback
+            
+            if (contentDisposition) {
+                // Try to extract filename from Content-Disposition header
+                // Handle both quoted and unquoted filenames, and different formats
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                } else {
+                    // Try alternative pattern for filename
+                    const altMatch = contentDisposition.match(/filename\*?=([^;]+)/);
+                    if (altMatch && altMatch[1]) {
+                        filename = altMatch[1].replace(/['"]/g, '');
+                    } else {
+                        // Try to extract filename from the end of the header
+                        const endMatch = contentDisposition.match(/filename[^=]*=([^;]+)/);
+                        if (endMatch && endMatch[1]) {
+                            filename = endMatch[1].replace(/['"]/g, '');
+                        }
+                    }
+                }
+            }
+            
+            return response.blob().then(blob => ({ blob, filename }));
         })
-        .then(blob => {
+        .then(({ blob, filename }) => {
             // Create download link
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${documentType}_document.pdf`;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1803,7 +1831,7 @@ const setupDocumentDownloadButtons = (policy) => {
         'rc': policy.rc_copy_path || policy.rcCopyPath,
         'aadhar': policy.aadhar_copy_path || policy.aadharCopyPath,
         'pan': policy.pan_copy_path || policy.panCopyPath,
-        'medical': policy.medical_reports_path || policy.medicalReportsPath
+
     };
     
     Object.keys(documents).forEach(docType => {
@@ -1822,12 +1850,16 @@ const setupDocumentDownloadButtons = (policy) => {
 const handlePolicySubmit = async (e) => {
     e.preventDefault();
     
+    console.log('HandlePolicySubmit: Form submission started');
+    
     // Prepare form for submission to prevent validation errors on hidden fields
     prepareFormForSubmission();
     
     // Determine which policy type is currently active
     const activePolicyType = $('#policyTypeSelect').val() || 'Motor';
     const businessType = $('#businessTypeSelect').val() || 'Self';
+    
+    console.log('HandlePolicySubmit: Active policy type:', activePolicyType, 'Business type:', businessType);
     
     // Build policy data based on the active policy type
     let policyData = {
@@ -1847,6 +1879,22 @@ const handlePolicySubmit = async (e) => {
         vehicleType: '',
         payout: 0
     };
+    
+    // Ensure we have the hidden field values for policyType and businessType
+    const hiddenPolicyType = $('#hiddenPolicyType').val();
+    const hiddenBusinessType = $('#hiddenBusinessType').val();
+    
+    console.log('HandlePolicySubmit: Hidden field values:', {
+        hiddenPolicyType,
+        hiddenBusinessType
+    });
+    
+    if (hiddenPolicyType) {
+        policyData.policyType = hiddenPolicyType;
+    }
+    if (hiddenBusinessType) {
+        policyData.businessType = hiddenBusinessType;
+    }
     
     // Get data based on active policy type
     if (activePolicyType === 'Motor') {
@@ -1873,7 +1921,7 @@ const handlePolicySubmit = async (e) => {
             customerPhone: $('#healthCustomerPhone').val() || '',
             customerEmail: $('#healthCustomerEmail').val() || '',
             companyName: $('#healthCompanyName').val() || '',
-            insuranceType: $('#healthPlanType').val() || '',
+            insuranceType: $('#healthPlanType').val() || '', // Map planType to insuranceType for backend
             startDate: $('#healthStartDate').val() || '',
             endDate: $('#healthEndDate').val() || '',
             premium: parseFloat($('#healthPremium').val() || 0),
@@ -1888,7 +1936,7 @@ const handlePolicySubmit = async (e) => {
             customerPhone: $('#lifeCustomerPhone').val() || '',
             customerEmail: $('#lifeCustomerEmail').val() || '',
             companyName: $('#lifeCompanyName').val() || '',
-            insuranceType: $('#lifePlanType').val() || '',
+            insuranceType: $('#lifePlanType').val() || '', // Map planType to insuranceType for backend
             startDate: $('#lifeStartDate').val() || '',
             endDate: $('#lifeEndDate').val() || '',
             premium: parseFloat($('#lifePremium').val() || 0),
@@ -1931,6 +1979,13 @@ const handlePolicySubmit = async (e) => {
         }
     }
     
+    // Validate file sizes before submission
+    const fileErrors = validateAllFiles();
+    if (fileErrors.length > 0) {
+        showNotification(fileErrors.join(', '), 'error');
+        return;
+    }
+    
     try {
         const editId = $('#policyForm').data('edit-id');
         
@@ -1948,7 +2003,7 @@ const handlePolicySubmit = async (e) => {
             'rcCopy': $('#rcCopy')[0],
             'aadharCopy': $('#aadharCopy')[0],
             'panCopy': $('#panCopy')[0],
-            'medicalReports': $('#medicalReports')[0] || $('#healthMedicalReports')[0] || $('#lifeMedicalReports')[0]
+
         };
         
         Object.keys(fileInputs).forEach(key => {
@@ -2030,7 +2085,9 @@ const handlePolicySubmit = async (e) => {
         
         // Handle validation errors
         if (error.response && error.response.data) {
-            if (error.response.data.errors) {
+            if (error.response.status === 413) {
+                showNotification('File size too large. Please ensure each file is under 3MB and total upload size is under 3MB.', 'error');
+            } else if (error.response.data.errors) {
                 const errors = error.response.data.errors;
                 const errorMessages = Object.values(errors).flat().join(', ');
                 showNotification(errorMessages, 'error');
@@ -2218,6 +2275,7 @@ const handleChartPeriodChange = () => {
 const editPolicy = (id) => {
     const policy = allPolicies.find(p => p.id === id);
     if (policy) {
+        console.log('EditPolicy: Policy data received:', policy);
         $('#policyModalTitle').text('Edit Policy');
         
         // Get the correct property names from the API response
@@ -2237,6 +2295,12 @@ const editPolicy = (id) => {
         const vehicleNumber = policy.vehicleNumber || '';
         const vehicleType = policy.vehicleType || '';
         
+        console.log('EditPolicy: Extracted values:', {
+            policyType, customerName, customerPhone, customerEmail, 
+            companyName, insuranceType, businessType, startDate, endDate,
+            premium, customerPaidAmount, revenue, payout, vehicleNumber, vehicleType
+        });
+        
         // Set global variables for the modal
         selectedPolicyType = policyType;
         selectedBusinessType = businessType;
@@ -2246,6 +2310,15 @@ const editPolicy = (id) => {
         
         // Step 2: Set business type
         $('#businessTypeSelect').val(businessType);
+        
+        // Set the hidden fields that the form actually sends
+        $('#hiddenPolicyType').val(policyType);
+        $('#hiddenBusinessType').val(businessType);
+        
+        console.log('EditPolicy: Hidden fields set:', {
+            hiddenPolicyType: $('#hiddenPolicyType').val(),
+            hiddenBusinessType: $('#hiddenBusinessType').val()
+        });
         
         // Show the modal and go directly to step 3 (form)
         $('#policyModal').addClass('show');
@@ -2698,67 +2771,101 @@ const viewPolicyDetails = (id) => {
 };
 
 const populatePolicyModal = (policy) => {
-    // Populate modal with policy details
-    $('#viewPolicyNumber').text(policy.policyNumber || `#${policy.id.toString().padStart(3, '0')}`);
-    $('#viewPolicyType').text(policy.type || policy.policyType).removeClass().addClass(`policy-type-badge ${(policy.type || policy.policyType).toLowerCase()}`);
-    $('#viewPolicyStatus').text(policy.status).removeClass().addClass(`status-badge ${policy.status.toLowerCase()}`);
+    // Normalize policy data to handle different formats from different pages
+    const normalizedPolicy = {
+        id: policy.id,
+        policyNumber: policy.policyNumber || policy.policy_number || `#${policy.id.toString().padStart(3, '0')}`,
+        type: policy.type || policy.policyType || policy.policy_type || 'Unknown',
+        status: policy.status || 'Active',
+        customerName: policy.customerName || policy.owner || policy.customer_name || 'Unknown',
+        phone: policy.phone || 'Unknown',
+        email: policy.email || 'Not provided',
+        customerAge: policy.customerAge || policy.age || 'Not provided',
+        customerGender: policy.customerGender || policy.gender || 'Not provided',
+        vehicleNumber: policy.vehicleNumber || policy.vehicle_number || (policy.vehicle ? policy.vehicle.split(' - ')[1] : 'N/A'),
+        vehicleType: policy.vehicleType || policy.vehicle_type || (policy.vehicle ? policy.vehicle.split(' - ')[0] : 'N/A'),
+        companyName: policy.companyName || policy.company || policy.company_name || 'Unknown',
+        insuranceType: policy.insuranceType || policy.insurance_type || 'Not provided',
+        planType: policy.planType || policy.plan_type || 'Not provided',
+        sumInsured: policy.sumInsured || policy.sum_insured || 0,
+        sumAssured: policy.sumAssured || policy.sum_assured || 0,
+        policyTerm: policy.policyTerm || policy.policy_term || 'Not provided',
+        premiumFrequency: policy.premiumFrequency || policy.premium_frequency || 'Not provided',
+        startDate: policy.startDate || policy.start_date || 'Unknown',
+        endDate: policy.endDate || policy.end_date || 'Unknown',
+        premium: policy.premium || 0,
+        customerPaidAmount: policy.customerPaidAmount || policy.customer_paid_amount || policy.customerPaid || 0,
+        revenue: policy.revenue || 0,
+        payout: policy.payout || 0,
+        businessType: policy.businessType || policy.business_type || 'Not provided',
+        agentName: policy.agentName || policy.agent_name || 'Not provided',
+        // Document paths
+        policy_copy_path: policy.policy_copy_path || policy.policyCopyPath,
+        rc_copy_path: policy.rc_copy_path || policy.rcCopyPath,
+        aadhar_copy_path: policy.aadhar_copy_path || policy.aadharCopyPath,
+        pan_copy_path: policy.pan_copy_path || policy.panCopyPath,
+
+    };
+
+    // Populate modal with normalized policy details
+    $('#viewPolicyNumber').text(normalizedPolicy.policyNumber);
+    $('#viewPolicyType').text(normalizedPolicy.type).removeClass().addClass(`policy-type-badge ${normalizedPolicy.type.toLowerCase()}`);
+    $('#viewPolicyStatus').text(normalizedPolicy.status).removeClass().addClass(`status-badge ${normalizedPolicy.status.toLowerCase()}`);
     
     // Customer Information
-    $('#viewCustomerName').text(policy.owner || policy.customerName);
-    $('#viewCustomerPhone').text(policy.phone);
-    $('#viewCustomerEmail').text(policy.email || 'Not provided');
+    $('#viewCustomerName').text(normalizedPolicy.customerName);
+    $('#viewCustomerPhone').text(normalizedPolicy.phone);
+    $('#viewCustomerEmail').text(normalizedPolicy.email);
     
     // Show/hide age and gender for Health/Life policies
-    if ((policy.type || policy.policyType) === 'Health' || (policy.type || policy.policyType) === 'Life') {
+    if (normalizedPolicy.type === 'Health' || normalizedPolicy.type === 'Life') {
         $('#viewCustomerAgeContainer').show();
         $('#viewCustomerGenderContainer').show();
-        $('#viewCustomerAge').text(policy.customerAge || 'Not provided');
-        $('#viewCustomerGender').text(policy.customerGender || 'Not provided');
+        $('#viewCustomerAge').text(normalizedPolicy.customerAge);
+        $('#viewCustomerGender').text(normalizedPolicy.customerGender);
     } else {
         $('#viewCustomerAgeContainer').hide();
         $('#viewCustomerGenderContainer').hide();
     }
     
     // Vehicle Information (Motor only)
-    if ((policy.type || policy.policyType) === 'Motor') {
+    if (normalizedPolicy.type === 'Motor') {
         $('#viewVehicleSection').show();
-        const vehicleNumber = policy.vehicle ? policy.vehicle.split(' - ')[1] || policy.vehicle : (policy.vehicleNumber || 'N/A');
-        const vehicleType = policy.vehicle ? policy.vehicle.split(' - ')[0] || 'N/A' : 'N/A';
-        $('#viewVehicleNumber').text(vehicleNumber);
-        $('#viewVehicleType').text(vehicleType);
+        $('#viewVehicleNumber').text(normalizedPolicy.vehicleNumber);
+        $('#viewVehicleType').text(normalizedPolicy.vehicleType);
     } else {
         $('#viewVehicleSection').hide();
     }
     
     // Insurance Information
-    $('#viewCompanyName').text(policy.company || policy.companyName);
+    $('#viewCompanyName').text(normalizedPolicy.companyName);
     
     // Show/hide insurance type vs plan type
-    if ((policy.type || policy.policyType) === 'Motor') {
+    if (normalizedPolicy.type === 'Motor') {
         $('#viewInsuranceTypeContainer').show();
         $('#viewPlanTypeContainer').hide();
-        $('#viewInsuranceType').text(policy.insuranceType || 'Not provided');
+        $('#viewInsuranceType').text(normalizedPolicy.insuranceType);
     } else {
         $('#viewInsuranceTypeContainer').hide();
         $('#viewPlanTypeContainer').show();
-        $('#viewPlanType').text(policy.planType || 'Not provided');
+        $('#viewPlanType').text(normalizedPolicy.planType);
     }
     
     // Show/hide sum insured/assured
-    if ((policy.type || policy.policyType) === 'Health') {
+    if (normalizedPolicy.type === 'Health') {
         $('#viewSumInsuredContainer').show();
         $('#viewSumAssuredContainer').hide();
         $('#viewPolicyTermContainer').hide();
         $('#viewPremiumFrequencyContainer').hide();
-        $('#viewSumInsured').text(policy.sumInsured ? `₹${policy.sumInsured.toLocaleString()}` : 'Not provided');
-    } else if ((policy.type || policy.policyType) === 'Life') {
+        $('#viewSumInsured').text(normalizedPolicy.sumInsured ? `₹${normalizedPolicy.sumInsured.toLocaleString()}` : 'Not provided');
+    } else if (normalizedPolicy.type === 'Life') {
         $('#viewSumInsuredContainer').hide();
         $('#viewSumAssuredContainer').show();
         $('#viewPolicyTermContainer').show();
         $('#viewPremiumFrequencyContainer').show();
-        $('#viewSumAssured').text(policy.sumAssured ? `₹${policy.sumAssured.toLocaleString()}` : 'Not provided');
-        $('#viewPolicyTerm').text(policy.policyTerm ? `${policy.policyTerm} years` : 'Not provided');
-        $('#viewPremiumFrequency').text(policy.premiumFrequency || 'Not provided');
+        $('#viewSumAssured').text(normalizedPolicy.sumAssured ? `₹${normalizedPolicy.sumAssured.toLocaleString()}` : 'Not provided');
+        $('#viewPolicyTerm').text(normalizedPolicy.policyTerm ? `${normalizedPolicy.policyTerm} years` : 'Not provided');
+        $('#viewPremiumFrequency').text(normalizedPolicy.premiumFrequency);
     } else {
         $('#viewSumInsuredContainer').hide();
         $('#viewSumAssuredContainer').hide();
@@ -2767,33 +2874,28 @@ const populatePolicyModal = (policy) => {
     }
     
     // Dates
-    $('#viewStartDate').text(formatDate(policy.startDate));
-    $('#viewEndDate').text(formatDate(policy.endDate));
+    $('#viewStartDate').text(formatDate(normalizedPolicy.startDate));
+    $('#viewEndDate').text(formatDate(normalizedPolicy.endDate));
     
     // Financial Information
-    $('#viewPremium').text(`₹${policy.premium.toLocaleString()}`);
-    $('#viewCustomerPaid').text(policy.customerPaidAmount ? `₹${policy.customerPaidAmount.toLocaleString()}` : 'Not provided');
-    $('#viewRevenue').text(`₹${policy.revenue.toLocaleString()}`);
-    $('#viewPayout').text(policy.payout ? `₹${policy.payout.toLocaleString()}` : 'Not provided');
-    $('#viewBusinessType').text(policy.businessType || 'Not provided');
-    $('#viewAgentName').text(policy.agentName || 'Not provided');
+    $('#viewPremium').text(`₹${normalizedPolicy.premium.toLocaleString()}`);
+    $('#viewCustomerPaid').text(normalizedPolicy.customerPaidAmount ? `₹${normalizedPolicy.customerPaidAmount.toLocaleString()}` : 'Not provided');
+    $('#viewRevenue').text(`₹${normalizedPolicy.revenue.toLocaleString()}`);
+    $('#viewPayout').text(normalizedPolicy.payout ? `₹${normalizedPolicy.payout.toLocaleString()}` : 'Not provided');
+    $('#viewBusinessType').text(normalizedPolicy.businessType);
+    $('#viewAgentName').text(normalizedPolicy.agentName);
     
-    // Show/hide medical reports for Health policies
-    if ((policy.type || policy.policyType) === 'Health') {
-        $('#medicalReportsItem').show();
-    } else {
-        $('#medicalReportsItem').hide();
-    }
+
     
     // Show/hide RC copy for Motor policies
-    if ((policy.type || policy.policyType) === 'Motor') {
+    if (normalizedPolicy.type === 'Motor') {
         $('#rcCopyItem').show();
     } else {
         $('#rcCopyItem').hide();
     }
     
     // Handle document download buttons
-    setupDocumentDownloadButtons(policy);
+    setupDocumentDownloadButtons(normalizedPolicy);
     
     // Open the modal
     $('#viewPolicyModal').addClass('show');
@@ -5975,7 +6077,21 @@ const initializeModals = () => {
 
 // Function to handle form validation before submission
 const prepareFormForSubmission = () => {
-    const activePolicyType = $('#policyTypeSelect').val() || selectedPolicyType || 'Motor';
+    // Get the active policy type from the form or from the currently visible form
+    let activePolicyType = $('#policyTypeSelect').val();
+    
+    // If no policy type is selected, determine it from the currently visible form
+    if (!activePolicyType) {
+        if ($('#motorForm').is(':visible')) {
+            activePolicyType = 'Motor';
+        } else if ($('#healthForm').is(':visible')) {
+            activePolicyType = 'Health';
+        } else if ($('#lifeForm').is(':visible')) {
+            activePolicyType = 'Life';
+        } else {
+            activePolicyType = 'Motor'; // default
+        }
+    }
     
     // Disable validation on all hidden forms
     $('.policy-form').each(function() {
@@ -5988,3 +6104,74 @@ const prepareFormForSubmission = () => {
     // Enable validation only on the active form
     $(`#${activePolicyType.toLowerCase()}Form input[required], #${activePolicyType.toLowerCase()}Form select[required]`).prop('required', true);
 };
+
+// File size validation function (3MB = 3 * 1024 * 1024 bytes)
+const validateFileSize = (file, maxSizeMB = 3) => {
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file && file.size > maxSizeBytes) {
+        return `File "${file.name}" is too large. Maximum size is ${maxSizeMB}MB.`;
+    }
+    return null;
+};
+
+// Validate all files before submission
+const validateAllFiles = () => {
+    const fileInputs = {
+        'policyCopy': $('#policyCopy')[0],
+        'rcCopy': $('#rcCopy')[0],
+        'aadharCopy': $('#aadharCopy')[0],
+        'panCopy': $('#panCopy')[0],
+
+    };
+    
+    const errors = [];
+    
+    Object.keys(fileInputs).forEach(key => {
+        const fileInput = fileInputs[key];
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const error = validateFileSize(fileInput.files[0]);
+            if (error) {
+                errors.push(error);
+            }
+        }
+    });
+    
+    return errors;
+};
+
+// Test function to demonstrate file upload error
+const testFileUploadError = () => {
+    // Create a mock file that exceeds 3MB
+    const mockFile = {
+        name: 'test-large-file.pdf',
+        size: 4 * 1024 * 1024, // 4MB file
+        type: 'application/pdf'
+    };
+    
+    // Test the validation
+    const error = validateFileSize(mockFile, 3);
+    if (error) {
+        showNotification(error, 'error');
+        console.log('File upload error test:', error);
+    }
+    
+    // Test the 413 error handling
+    const mockError = {
+        response: {
+            status: 413,
+            data: {
+                message: 'Payload Too Large'
+            }
+        }
+    };
+    
+    // Simulate the error handling
+    if (mockError.response && mockError.response.data) {
+        if (mockError.response.status === 413) {
+            showNotification('File size too large. Please ensure each file is under 3MB and total upload size is under 3MB.', 'error');
+        }
+    }
+};
+
+// Add test function to window for easy access
+window.testFileUploadError = testFileUploadError;

@@ -170,13 +170,7 @@
                                 <i class="fas fa-download"></i> Download
                             </button>
                         </div>
-                        <div class="document-item" id="medicalReportsItem" style="display: none;">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Medical Reports</span>
-                            <button class="download-btn" onclick="downloadDocument('medical')" id="downloadMedicalBtn">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                        </div>
+
                     </div>
                 </div>
             </div>

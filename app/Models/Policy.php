@@ -79,20 +79,7 @@ class Policy extends Model
         return $this->hasMany(Renewal::class, 'policy_number', 'policy_number');
     }
 
-    public function documents()
-    {
-        return $this->hasMany(PolicyDocument::class);
-    }
 
-    public function latestDocuments()
-    {
-        return $this->hasMany(PolicyDocument::class)->where('is_latest', true);
-    }
-
-    public function getLatestDocument($type)
-    {
-        return $this->documents()->where('document_type', $type)->where('is_latest', true)->first();
-    }
 
     // Scopes
     public function scopeActive($query)

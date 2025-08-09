@@ -194,7 +194,7 @@
     @include('components.view-policy-modal')
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>

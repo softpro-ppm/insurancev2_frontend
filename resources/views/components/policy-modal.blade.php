@@ -169,27 +169,34 @@
                     <!-- Upload Section -->
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="policyCopy">Policy Copy</label>
                                 <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="rcCopy">RC Copy</label>
                                 <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="aadharCopy">Aadhar Copy</label>
                                 <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="panCopy">PAN Copy</label>
                                 <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                     </div>
+
+
                 </div>
 
                 <!-- Health Insurance Form -->
@@ -296,27 +303,30 @@
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPolicyCopy">Policy Copy</label>
                                 <input type="file" id="healthPolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="healthAadharCopy">Aadhar Copy</label>
                                 <input type="file" id="healthAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPanCopy">PAN Copy</label>
                                 <input type="file" id="healthPanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
-                            <div class="form-group">
-                                <label for="healthMedicalReports">Medical Reports</label>
-                                <input type="file" id="healthMedicalReports" name="medicalReports" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
+
                         </div>
                     </div>
+
+
                 </div>
 
                 <!-- Life Insurance Form -->
@@ -445,27 +455,30 @@
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePolicyCopy">Policy Copy</label>
                                 <input type="file" id="lifePolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="lifeAadharCopy">Aadhar Copy</label>
                                 <input type="file" id="lifeAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePanCopy">PAN Copy</label>
                                 <input type="file" id="lifePanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="hint">Max 3MB</small>
                             </div>
-                            <div class="form-group">
-                                <label for="lifeMedicalReports">Medical Reports</label>
-                                <input type="file" id="lifeMedicalReports" name="medicalReports" accept=".pdf,.jpg,.jpeg,.png">
-                            </div>
+
                         </div>
                     </div>
+
+
                 </div>
             </form>
             <div class="modal-footer">

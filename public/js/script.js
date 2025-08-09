@@ -1706,12 +1706,7 @@ const viewPolicyDetails = (id) => {
         $('#viewPayout').text(policy.payout ? `₹${policy.payout.toLocaleString()}` : 'Not provided');
         $('#viewBusinessType').text(policy.businessType || 'Not provided');
         
-        // Show/hide medical reports for Health policies
-        if (policy.type === 'Health') {
-            $('#viewMedicalReportsItem').show();
-        } else {
-            $('#viewMedicalReportsItem').hide();
-        }
+
         
         // Show/hide RC copy for Motor policies
         const rcCopyItem = $('.document-item').filter(function() {

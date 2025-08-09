@@ -40,7 +40,7 @@ class PolicyController extends Controller
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                'medical_reports_path' => $policy->medical_reports_path
+
             ];
         });
         
@@ -68,12 +68,12 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
-            // File upload validation
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
-            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'medicalReports' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            // File upload validation - set to 3MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+
         ];
 
         // Add vehicle validation for Motor policies
@@ -144,10 +144,7 @@ class PolicyController extends Controller
             $documentPaths['pan_copy_path'] = $path;
         }
         
-        if ($request->hasFile('medicalReports')) {
-            $path = $request->file('medicalReports')->store('private/policies/' . $policy->id . '/documents', 'local');
-            $documentPaths['medical_reports_path'] = $path;
-        }
+
         
         // Update policy with document paths if any files were uploaded
         if (!empty($documentPaths)) {
@@ -181,7 +178,7 @@ class PolicyController extends Controller
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                'medical_reports_path' => $policy->medical_reports_path
+
             ]
         ], 201);
     }
@@ -218,7 +215,7 @@ class PolicyController extends Controller
             'rc_copy_path' => $policy->rc_copy_path,
             'aadhar_copy_path' => $policy->aadhar_copy_path,
             'pan_copy_path' => $policy->pan_copy_path,
-            'medical_reports_path' => $policy->medical_reports_path
+
         ]]);
     }
 
@@ -241,12 +238,12 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
-            // File upload validation
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
-            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'medicalReports' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            // File upload validation - set to 3MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+
         ]);
 
         if ($validator->fails()) {
@@ -307,10 +304,7 @@ class PolicyController extends Controller
             $documentPaths['pan_copy_path'] = $path;
         }
         
-        if ($request->hasFile('medicalReports')) {
-            $path = $request->file('medicalReports')->store('private/policies/' . $policy->id . '/documents', 'local');
-            $documentPaths['medical_reports_path'] = $path;
-        }
+
         
         // Update policy with document paths if any files were uploaded
         if (!empty($documentPaths)) {
@@ -344,7 +338,7 @@ class PolicyController extends Controller
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                'medical_reports_path' => $policy->medical_reports_path
+
             ]
         ]);
     }
@@ -380,7 +374,7 @@ class PolicyController extends Controller
             'rc' => 'rc_copy_path',
             'aadhar' => 'aadhar_copy_path',
             'pan' => 'pan_copy_path',
-            'medical' => 'medical_reports_path'
+
         ];
 
         if (!isset($documentFieldMap[$documentType])) {
@@ -432,17 +426,32 @@ class PolicyController extends Controller
         // Get the correct extension based on actual file content
         $fileExtension = $mimeToExtension[$mimeType] ?? 'bin';
         
-        // Create a more user-friendly filename
+        // Create a more user-friendly filename with customer name
         $friendlyNames = [
-            'policy' => 'Policy_Copy',
-            'rc' => 'RC_Copy',
-            'aadhar' => 'Aadhar_Copy',
-            'pan' => 'PAN_Copy',
-            'medical' => 'Medical_Reports'
+            'policy' => 'policy_document',
+            'rc' => 'RC_document',
+            'aadhar' => 'aadhar_document',
+            'pan' => 'pan_document',
+
         ];
         
-        $friendlyName = $friendlyNames[$documentType] ?? $documentType;
-        $downloadFileName = $friendlyName . '.' . $fileExtension;
+        $friendlyName = $friendlyNames[$documentType] ?? $documentType . '_document';
+        
+        // Get customer name and format it for filename
+        $customerName = $policy->customer_name ?? 'unknown_customer';
+        // Clean and format customer name for filename
+        $formattedCustomerName = strtolower(trim($customerName));
+        // Replace spaces and special characters with underscores
+        $formattedCustomerName = preg_replace('/[^a-z0-9]+/', '_', $formattedCustomerName);
+        // Remove leading/trailing underscores
+        $formattedCustomerName = trim($formattedCustomerName, '_');
+        // If empty after cleaning, use default
+        if (empty($formattedCustomerName)) {
+            $formattedCustomerName = 'unknown_customer';
+        }
+        
+        // Create the final filename: customer_name_document_type.extension
+        $downloadFileName = $formattedCustomerName . '_' . $friendlyName . '.' . $fileExtension;
         
         // Set appropriate content type based on detected MIME type
         $contentTypes = [
