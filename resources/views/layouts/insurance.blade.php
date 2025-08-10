@@ -124,10 +124,10 @@
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
+                <!-- <div class="logo">
                     <i class="fas fa-shield-alt"></i>
                     <span>Insurance MS 2.0</span>
-                </div>
+                </div> -->
                 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                     <i class="fas fa-bars"></i>
                 </button>

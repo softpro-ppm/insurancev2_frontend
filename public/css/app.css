@@ -213,8 +213,8 @@ body.dark-theme {
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.1);
     position: fixed;
     left: 0;
-    top: 0;
-    height: 100vh;
+    top: 70px;
+    height: calc(100vh - 70px);
     overflow-y: auto;
 }
 
@@ -265,10 +265,10 @@ body.dark-theme {
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0;
-    margin: 6px 8px;
-    border-radius: 12px;
+    gap: 16px;
+    padding: 16px 24px;
+    margin: 6px 0px;
+    /* border-radius: 12px; */
     cursor: pointer;
     transition: all 0.3s ease;
     color: #6B7280;
@@ -286,7 +286,7 @@ body.dark-theme {
 }
 
 .nav-item.active {
-    background: rgba(79, 70, 229, 0.15);
+    background: rgba(79, 70, 229, 0.12);
     color: #4F46E5;
 }
 
@@ -320,7 +320,6 @@ body.dark-theme {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
     cursor: pointer;
     transition: all 0.25s ease;
     color: #6B7280;
@@ -334,14 +333,15 @@ body.dark-theme {
 }
 
 .nav-item a:hover {
-    background: rgba(79, 70, 229, 0.1);
+    background: rgb(232 232 251);
     color: #4F46E5;
     transform: translateX(2px);
 }
 
 .nav-item.active a {
-    background: rgba(79, 70, 229, 0.15);
+    background: rgb(232 232 251);
     color: #4F46E5;
+    /* border-right: 3px solid #4F46E5; */
 }
 
 .nav-item a i {
