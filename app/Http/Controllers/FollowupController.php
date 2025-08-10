@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use App\Models\Followup;
 
 class FollowupController extends Controller
@@ -14,19 +15,24 @@ class FollowupController extends Controller
      */
     public function index()
     {
-        $followups = Followup::all()->map(function ($followup) {
+        $followups = Followup::orderByDesc('id')->get()->map(function ($followup) {
             return [
                 'id' => $followup->id,
-                'policyNumber' => $followup->policy_number,
+                // Optional policy context if available; fallback to nulls
+                'policyNumber' => $followup->policy_number ?? null,
                 'customerName' => $followup->customer_name,
                 'phone' => $followup->phone,
                 'email' => $followup->email,
-                'followupDate' => $followup->followup_date->format('Y-m-d'),
                 'followupType' => $followup->followup_type,
                 'status' => $followup->status,
+                // Frontend expects these names
+                'assignedTo' => $followup->agent_name,
+                'lastFollowupDate' => optional($followup->created_at ?? $followup->followup_date)->format('Y-m-d'),
+                // Use stored followup_date as the scheduled next follow-up date
+                'nextFollowupDate' => optional($followup->followup_date)->format('Y-m-d'),
+                'recentNote' => Str::limit((string) $followup->notes, 140),
                 'notes' => $followup->notes,
-                'agentName' => $followup->agent_name,
-                'createdAt' => $followup->created_at->format('Y-m-d')
+                'createdAt' => optional($followup->created_at)->format('Y-m-d')
             ];
         });
         
@@ -39,15 +45,18 @@ class FollowupController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'policyNumber' => 'required|string|max:50',
+            // Align with frontend payload
             'customerName' => 'required|string|max:255',
-            'phone' => 'required|string|max:15',
+            'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'followupDate' => 'required|date',
             'followupType' => 'required|string|max:100',
-            'status' => 'required|in:Pending,Completed,Cancelled',
-            'notes' => 'nullable|string|max:1000',
-            'agentName' => 'required|string|max:255',
+            'status' => 'required|string|in:Pending,In Progress,Completed,No Response,Not Interested,Cancelled',
+            'assignedTo' => 'nullable|string|max:255',
+            'nextFollowupDate' => 'nullable|date',
+            'reminderTime' => 'nullable|date_format:H:i',
+            'notes' => 'nullable|string|max:2000',
+            // Optional fields not persisted directly
+            'policyId' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -55,31 +64,35 @@ class FollowupController extends Controller
         }
 
         $followup = Followup::create([
-            'policy_number' => $request->policyNumber,
+            // DB requires policy_type; use a sensible default since UI doesn't send
+            'policy_type' => $request->input('policyType', 'General'),
             'customer_name' => $request->customerName,
             'phone' => $request->phone,
             'email' => $request->email,
-            'followup_date' => $request->followupDate,
+            // Use nextFollowupDate as the scheduled date
+            'followup_date' => $request->nextFollowupDate ?? now()->toDateString(),
+            'followup_time' => $request->reminderTime ? ($request->reminderTime . (strlen($request->reminderTime) === 5 ? ':00' : '')) : '09:00:00',
             'followup_type' => $request->followupType,
             'status' => $request->status,
             'notes' => $request->notes,
-            'agent_name' => $request->agentName,
+            'agent_name' => $request->assignedTo ?? 'Self',
         ]);
 
         return response()->json([
             'message' => 'Followup created successfully!',
             'followup' => [
                 'id' => $followup->id,
-                'policyNumber' => $followup->policy_number,
                 'customerName' => $followup->customer_name,
                 'phone' => $followup->phone,
                 'email' => $followup->email,
-                'followupDate' => $followup->followup_date->format('Y-m-d'),
                 'followupType' => $followup->followup_type,
                 'status' => $followup->status,
+                'assignedTo' => $followup->agent_name,
+                'lastFollowupDate' => optional($followup->created_at ?? $followup->followup_date)->format('Y-m-d'),
+                'nextFollowupDate' => optional($followup->followup_date)->format('Y-m-d'),
+                'recentNote' => Str::limit((string) $followup->notes, 140),
                 'notes' => $followup->notes,
-                'agentName' => $followup->agent_name,
-                'createdAt' => $followup->created_at->format('Y-m-d')
+                'createdAt' => optional($followup->created_at)->format('Y-m-d')
             ]
         ], 201);
     }
@@ -93,16 +106,17 @@ class FollowupController extends Controller
         
         return response()->json(['followup' => [
             'id' => $followup->id,
-            'policyNumber' => $followup->policy_number,
             'customerName' => $followup->customer_name,
             'phone' => $followup->phone,
             'email' => $followup->email,
-            'followupDate' => $followup->followup_date->format('Y-m-d'),
             'followupType' => $followup->followup_type,
             'status' => $followup->status,
+            'assignedTo' => $followup->agent_name,
+            'lastFollowupDate' => optional($followup->created_at ?? $followup->followup_date)->format('Y-m-d'),
+            'nextFollowupDate' => optional($followup->followup_date)->format('Y-m-d'),
+            'recentNote' => Str::limit((string) $followup->notes, 140),
             'notes' => $followup->notes,
-            'agentName' => $followup->agent_name,
-            'createdAt' => $followup->created_at->format('Y-m-d')
+            'createdAt' => optional($followup->created_at)->format('Y-m-d')
         ]]);
     }
 
@@ -112,15 +126,16 @@ class FollowupController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'policyNumber' => 'required|string|max:50',
             'customerName' => 'required|string|max:255',
-            'phone' => 'required|string|max:15',
+            'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'followupDate' => 'required|date',
             'followupType' => 'required|string|max:100',
-            'status' => 'required|in:Pending,Completed,Cancelled',
-            'notes' => 'nullable|string|max:1000',
-            'agentName' => 'required|string|max:255',
+            'status' => 'required|string|in:Pending,In Progress,Completed,No Response,Not Interested,Cancelled',
+            'assignedTo' => 'nullable|string|max:255',
+            'nextFollowupDate' => 'nullable|date',
+            'reminderTime' => 'nullable|date_format:H:i',
+            'notes' => 'nullable|string|max:2000',
+            'policyId' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -129,31 +144,34 @@ class FollowupController extends Controller
 
         $followup = Followup::findOrFail($id);
         $followup->update([
-            'policy_number' => $request->policyNumber,
+            // Keep existing policy_type or set default
+            'policy_type' => $followup->policy_type ?? $request->input('policyType', 'General'),
             'customer_name' => $request->customerName,
             'phone' => $request->phone,
             'email' => $request->email,
-            'followup_date' => $request->followupDate,
+            'followup_date' => $request->nextFollowupDate ?? $followup->followup_date,
+            'followup_time' => $request->reminderTime ? ($request->reminderTime . (strlen($request->reminderTime) === 5 ? ':00' : '')) : $followup->followup_time,
             'followup_type' => $request->followupType,
             'status' => $request->status,
             'notes' => $request->notes,
-            'agent_name' => $request->agentName,
+            'agent_name' => $request->assignedTo ?? $followup->agent_name,
         ]);
 
         return response()->json([
             'message' => 'Followup updated successfully!',
             'followup' => [
                 'id' => $followup->id,
-                'policyNumber' => $followup->policy_number,
                 'customerName' => $followup->customer_name,
                 'phone' => $followup->phone,
                 'email' => $followup->email,
-                'followupDate' => $followup->followup_date->format('Y-m-d'),
                 'followupType' => $followup->followup_type,
                 'status' => $followup->status,
+                'assignedTo' => $followup->agent_name,
+                'lastFollowupDate' => optional($followup->created_at ?? $followup->followup_date)->format('Y-m-d'),
+                'nextFollowupDate' => optional($followup->followup_date)->format('Y-m-d'),
+                'recentNote' => Str::limit((string) $followup->notes, 140),
                 'notes' => $followup->notes,
-                'agentName' => $followup->agent_name,
-                'createdAt' => $followup->created_at->format('Y-m-d')
+                'createdAt' => optional($followup->created_at)->format('Y-m-d')
             ]
         ]);
     }

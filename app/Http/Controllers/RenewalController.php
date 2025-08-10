@@ -12,9 +12,13 @@ class RenewalController extends Controller
     /**
      * Display a listing of renewals
      */
-    public function index()
+    public function index(Request $request)
     {
-        $renewals = Renewal::all()->map(function ($renewal) {
+        $query = Renewal::query();
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        $renewals = $query->orderBy('due_date')->get()->map(function ($renewal) {
             return [
                 'id' => $renewal->id,
                 'policyNumber' => $renewal->policy_number,
@@ -24,11 +28,11 @@ class RenewalController extends Controller
                 'policyType' => $renewal->policy_type,
                 'currentPremium' => $renewal->current_premium,
                 'renewalPremium' => $renewal->renewal_premium,
-                'dueDate' => $renewal->due_date->format('Y-m-d'),
+                'dueDate' => optional($renewal->due_date)->format('Y-m-d'),
                 'status' => $renewal->status,
                 'agentName' => $renewal->agent_name,
                 'notes' => $renewal->notes,
-                'createdAt' => $renewal->created_at->format('Y-m-d')
+                'createdAt' => optional($renewal->created_at)->format('Y-m-d')
             ];
         });
         

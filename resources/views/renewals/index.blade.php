@@ -52,7 +52,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Pending Renewals</h3>
-                    <p class="stat-value" id="pendingRenewalsCount">15</p>
+                    <p class="stat-value" id="pendingRenewalsCount">0</p>
                 </div>
             </div>
             <div class="stat-card glass-effect">
@@ -61,7 +61,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Overdue Renewals</h3>
-                    <p class="stat-value" id="overdueRenewalsCount">3</p>
+                    <p class="stat-value" id="overdueRenewalsCount">0</p>
                 </div>
             </div>
             <div class="stat-card glass-effect">
@@ -70,7 +70,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Completed This Month</h3>
-                    <p class="stat-value" id="completedRenewalsCount">28</p>
+                    <p class="stat-value" id="completedRenewalsCount">0</p>
                 </div>
             </div>
             <div class="stat-card glass-effect">
@@ -79,7 +79,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Total Renewals</h3>
-                    <p class="stat-value" id="totalRenewalsCount">46</p>
+                    <p class="stat-value" id="totalRenewalsCount">0</p>
                 </div>
             </div>
         </div>
@@ -118,76 +118,20 @@
                         </tr>
                     </thead>
                     <tbody id="renewalsTableBody">
-                        <!-- Sample data -->
-                        <tr>
-                            <td>1</td>
-                            <td>POL001</td>
-                            <td>John Doe</td>
-                            <td><span class="policy-type-badge motor">Motor</span></td>
-                            <td>2025-02-15</td>
-                            <td><span class="days-left urgent">5 days</span></td>
-                            <td><span class="status-badge pending">Pending</span></td>
-                            <td><span class="priority-badge high">High</span></td>
-                            <td>Alice Brown</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>POL002</td>
-                            <td>Jane Smith</td>
-                            <td><span class="policy-type-badge health">Health</span></td>
-                            <td>2025-03-01</td>
-                            <td><span class="days-left warning">20 days</span></td>
-                            <td><span class="status-badge pending">In Progress</span></td>
-                            <td><span class="priority-badge medium">Medium</span></td>
-                            <td>Charlie Wilson</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>POL003</td>
-                            <td>Bob Johnson</td>
-                            <td><span class="policy-type-badge life">Life</span></td>
-                            <td>2025-01-31</td>
-                            <td><span class="days-left urgent">-2 days</span></td>
-                            <td><span class="status-badge expired">Overdue</span></td>
-                            <td><span class="priority-badge high">High</span></td>
-                            <td>Alice Brown</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Rows will be populated by JavaScript -->
                     </tbody>
                 </table>
             </div>
             <div class="table-pagination">
                 <div class="pagination-info">
-                    Showing <span id="renewalsStartRecord">1</span> to <span id="renewalsEndRecord">10</span> of <span id="renewalsTotalRecords">46</span> entries
+                    Showing <span id="renewalsStartRecord">0</span> to <span id="renewalsEndRecord">0</span> of <span id="renewalsTotalRecords">0</span> entries
                 </div>
                 <div class="pagination-controls">
                     <button class="pagination-btn" id="renewalsPrevPage" disabled>
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="page-numbers" id="renewalsPageNumbers">
-                        <button class="page-number active">1</button>
-                        <button class="page-number">2</button>
-                        <button class="page-number">3</button>
+                        <!-- Page numbers will be generated by JavaScript -->
                     </div>
                     <button class="pagination-btn" id="renewalsNextPage">
                         <i class="fas fa-chevron-right"></i>
@@ -447,8 +391,255 @@
 
 @push('scripts')
 <script>
-// Renewals page is handled by main app.js
-console.log('Renewals page loaded - functionality handled by main app.js');
+// Dynamically load renewals from Policies API and render table + stats
+(function() {
+    const state = {
+        all: [],
+        filtered: [],
+        page: 1,
+        perPage: 10,
+        totals: {
+            pending: 0,
+            overdue: 0,
+            completed: 0,
+            total: 0
+        }
+    };
+
+    const els = {
+        tbody: document.getElementById('renewalsTableBody'),
+        rowsPerPage: document.getElementById('renewalsRowsPerPage'),
+        prev: document.getElementById('renewalsPrevPage'),
+        next: document.getElementById('renewalsNextPage'),
+        pages: document.getElementById('renewalsPageNumbers'),
+        startRec: document.getElementById('renewalsStartRecord'),
+        endRec: document.getElementById('renewalsEndRecord'),
+        totalRecs: document.getElementById('renewalsTotalRecords'),
+        search: document.getElementById('renewalsSearch'),
+        statusFilter: document.getElementById('renewalStatusFilter'),
+        priorityFilter: document.getElementById('renewalPriorityFilter'),
+        stats: {
+            pending: document.getElementById('pendingRenewalsCount'),
+            overdue: document.getElementById('overdueRenewalsCount'),
+            completed: document.getElementById('completedRenewalsCount'),
+            total: document.getElementById('totalRenewalsCount')
+        }
+    };
+
+    function parseDate(dateStr) {
+        // dateStr expected format YYYY-MM-DD
+        return new Date(dateStr + 'T00:00:00');
+    }
+
+    function daysUntil(dateStr) {
+        const today = new Date();
+        const d = parseDate(dateStr);
+        // normalize to midnight
+        const msPerDay = 24*60*60*1000;
+        const diff = Math.floor((d.setHours(0,0,0,0) - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / msPerDay);
+        return diff; // negative means overdue
+    }
+
+    function policyTypeBadge(type) {
+        const cls = (type||'').toLowerCase();
+        return `<span class="policy-type-badge ${cls}">${type||''}</span>`;
+    }
+
+    function statusFromDaysLeft(n) {
+        if (n < 0) return { label: 'Overdue', cls: 'overdue' };
+        if (n <= 7) return { label: 'Pending', cls: 'pending' };
+        if (n <= 30) return { label: 'In Progress', cls: 'inprogress' };
+        return { label: 'Completed', cls: 'completed' }; // aligns with filter label
+    }
+
+    function priorityFromDaysLeft(n) {
+        if (n <= 7) return { label: 'High', cls: 'high' };
+        if (n <= 30) return { label: 'Medium', cls: 'medium' };
+        return { label: 'Low', cls: 'low' };
+    }
+
+    function renderTable() {
+        const start = (state.page - 1) * state.perPage;
+        const end = start + state.perPage;
+        const pageItems = state.filtered.slice(start, end);
+        els.tbody.innerHTML = '';
+
+        if (pageItems.length === 0) {
+            els.tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:12px;">No records found</td></tr>`;
+        } else {
+            pageItems.forEach((row, idx) => {
+                const serial = start + idx + 1;
+                const status = statusFromDaysLeft(row.daysLeft);
+                const pr = priorityFromDaysLeft(row.daysLeft);
+                const daysCls = row.daysLeft < 0 ? 'urgent' : (row.daysLeft <= 7 ? 'urgent' : (row.daysLeft <= 30 ? 'warning' : 'safe'));
+                const daysText = row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`;
+                const assignedTo = row.agentName || '-';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${serial}</td>
+                    <td>${row.policyNumber}</td>
+                    <td>${row.customerName}</td>
+                    <td>${policyTypeBadge(row.policyType)}</td>
+                    <td>${row.endDate}</td>
+                    <td><span class="days-left ${daysCls}">${daysText}</span></td>
+                    <td><span class="status-badge ${status.cls}">${status.label}</span></td>
+                    <td><span class="priority-badge ${pr.cls}">${pr.label}</span></td>
+                    <td>${assignedTo}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn" title="View"><i class="fas fa-eye"></i></button>
+                            <button class="action-btn" title="Call"><i class="fas fa-phone"></i></button>
+                        </div>
+                    </td>`;
+                els.tbody.appendChild(tr);
+            });
+        }
+
+        // Update pagination info
+        const total = state.filtered.length;
+        const showingStart = total === 0 ? 0 : start + 1;
+        const showingEnd = Math.min(end, total);
+        els.startRec.textContent = String(showingStart);
+        els.endRec.textContent = String(showingEnd);
+        els.totalRecs.textContent = String(total);
+
+        renderPagination(total);
+    }
+
+    function renderPagination(total) {
+        const totalPages = Math.ceil(total / state.perPage) || 1;
+        els.pages.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'page-number' + (i === state.page ? ' active' : '');
+            btn.textContent = String(i);
+            btn.addEventListener('click', () => { state.page = i; renderTable(); });
+            els.pages.appendChild(btn);
+        }
+        els.prev.disabled = state.page <= 1;
+        els.next.disabled = state.page >= totalPages;
+    }
+
+    function applyFilters() {
+        const q = (els.search.value || '').toLowerCase();
+        const statusFilter = els.statusFilter.value; // '', 'Pending','In Progress','Completed','Overdue'
+        const priorityFilter = els.priorityFilter.value; // '', 'High','Medium','Low'
+
+        state.filtered = state.all.filter(row => {
+            const matchText = !q ||
+                row.policyNumber.toLowerCase().includes(q) ||
+                row.customerName.toLowerCase().includes(q) ||
+                (row.agentName||'').toLowerCase().includes(q) ||
+                (row.policyType||'').toLowerCase().includes(q);
+
+            const st = statusFromDaysLeft(row.daysLeft).label;
+            const pr = priorityFromDaysLeft(row.daysLeft).label;
+
+            const matchStatus = !statusFilter || st === statusFilter;
+            const matchPriority = !priorityFilter || pr === priorityFilter;
+
+            return matchText && matchStatus && matchPriority;
+        })
+        // Sort by expiry date ascending
+        .sort((a, b) => a.endDate.localeCompare(b.endDate));
+
+        state.page = 1;
+        renderTable();
+    }
+
+    function updateStats() {
+        const today = new Date();
+        const pending = state.all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 30).length;
+        const overdue = state.all.filter(r => r.daysLeft < 0).length;
+        const total = state.all.length;
+        state.totals = { pending, overdue, completed: state.totals.completed || 0, total };
+
+        els.stats.pending.textContent = String(pending);
+        els.stats.overdue.textContent = String(overdue);
+        els.stats.total.textContent = String(total);
+        // completed will be updated from renewals API if available; fallback to 0
+        if (!els.stats.completed.dataset.bound) {
+            els.stats.completed.textContent = String(state.totals.completed || 0);
+        }
+    }
+
+    async function fetchPolicies() {
+        const res = await fetch('/api/policies', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed to load policies');
+        const data = await res.json();
+        const items = (data.policies || []).map(p => {
+            const endDate = p.endDate;
+            const dleft = daysUntil(endDate);
+            return {
+                id: p.id,
+                policyNumber: p.policyNumber,
+                customerName: p.customerName,
+                policyType: p.policyType,
+                endDate: endDate,
+                daysLeft: dleft,
+                status: p.status,
+                agentName: p.agentName || ''
+            };
+        });
+        // sort ascending by expiry
+        items.sort((a,b) => a.endDate.localeCompare(b.endDate));
+        state.all = items;
+        state.filtered = items.slice();
+        updateStats();
+        renderTable();
+    }
+
+    async function tryFetchCompletedFromRenewals() {
+        try {
+            const res = await fetch('/api/renewals', { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return; // ignore
+            const data = await res.json();
+            const list = data.renewals || [];
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            const completedThisMonth = list.filter(r => {
+                if ((r.status||'') !== 'Completed') return false;
+                const created = r.createdAt ? new Date(r.createdAt + 'T00:00:00') : null;
+                return created && created.getFullYear() === y && created.getMonth() === m;
+            }).length;
+            state.totals.completed = completedThisMonth;
+            els.stats.completed.textContent = String(completedThisMonth);
+            els.stats.completed.dataset.bound = '1';
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function bindEvents() {
+        els.rowsPerPage.addEventListener('change', () => {
+            state.perPage = parseInt(els.rowsPerPage.value || '10', 10);
+            state.page = 1;
+            renderTable();
+        });
+        els.prev.addEventListener('click', () => { if (state.page > 1) { state.page--; renderTable(); } });
+        els.next.addEventListener('click', () => {
+            const totalPages = Math.ceil(state.filtered.length / state.perPage) || 1;
+            if (state.page < totalPages) { state.page++; renderTable(); }
+        });
+        els.search.addEventListener('input', () => applyFilters());
+        els.statusFilter.addEventListener('change', () => applyFilters());
+        els.priorityFilter.addEventListener('change', () => applyFilters());
+    }
+
+    // init
+    document.addEventListener('DOMContentLoaded', async () => {
+        bindEvents();
+        try {
+            await Promise.all([fetchPolicies(), tryFetchCompletedFromRenewals()]);
+            applyFilters();
+        } catch (err) {
+            console.error(err);
+            els.tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:12px; color:#EF4444;">Failed to load data</td></tr>`;
+        }
+    });
+})();
 </script>
 @endpush
 

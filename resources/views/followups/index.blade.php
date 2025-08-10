@@ -120,61 +120,7 @@
                         </tr>
                     </thead>
                     <tbody id="followupsTableBody">
-                        <!-- Sample data -->
-                        <tr>
-                            <td>1</td>
-                            <td>Sarah Connor</td>
-                            <td>+91-9876543210</td>
-                            <td><span class="followup-type-badge renewal">Renewal</span></td>
-                            <td><span class="status-badge pending">Pending</span></td>
-                            <td>Alice Brown</td>
-                            <td>2025-01-30</td>
-                            <td>2025-02-05</td>
-                            <td>Customer interested in renewal quote</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                    <button class="action-btn"><i class="fas fa-comments"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Mike Johnson</td>
-                            <td>+91-8765432109</td>
-                            <td><span class="followup-type-badge newpolicy">New Policy</span></td>
-                            <td><span class="status-badge inprogress">In Progress</span></td>
-                            <td>Charlie Wilson</td>
-                            <td>2025-01-31</td>
-                            <td>2025-02-03</td>
-                            <td>Sent policy documents for review</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                    <button class="action-btn"><i class="fas fa-comments"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Emma Wilson</td>
-                            <td>+91-7654321098</td>
-                            <td><span class="followup-type-badge claim">Claim</span></td>
-                            <td><span class="status-badge completed">Completed</span></td>
-                            <td>David Smith</td>
-                            <td>2025-01-29</td>
-                            <td>-</td>
-                            <td>Claim processed successfully</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn"><i class="fas fa-phone"></i></button>
-                                    <button class="action-btn"><i class="fas fa-comments"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Dynamic data will be rendered by public/js/app.js -->
                     </tbody>
                 </table>
             </div>

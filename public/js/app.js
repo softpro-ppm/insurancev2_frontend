@@ -18,6 +18,7 @@ let renewalsRowsPerPage = 10;
 let renewalsCurrentSort = { column: 'id', direction: 'asc' };
 let renewalsFilteredData = [];
 let allRenewals = [];
+let policiesAsRenewals = [];
 
 // Follow-ups page variables
 let followupsCurrentPage = 1;
@@ -68,6 +69,7 @@ const apiCall = async (endpoint, options = {}) => {
         const response = await fetch(endpoint, {
             ...defaultOptions,
             ...options,
+            credentials: 'same-origin',
             headers: {
                 ...defaultOptions.headers,
                 ...options.headers
@@ -308,7 +310,8 @@ const deleteRenewal = async (id) => {
 // Followups API calls
 const fetchFollowups = async () => {
     try {
-        const data = await apiCall('/api/followups');
+    const t = Date.now();
+    const data = await apiCall(`/api/followups?t=${t}`);
         return data.followups || [];
     } catch (error) {
         console.error('Failed to fetch followups:', error);
@@ -723,7 +726,10 @@ const initializeApplication = async () => {
             loadFollowupsData()
         ]);
         
-        // Initialize components
+    // Build renewals VM from policies before initializing components
+    await buildRenewalsFromPoliciesAsync();
+
+    // Initialize components
         initializeCharts();
         initializeTable();
         initializeAgents();
@@ -800,6 +806,7 @@ const loadAgentsData = async () => {
 // Load renewals data
 const loadRenewalsData = async () => {
     try {
+    // Keep API call for backward compatibility but we'll derive the visible list from policies
         allRenewals = await fetchRenewals();
     } catch (error) {
         console.error('Failed to load renewals data:', error);
@@ -851,6 +858,8 @@ const updateRecentPoliciesTable = (policies) => {
                 <td>${policy.endDate}</td>
                 <td>₹${policy.premium}</td>
                 <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+        
+            // After policies are loaded, build renewals view model from policies
                 <td>
                     <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
                         <i class="fas fa-eye"></i>
@@ -1279,7 +1288,8 @@ const initializeRenewalsPage = () => {
     }
     
     // Use real data from API
-    renewalsFilteredData = [...allRenewals];
+    // Build from policies (already prepared in buildRenewalsFromPolicies)
+    renewalsFilteredData = [...policiesAsRenewals];
     renderRenewalsTable();
     updateRenewalsPagination();
     updateRenewalsStats();
@@ -1546,33 +1556,37 @@ const initializeEventListeners = () => {
     $('#cancelRenewal').click(() => closeRenewalModal());
     $('#renewalForm').submit(handleRenewalSubmit);
     
-    // Policy selection in renewal modal
+    // Policy selection in renewal modal (robust mapping for API variations)
     $('#renewalPolicyId').change(function() {
         const policyId = parseInt($(this).val());
-        if (policyId) {
-            const policy = allPolicies.find(p => p.id === policyId);
-            if (policy) {
-                $('#renewalCustomerName').val(policy.owner);
-                $('#renewalPolicyType').val(policy.type);
-                $('#renewalExpiryDate').val(policy.endDate);
-            }
-        }
+        const p = (allPolicies || []).find(pp => (pp.id || 0) === policyId);
+        $('#renewalCustomerName').val(p ? (p.customerName || p.owner || '') : '');
+        $('#renewalPolicyType').val(p ? (p.policyType || p.type || '') : '');
+        $('#renewalExpiryDate').val(p ? (p.endDate || p.end_date || '') : '');
     });
     
     // Follow-up Modal controls
     $('#closeFollowupModal').click(() => closeFollowupModal());
     $('#cancelFollowup').click(() => closeFollowupModal());
-    $('#followupForm').submit(handleFollowupSubmit);
+    $('#followupForm').off('submit').on('submit', handleFollowupSubmit);
+    // Ensure the Save button triggers the form submit event
+    $('#saveFollowupBtn').off('click').on('click', function (ev) {
+        ev.preventDefault();
+        $('#followupForm').trigger('submit');
+    });
     
     // Policy selection in follow-up modal
     $('#followupPolicyId').change(function() {
         const policyId = parseInt($(this).val());
         if (policyId) {
-            const policy = allPolicies.find(p => p.id === policyId);
-            if (policy) {
-                $('#followupCustomerName').val(policy.owner);
-                $('#followupPhone').val(policy.phone);
-                $('#followupEmail').val(policy.email || '');
+            const p = (allPolicies || []).find(pp => (pp.id || 0) === policyId);
+            if (p) {
+                const name = p.customerName || p.owner || p.customer_name || '';
+                const phone = p.phone || p.customerPhone || p.customer_phone || '';
+                const email = p.email || p.customerEmail || p.customer_email || '';
+                $('#followupCustomerName').val(name);
+                $('#followupPhone').val(phone);
+                $('#followupEmail').val(email);
             }
         }
     });
@@ -3241,13 +3255,18 @@ const generatePoliciesCSV = () => {
 const openFollowupModal = () => {
     $('#followupModalTitle').text('Add Follow Up');
     $('#followupForm')[0].reset();
+    // Ensure we're not in edit mode
+    $('#followupForm').removeData('edit-id');
     
     // Populate policy dropdown
     const policySelect = $('#followupPolicyId');
     policySelect.empty().append('<option value="">Select Policy (Optional)</option>');
     
     allPolicies.forEach(policy => {
-        policySelect.append(`<option value="${policy.id}">#${policy.id.toString().padStart(3, '0')} - ${policy.owner} (${policy.type})</option>`);
+        const id = policy.id;
+        const displayName = policy.customerName || policy.owner || policy.customer_name || 'Unknown';
+        const displayType = policy.policyType || policy.type || policy.policy_type || 'Unknown';
+        policySelect.append(`<option value="${id}">#${String(id).padStart(3, '0')} - ${displayName} (${displayType})</option>`);
     });
     
     // Populate telecaller dropdown
@@ -3268,6 +3287,11 @@ const openFollowupModal = () => {
     $('#previousNotesSection').hide();
     
     $('#followupModal').addClass('show');
+    // Ensure clean save binding for add flow as well
+    $('#saveFollowupBtn').off('click').on('click', function (ev) {
+        ev.preventDefault();
+        $('#followupForm').trigger('submit');
+    });
 };
 
 const closeFollowupModal = () => {
@@ -3277,9 +3301,10 @@ const closeFollowupModal = () => {
 };
 
 const handleFollowupSubmit = async (e) => {
+    // Always handle via the form to avoid empty FormData when invoked from a button click
     e.preventDefault();
-    
-    const formData = new FormData(e.target);
+    const formEl = e && e.target && e.target.tagName === 'FORM' ? e.target : document.getElementById('followupForm');
+    const formData = new FormData(formEl);
     
     // Build followup data to match controller expectations
     const followupData = {
@@ -3331,10 +3356,16 @@ const handleFollowupSubmit = async (e) => {
         }
         
         // Close modal and refresh
-    closeFollowupModal();
-    renderFollowupsTable();
-    updateFollowupsPagination();
-    updateFollowupsStats();
+        closeFollowupModal();
+        // Refresh the filtered view to include latest changes
+        applyFollowupsFilters();
+        // If no filters are applied, ensure filtered list mirrors all data
+        if (!$('#followupStatusFilter').val() && !$('#followupTypeFilter').val() && !$('#followupsSearch').val()) {
+            followupsFilteredData = [...allFollowups];
+        }
+        renderFollowupsTable();
+        updateFollowupsPagination();
+        updateFollowupsStats();
     
     } catch (error) {
         console.error('Failed to save followup:', error);
@@ -3357,6 +3388,11 @@ const handleFollowupSubmit = async (e) => {
 };
 
 const renderFollowupsTable = () => {
+    // Guard against undefined data arrays
+    if (!Array.isArray(allFollowups)) allFollowups = [];
+    if (!Array.isArray(followupsFilteredData) || followupsFilteredData.length === 0) {
+        followupsFilteredData = [...allFollowups];
+    }
     const startIndex = (followupsCurrentPage - 1) * followupsRowsPerPage;
     const endIndex = startIndex + followupsRowsPerPage;
     const pageData = followupsFilteredData.slice(startIndex, endIndex);
@@ -3370,7 +3406,7 @@ const renderFollowupsTable = () => {
         const row = document.createElement('tr');
         
         // Get follow-up type class
-        const typeClass = followup.followupType.toLowerCase().replace(' ', '-');
+        const typeClass = (followup.followupType || '').toLowerCase().replace(/\s+/g, '-');
         
         row.innerHTML = `
             <td>${followup.id}</td>
@@ -3568,39 +3604,57 @@ const updateFollowupsSortIcons = () => {
 
 const editFollowup = (id) => {
     const followup = allFollowups.find(f => f.id === id);
-    if (followup) {
-        $('#followupModalTitle').text('Edit Follow Up');
-        
-        // Populate form fields
-        $('#followupCustomerName').val(followup.customerName || '');
-        $('#followupPhone').val(followup.phone || '');
-        $('#followupEmail').val(followup.email || '');
-        $('#followupPolicyId').val(followup.policyId || '');
-        $('#followupType').val(followup.followupType || '');
-        $('#followupStatus').val(followup.status || '');
-        $('#followupAssignedTo').val(followup.assignedTo || '');
-        $('#followupPriority').val(followup.priority || '');
-        $('#followupNextDate').val(followup.nextFollowupDate || '');
-        $('#followupReminderTime').val(followup.reminderTime || '');
-        
-        // Store the followup ID for form submission
-        $('#followupForm').data('edit-id', id);
-        
-        // Show the modal
-        $('#followupModal').addClass('show');
-        
-        // Add event listener for form submission if not already added
-        if (!$('#followupForm').data('edit-listener-added')) {
-            $('#saveFollowupBtn').off('click').on('click', handleFollowupSubmit);
-            $('#followupForm').data('edit-listener-added', true);
-        }
-        
-        // Show previous notes if available
-        if (followup.notesHistory && followup.notesHistory.length > 0) {
-            showPreviousNotes(followup.notesHistory);
-        }
-    } else {
+    if (!followup) {
         showNotification('Follow-up not found', 'error');
+        return;
+    }
+
+    // Open modal to ensure selects are populated, then set into edit mode
+    openFollowupModal();
+    $('#followupModalTitle').text('Edit Follow Up');
+
+    // Populate form fields
+    $('#followupCustomerName').val(followup.customerName || '');
+    $('#followupPhone').val(followup.phone || '');
+    $('#followupEmail').val(followup.email || '');
+    if (followup.policyId != null) {
+        // Ensure the option exists before selecting
+        if (!$('#followupPolicyId option[value="' + followup.policyId + '"]').length) {
+            const p = (allPolicies || []).find(pp => (pp.id || 0) === followup.policyId);
+            const name = p ? (p.customerName || p.owner || p.customer_name || 'Unknown') : 'Unknown';
+            const type = p ? (p.policyType || p.type || p.policy_type || 'Unknown') : 'Unknown';
+            $('#followupPolicyId').append(`<option value="${followup.policyId}">#${String(followup.policyId).padStart(3, '0')} - ${name} (${type})</option>`);
+        }
+        $('#followupPolicyId').val(String(followup.policyId));
+    } else {
+        $('#followupPolicyId').val('');
+    }
+    $('#followupType').val(followup.followupType || '');
+    $('#followupStatus').val(followup.status || '');
+    if (followup.assignedTo) {
+        if (!$('#followupAssignedTo option[value="' + followup.assignedTo + '"]').length) {
+            $('#followupAssignedTo').append(`<option value="${followup.assignedTo}">${followup.assignedTo}</option>`);
+        }
+        $('#followupAssignedTo').val(followup.assignedTo);
+    } else {
+        $('#followupAssignedTo').val('');
+    }
+    $('#followupPriority').val(followup.priority || '');
+    $('#followupNextDate').val(followup.nextFollowupDate || '');
+    $('#followupReminderTime').val(followup.reminderTime || '');
+
+    // Store the followup ID for form submission
+    $('#followupForm').data('edit-id', id);
+
+    // Ensure the Save button triggers the form submit (binding set globally too)
+    $('#saveFollowupBtn').off('click').on('click', function (ev) {
+        ev.preventDefault();
+        $('#followupForm').trigger('submit');
+    });
+
+    // Show previous notes if available
+    if (followup.notesHistory && followup.notesHistory.length > 0) {
+        showPreviousNotes(followup.notesHistory);
     }
 };
 
@@ -4013,7 +4067,23 @@ const openRenewalModal = () => {
     
     // Set default priority
     $('#renewalPriority').val('Medium');
+    // Set default status and assignment to match static modal
+    $('#renewalStatus').val('Pending');
+    $('#renewalAssignedTo').val('');
+    // Default notification settings
+    $('#renewalEmailNotification').prop('checked', false);
+    $('#renewalSMSNotification').prop('checked', false);
+    $('#renewalNotificationDays').val('');
     
+    // Bind change to auto-fill customer name, policy type, and expiry date
+    policySelect.off('change').on('change', function() {
+        const pid = parseInt($(this).val());
+        const p = (allPolicies || []).find(pp => (pp.id || 0) === pid);
+        $('#renewalCustomerName').val(p ? (p.customerName || p.owner || '') : '');
+        $('#renewalPolicyType').val(p ? (p.policyType || p.type || '') : '');
+        $('#renewalExpiryDate').val(p ? (p.endDate || p.end_date || '') : '');
+    });
+
     $('#renewalModal').addClass('show');
 };
 
@@ -4034,52 +4104,82 @@ const closeRenewalModal = () => {
 const handleRenewalSubmit = async (e) => {
     e.preventDefault();
     
-    // Build renewal data using the correct field names from the modal
-    const renewalData = {
-        policy_id: parseInt($('#renewalPolicyId').val()) || null,
-        customer_name: $('#renewalCustomerName').val() || '',
-        reminder_date: $('#renewalReminderDate').val() || '',
-        priority: $('#renewalPriority').val() || 'Medium',
-        notes: $('#renewalNotes').val() || ''
-    };
+    const policyId = parseInt($('#renewalPolicyId').val()) || null;
+    const reminderDate = $('#renewalReminderDate').val() || '';
+    const priority = $('#renewalPriority').val() || 'Medium';
+    const notes = $('#renewalNotes').val() || '';
     
-    // Validate required fields
-    if (!renewalData.policy_id || !renewalData.customer_name || !renewalData.reminder_date) {
-        showNotification('Please fill in all required fields (Policy ID, Customer Name, Reminder Date)', 'error');
+    // Validate minimal modal fields
+    if (!policyId || !reminderDate) {
+        showNotification('Please select a policy and reminder date.', 'error');
         return;
     }
     
+    // Find selected policy and build payload expected by backend
+    const policy = (allPolicies || []).find(p => (p.id || 0) === policyId);
+    if (!policy) {
+        showNotification('Selected policy not found.', 'error');
+        return;
+    }
+    // Ensure the visible field is set for UX
+    $('#renewalCustomerName').val(policy.customerName || '');
+    
+    const endDateStr = policy.endDate || policy.end_date;
+    const endDate = endDateStr ? new Date(endDateStr + 'T00:00:00') : null;
+    const today = new Date();
+    const day0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const msPerDay = 24*60*60*1000;
+    const daysLeft = endDate ? Math.floor((endDate.getTime() - day0.getTime())/msPerDay) : 0;
+    // Map to server-allowed statuses only: Pending, Completed, Overdue, Scheduled
+    // For saving reminders: use Overdue (past), Pending (<=30 days), Scheduled (>30 days)
+    let backendStatus = 'Pending';
+    if (daysLeft < 0) backendStatus = 'Overdue';
+    else if (daysLeft <= 30) backendStatus = 'Pending';
+    else backendStatus = 'Scheduled';
+    
+    const backendPayload = {
+        policyNumber: policy.policyNumber,
+        customerName: policy.customerName,
+        phone: policy.phone,
+        email: policy.email ?? null,
+        policyType: policy.policyType,
+        currentPremium: isNaN(parseFloat(policy.premium)) ? 0 : parseFloat(policy.premium),
+        renewalPremium: isNaN(parseFloat(policy.premium)) ? 0 : parseFloat(policy.premium),
+        dueDate: endDateStr || reminderDate,
+        status: backendStatus,
+        agentName: policy.agentName || 'Self',
+        notes: notes
+    };
+    
     try {
-        const editId = $('#renewalForm').data('edit-id');
+    const editId = $('#renewalForm').data('edit-id');
+    const editSource = $('#renewalForm').data('edit-source') || 'policy';
         
-        console.log('Submitting renewal data:', renewalData);
+    console.log('Submitting renewal data:', backendPayload);
         
-        if (editId) {
-            // Update existing renewal
-            const response = await updateRenewal(editId, renewalData);
-            
-            // Update local data
+        if (editId && editSource === 'api') {
+            // Update existing API renewal with full backend payload
+            const response = await updateRenewal(editId, backendPayload);
             const index = allRenewals.findIndex(r => r.id === editId);
             if (index !== -1) {
                 allRenewals[index] = { ...allRenewals[index], ...response.renewal };
             }
-            
             showNotification('Renewal updated successfully!', 'success');
         } else {
-            // Create new renewal
-            const response = await createRenewal(renewalData);
-            
-            // Add to local data
+            // Create renewal for a policy-derived entry using backend-required fields
+            const response = await createRenewal(backendPayload);
             if (response.renewal) {
                 allRenewals.push(response.renewal);
             }
-            
-            showNotification('Renewal reminder added successfully!', 'success');
+            showNotification('Renewal reminder saved!', 'success');
         }
         
         // Close modal and refresh
         closeRenewalModal();
-        renderRenewalsTable();
+    // Rebuild policies-derived list to reflect any status/priority changes
+    buildRenewalsFromPolicies();
+    applyRenewalsFilters();
+    renderRenewalsTable();
         updateRenewalsPagination();
         updateRenewalsStats();
         
@@ -4146,7 +4246,7 @@ const renderRenewalsTable = () => {
             <td>${assignedTo}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn edit" data-renewal-id="${renewal.id}" title="Edit">
+                    <button class="action-btn edit" data-renewal-id="${renewal.id}" data-policy-id="${policyId}" data-source="${renewal.source || 'policy'}" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="action-btn delete" data-renewal-id="${renewal.id}" title="Delete">
@@ -4167,7 +4267,9 @@ const renderRenewalsTable = () => {
     // Add event listeners for action buttons
     tbody.find('.action-btn.edit').click(function() {
         const renewalId = parseInt($(this).data('renewal-id'));
-        editRenewal(renewalId);
+        const source = $(this).data('source') || 'policy';
+        const policyId = parseInt($(this).data('policy-id')) || null;
+        editRenewal(renewalId, source, policyId);
     });
     
     tbody.find('.action-btn.delete').click(function() {
@@ -4238,7 +4340,7 @@ const updateRenewalsStats = () => {
 const handleRenewalsSearch = () => {
     const searchTerm = $('#renewalsSearch').val().toLowerCase();
     
-    renewalsFilteredData = allRenewals.filter(renewal => {
+    renewalsFilteredData = policiesAsRenewals.filter(renewal => {
         const customerName = renewal.customerName || renewal.customer_name || '';
         const policyId = renewal.policyId || renewal.policy_id || '';
         const policyType = renewal.policyType || renewal.policy_type || '';
@@ -4264,7 +4366,7 @@ const applyRenewalsFilters = () => {
     const statusFilter = $('#renewalStatusFilter').val();
     const priorityFilter = $('#renewalPriorityFilter').val();
     
-    renewalsFilteredData = allRenewals.filter(renewal => {
+    renewalsFilteredData = policiesAsRenewals.filter(renewal => {
         const status = renewal.status || 'Pending';
         const priority = renewal.priority || 'Medium';
         
@@ -4332,8 +4434,89 @@ const updateRenewalsSortIcons = () => {
     icon.addClass(renewalsCurrentSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
 };
 
-const editRenewal = (id) => {
-    const renewal = allRenewals.find(r => r.id === id);
+// Build renewals view model from policies, sorted by expiry date
+const buildRenewalsFromPolicies = () => {
+    // Map policies -> renewals VM
+    policiesAsRenewals = (allPolicies || []).map((p, idx) => {
+        // Compute days left
+        const endDateStr = p.endDate || p.end_date;
+        const endDate = endDateStr ? new Date(endDateStr + 'T00:00:00') : null;
+        const today = new Date();
+        const day0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const msPerDay = 24*60*60*1000;
+        const daysLeft = endDate ? Math.floor((endDate.getTime() - day0.getTime())/msPerDay) : 0;
+        // Status mapping aligned with page filters
+        let status = 'Pending';
+        if (daysLeft < 0) status = 'Overdue';
+        else if (daysLeft <= 7) status = 'Pending';
+        else if (daysLeft <= 30) status = 'In Progress';
+        else status = 'Completed';
+        // Priority
+        let priority = 'Low';
+        if (daysLeft <= 7) priority = 'High';
+        else if (daysLeft <= 30) priority = 'Medium';
+        else priority = 'Low';
+
+        return {
+            id: idx + 1,
+            policyId: p.id,
+            policyNumber: p.policyNumber,
+            customerName: p.customerName,
+            policyType: p.policyType,
+            expiryDate: endDateStr,
+            daysLeft: daysLeft,
+            status: status,
+            priority: priority,
+            assignedTo: p.agentName || 'Unassigned'
+        };
+    });
+
+    // sort by expiry date asc
+    policiesAsRenewals.sort((a, b) => {
+        const ad = a.expiryDate || '';
+        const bd = b.expiryDate || '';
+        return ad.localeCompare(bd);
+    });
+
+    // Set as current visible data
+    renewalsFilteredData = [...policiesAsRenewals];
+    renewalsCurrentPage = 1;
+};
+
+// Async variant that ensures policies exist by fetching if needed
+const buildRenewalsFromPoliciesAsync = async () => {
+    try {
+        if (!Array.isArray(allPolicies) || allPolicies.length === 0) {
+            allPolicies = await fetchPolicies();
+        }
+    } catch (e) {
+        console.error('Failed to (re)fetch policies for renewals:', e);
+        allPolicies = allPolicies || [];
+    }
+    buildRenewalsFromPolicies();
+};
+
+const editRenewal = (id, source = 'policy', policyIdFromBtn = null) => {
+    // If coming from policies-derived list, synthesize a renewal-like object for the modal
+    let renewal = null;
+    if (source === 'policy') {
+        const vm = policiesAsRenewals.find(r => r.id === id);
+        if (vm) {
+            const policy = allPolicies.find(p => p.id === (policyIdFromBtn || vm.policyId));
+            renewal = {
+                id: vm.id,
+                policyId: vm.policyId,
+                customerName: policy?.customerName || vm.customerName,
+                policyType: policy?.policyType || vm.policyType,
+                expiryDate: policy?.endDate || vm.expiryDate,
+                priority: vm.priority,
+                reminderDate: new Date().toISOString().split('T')[0],
+                notes: ''
+            };
+        }
+    } else {
+        renewal = allRenewals.find(r => r.id === id);
+    }
     if (renewal) {
         $('#renewalModalTitle').text('Edit Renewal Reminder');
         
@@ -4342,17 +4525,44 @@ const editRenewal = (id) => {
         const customerName = renewal.customerName || renewal.customer_name || '';
         const reminderDate = renewal.reminderDate || renewal.reminder_date || '';
         const priority = renewal.priority || 'Medium';
+    const status = renewal.status || 'Pending';
+    const assignedTo = renewal.assignedTo || renewal.assigned_to || '';
         const notes = renewal.notes || '';
         
         // Populate form fields with the correct field names from the modal
-        $('#renewalPolicyId').val(policyId);
-        $('#renewalCustomerName').val(customerName);
+        // Ensure policy options list is present
+        const policySelect = $('#renewalPolicyId');
+        if (policySelect.children('option').length <= 1) {
+            policySelect.empty().append('<option value="">Select Policy</option>');
+            allPolicies.forEach(p => {
+                const pid = p.id || 0;
+                const cname = p.customerName || p.owner || 'Unknown';
+                const ptype = p.policyType || p.type || 'Unknown';
+                policySelect.append(`<option value="${pid}">#${pid.toString().padStart(3, '0')} - ${cname} (${ptype})</option>`);
+            });
+        }
+    $('#renewalPolicyId').val(policyId).trigger('change');
+    $('#renewalCustomerName').val(customerName);
+    // Ensure Policy Type and Expiry show immediately for edit
+    const pForType = (allPolicies || []).find(pp => (pp.id || 0) === policyId);
+    const typeToShow = pForType ? (pForType.policyType || pForType.type || '') : (renewal.policyType || renewal.policy_type || '');
+    const expiryToShow = pForType ? (pForType.endDate || pForType.end_date || '') : (renewal.expiryDate || renewal.expiry_date || '');
+    $('#renewalPolicyType').val(typeToShow);
+    $('#renewalExpiryDate').val(expiryToShow);
         $('#renewalReminderDate').val(reminderDate);
         $('#renewalPriority').val(priority);
+    $('#renewalStatus').val(status);
+    $('#renewalAssignedTo').val(assignedTo);
         $('#renewalNotes').val(notes);
+    // Notifications - default unchecked if not present on the object
+    $('#renewalEmailNotification').prop('checked', !!(renewal.emailNotification || renewal.email_notification));
+    $('#renewalSMSNotification').prop('checked', !!(renewal.smsNotification || renewal.sms_notification));
+    const notifyDays = renewal.notifyBeforeDays || renewal.notify_before_days || '';
+    $('#renewalNotificationDays').val(notifyDays);
         
         // Store the renewal ID for form submission
-        $('#renewalForm').data('edit-id', id);
+    $('#renewalForm').data('edit-id', id);
+    $('#renewalForm').data('edit-source', source);
         
         // Show the modal
         $('#renewalModal').addClass('show');

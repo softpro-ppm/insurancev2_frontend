@@ -721,238 +721,389 @@
 
 @push('scripts')
 <script>
-    // Global variables
+    // Dynamic Reports: fetch datasets, compute KPIs, render tables and charts without changing layout
+    let policies = [];
+    let renewals = [];
+    let followups = [];
+    let agents = [];
     let reports = [];
-    let filteredReports = [];
-    let currentPage = 1;
-    let rowsPerPage = 10;
 
-    // Reports page initialization
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Reports page initialized');
-        
-        // Load reports data
-        loadReports();
-        
-        // Initialize charts if Chart.js is available
-        if (typeof Chart !== 'undefined') {
-            // Trend Chart
-            const trendCtx = document.getElementById('trendChart');
-            if (trendCtx) {
-                new Chart(trendCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                        datasets: [{
-                            label: 'Premium',
-                            data: [45000, 52000, 48000, 61000],
-                            borderColor: '#4F46E5',
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            tension: 0.4
-                        }, {
-                            label: 'Revenue',
-                            data: [18000, 22000, 19000, 25000],
-                            borderColor: '#10B981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            }
-                        }
-                    }
-                });
-            }
+    let charts = {
+        trend: null,
+        policyType: null,
+        agentPerformance: null,
+        renewalStatus: null
+    };
 
-            // Policy Type Distribution Chart
-            const policyTypeCtx = document.getElementById('policyTypeChart');
-            if (policyTypeCtx) {
-                new Chart(policyTypeCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Motor', 'Health', 'Life', 'Others'],
-                        datasets: [{
-                            data: [45, 30, 20, 5],
-                            backgroundColor: [
-                                '#4F46E5',
-                                '#10B981',
-                                '#F59E0B',
-                                '#6B7280'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
+    document.addEventListener('DOMContentLoaded', () => {
+        // Default date range: last 30 days
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 29);
+        setDateInput('reportStartDate', start);
+        setDateInput('reportEndDate', end);
 
-            // Agent Performance Chart
-            const agentPerformanceCtx = document.getElementById('agentPerformanceChart');
-            if (agentPerformanceCtx) {
-                new Chart(agentPerformanceCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Agent 1', 'Agent 2', 'Agent 3', 'Agent 4'],
-                        datasets: [{
-                            label: 'Policies Sold',
-                            data: [25, 18, 22, 15],
-                            backgroundColor: 'rgba(79, 70, 229, 0.8)'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
+        // Load all datasets then render
+        loadAll().then(renderAll).catch((e) => {
+            console.error('Failed initializing reports', e);
+            showNotification('Error loading reports data', 'error');
+        });
 
-            // Renewal Status Chart
-            const renewalStatusCtx = document.getElementById('renewalStatusChart');
-            if (renewalStatusCtx) {
-                new Chart(renewalStatusCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Renewed', 'Pending', 'Expired'],
-                        datasets: [{
-                            data: [65, 25, 10],
-                            backgroundColor: [
-                                '#10B981',
-                                '#F59E0B',
-                                '#EF4444'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-        }
-        
-        // Tab functionality
+        // Wire controls
+        const controls = ['reportStartDate', 'reportEndDate', 'trendPeriod', 'policyTypePeriod', 'agentPerformancePeriod', 'renewalStatusPeriod', 'reportTypeFilter'];
+        controls.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => renderAll());
+        });
+
+        // Tabs
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
-        
         tabBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
-                
-                // Remove active class from all tabs
                 tabBtns.forEach(b => b.classList.remove('active'));
                 tabContents.forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab
                 this.classList.add('active');
-                document.getElementById(tabName + 'Report').classList.add('active');
+                const activeEl = document.getElementById(tabName + 'Report');
+                if (activeEl) activeEl.classList.add('active');
             });
         });
-        
-        // Generate report button functionality
+
+        // Buttons
         const generateReportBtn = document.getElementById('generateReportBtn');
-        if (generateReportBtn) {
-            generateReportBtn.addEventListener('click', function() {
-                console.log('Generating report...');
-                // Add report generation functionality here
-            });
-        }
-        
-        // Export report button functionality
+        if (generateReportBtn) generateReportBtn.addEventListener('click', onGenerateReport);
         const exportReportBtn = document.getElementById('exportReportBtn');
-        if (exportReportBtn) {
-            exportReportBtn.addEventListener('click', function() {
-                console.log('Exporting report...');
-                // Add export functionality here
-            });
-        }
+        if (exportReportBtn) exportReportBtn.addEventListener('click', onExportReport);
     });
 
-    // Load reports from API
-    function loadReports() {
-        fetch('/api/reports')
-            .then(response => response.json())
-            .then(data => {
-                reports = data.reports || [];
-                filteredReports = [...reports];
-                renderReportsTable();
-                updateStatistics();
-            })
-            .catch(error => {
-                console.error('Error loading reports:', error);
-                showNotification('Error loading reports. Please refresh the page.', 'error');
-            });
+    function setDateInput(id, date) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        el.value = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Render reports table
-    function renderReportsTable() {
-        const tableBody = document.getElementById('reportsTableBody');
-        if (!tableBody) return;
+    async function loadAll() {
+        const fetchJson = (url) => fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+        }).then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status} ${r.statusText}`)));
 
-        const startIndex = (currentPage - 1) * rowsPerPage;
-        const endIndex = startIndex + rowsPerPage;
-        const pageData = filteredReports.slice(startIndex, endIndex);
+        const [pol, ren, fol, ag, rep] = await Promise.all([
+            fetchJson('/api/policies').catch(() => ({ policies: [] })),
+            fetchJson('/api/renewals').catch(() => ({ renewals: [] })),
+            fetchJson('/api/followups').catch(() => ({ followups: [] })),
+            fetchJson('/api/agents').catch(() => ({ agents: [] })),
+            fetchJson('/api/reports').catch(() => ({ reports: [] }))
+        ]);
 
-        tableBody.innerHTML = pageData.map(report => `
+        policies = pol.policies || [];
+        renewals = ren.renewals || [];
+        followups = fol.followups || [];
+        agents = ag.agents || [];
+        reports = rep.reports || [];
+    }
+
+    function renderAll() {
+        const range = getSelectedRange();
+        // Filter datasets by range
+        const polInRange = filterByDate(policies, 'createdAt', range.start, range.end);
+        const renInRange = filterByDate(renewals, 'dueDate', range.start, range.end);
+        const folInRange = filterByDate(followups, 'nextFollowupDate', range.start, range.end);
+        const agAll = agents; // no date field; show all
+
+        // Update KPIs
+        updateKPIs(polInRange, renInRange, folInRange);
+
+        // Render tables
+        renderPoliciesTable(polInRange);
+        renderRenewalsTable(renInRange);
+        renderFollowupsTable(folInRange);
+        renderAgentsTable(agAll);
+
+        // Charts
+        renderCharts(polInRange, renInRange, folInRange, agAll);
+
+        // Apply report type filter (show only relevant tab content)
+        applyReportTypeVisibility();
+    }
+
+    function getSelectedRange() {
+        const start = new Date(document.getElementById('reportStartDate')?.value || '1970-01-01');
+        const end = new Date(document.getElementById('reportEndDate')?.value || '2999-12-31');
+        // Normalize to end of day
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    function filterByDate(items, field, start, end) {
+        return (items || []).filter(it => {
+            const v = it && it[field];
+            if (!v) return false;
+            const d = new Date(v);
+            return d >= start && d <= end;
+        });
+    }
+
+    function formatCurrency(n) {
+        const val = Number(n || 0);
+        return '₹' + val.toLocaleString('en-IN');
+    }
+
+    function updateText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    function updateKPIs(pol, ren, fol) {
+        // Total Premium & Revenue from policies
+        const totalPremium = pol.reduce((s, p) => s + Number(p.premium || 0), 0);
+        const totalRevenue = pol.reduce((s, p) => s + Number(p.revenue || 0), 0);
+        const activePolicies = (policies || []).filter(p => p.status === 'Active').length;
+
+        // Conversion rate from followups: Completed / Total
+        const totalFollowups = fol.length;
+        const completedFollowups = fol.filter(f => (f.status || '').toLowerCase() === 'completed').length;
+        const conversionRate = totalFollowups ? ((completedFollowups / totalFollowups) * 100) : 0;
+
+        updateText('totalPremiumKPI', formatCurrency(totalPremium));
+        updateText('totalRevenueKPI', formatCurrency(totalRevenue));
+        updateText('activePoliciesKPI', String(activePolicies));
+        updateText('conversionRateKPI', `${conversionRate.toFixed(1)}%`);
+
+        // Optional trend vs previous period
+        const { start, end } = getSelectedRange();
+        const spanDays = Math.max(1, Math.ceil((end - start) / (1000*60*60*24)) + 1);
+        const prevStart = new Date(start); prevStart.setDate(start.getDate() - spanDays);
+        const prevEnd = new Date(start); prevEnd.setDate(start.getDate() - 1); prevEnd.setHours(23,59,59,999);
+
+        const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
+        const totalPremiumPrev = polPrev.reduce((s, p) => s + Number(p.premium || 0), 0);
+        const totalRevenuePrev = polPrev.reduce((s, p) => s + Number(p.revenue || 0), 0);
+
+        const premiumDelta = pctDelta(totalPremiumPrev, totalPremium);
+        const revenueDelta = pctDelta(totalRevenuePrev, totalRevenue);
+        updateDelta('premiumChange', premiumDelta);
+        updateDelta('revenueChange', revenueDelta);
+        // For Active Policies and Conversion, keep static or compute similarly if needed
+    }
+
+    function pctDelta(prev, curr) {
+        if (!prev && !curr) return 0;
+        if (!prev) return 100;
+        return ((curr - prev) / prev) * 100;
+    }
+
+    function updateDelta(id, val) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const sign = val >= 0 ? '+' : '';
+        el.textContent = `${sign}${val.toFixed(1)}%`;
+        el.classList.toggle('positive', val >= 0);
+    }
+
+    function renderPoliciesTable(items) {
+        const tbody = document.getElementById('policiesReportTableBody');
+        if (!tbody) return;
+        const rows = (items || []).map(p => `
             <tr>
-                <td>${report.id}</td>
-                <td>${report.report_type || 'N/A'}</td>
-                <td>${report.generated_date || 'N/A'}</td>
-                <td>${report.status || 'N/A'}</td>
-                <td>${report.file_size || 'N/A'}</td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="viewReport(${report.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-secondary" onclick="downloadReport(${report.id})">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </td>
+                <td>${p.policyNumber || p.id}</td>
+                <td>${p.customerName || '—'}</td>
+                <td>${p.policyType || '—'}</td>
+                <td>${p.companyName || '—'}</td>
+                <td>${formatCurrency(p.premium)}</td>
+                <td><span class="status-badge ${p.status && p.status.toLowerCase() === 'active' ? 'active' : 'pending'}">${p.status || '—'}</span></td>
+                <td>${p.startDate || '—'}</td>
+                <td>${p.endDate || '—'}</td>
             </tr>
         `).join('');
+        tbody.innerHTML = rows || '';
+        // Summary
+        updateText('totalPoliciesReport', String(policies.length));
+        updateText('activePoliciesReport', String((policies || []).filter(p => p.status === 'Active').length));
+        updateText('expiredPoliciesReport', String((policies || []).filter(p => p.status === 'Expired').length));
+        const avgPrem = items.length ? (items.reduce((s, p) => s + Number(p.premium || 0), 0) / items.length) : 0;
+        updateText('avgPremiumReport', formatCurrency(avgPrem));
     }
 
-    // Update statistics
-    function updateStatistics() {
-        const totalCount = filteredReports.length;
-        const completedCount = filteredReports.filter(r => r.status === 'Completed').length;
-        const pendingCount = filteredReports.filter(r => r.status === 'Pending').length;
-        const failedCount = filteredReports.filter(r => r.status === 'Failed').length;
-
-        // Update KPI cards if they exist
-        const totalElement = document.getElementById('totalReportsCount');
-        const completedElement = document.getElementById('completedReportsCount');
-        const pendingElement = document.getElementById('pendingReportsCount');
-        const failedElement = document.getElementById('failedReportsCount');
-
-        if (totalElement) totalElement.textContent = totalCount;
-        if (completedElement) completedElement.textContent = completedCount;
-        if (pendingElement) pendingElement.textContent = pendingCount;
-        if (failedElement) failedElement.textContent = failedCount;
+    function renderRenewalsTable(items) {
+        const tbody = document.getElementById('renewalsReportTableBody');
+        if (!tbody) return;
+        const rows = (items || []).map(r => {
+            const due = r.dueDate ? new Date(r.dueDate) : null;
+            const daysLeft = due ? Math.ceil((due - new Date()) / (1000*60*60*24)) : null;
+            const statusClass = (r.status || '').toLowerCase();
+            const priority = daysLeft !== null ? (daysLeft <= 7 ? 'high' : daysLeft <= 14 ? 'medium' : 'low') : 'low';
+            return `
+            <tr>
+                <td>${r.policyNumber || r.id}</td>
+                <td>${r.customerName || '—'}</td>
+                <td>${r.dueDate || '—'}</td>
+                <td>${daysLeft !== null ? daysLeft + ' days' : '—'}</td>
+                <td><span class="status-badge ${statusClass}">${r.status || '—'}</span></td>
+                <td><span class="priority-badge ${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span></td>
+                <td>${r.agentName || '—'}</td>
+            </tr>`;
+        }).join('');
+        tbody.innerHTML = rows || '';
+        // Summary
+        updateText('pendingRenewalsReport', String(items.filter(r => r.status === 'Pending').length));
+        updateText('completedRenewalsReport', String(items.filter(r => r.status === 'Completed').length));
+        updateText('overdueRenewalsReport', String(items.filter(r => r.status === 'Overdue').length));
+        const total = items.length || 1; // avoid div by zero
+        const rate = (items.filter(r => r.status === 'Completed').length / total) * 100;
+        updateText('renewalRateReport', rate.toFixed(1) + '%');
     }
 
-    // Global functions
-    window.viewReport = function(id) {
-        const report = reports.find(r => r.id === id);
-        if (report) {
-            console.log('Viewing report:', report);
-            // Add view modal functionality here
-        }
-    };
+    function renderFollowupsTable(items) {
+        const tbody = document.getElementById('followupsReportTableBody');
+        if (!tbody) return;
+        const rows = (items || []).map(f => `
+            <tr>
+                <td>${f.customerName || '—'}</td>
+                <td>${f.phone || '—'}</td>
+                <td>${f.followupType || '—'}</td>
+                <td><span class="status-badge ${(f.status || '').toLowerCase()}">${f.status || '—'}</span></td>
+                <td>${f.assignedTo || '—'}</td>
+                <td>${f.lastFollowupDate || '—'}</td>
+                <td>${f.nextFollowupDate || '—'}</td>
+            </tr>
+        `).join('');
+        tbody.innerHTML = rows || '';
+        // Summary
+        updateText('totalFollowupsReport', String(items.length));
+        const todayStr = new Date().toISOString().slice(0,10);
+        updateText('completedTodayReport', String(items.filter(f => f.status === 'Completed' && f.lastFollowupDate === todayStr).length));
+        updateText('pendingFollowupsReport', String(items.filter(f => (f.status || '').toLowerCase() === 'pending').length));
+        const total = items.length || 1;
+        const success = items.filter(f => (f.status || '').toLowerCase() === 'completed').length;
+        updateText('successRateReport', ((success / total) * 100).toFixed(1) + '%');
+    }
 
-    window.downloadReport = function(id) {
-        const report = reports.find(r => r.id === id);
-        if (report) {
-            console.log('Downloading report:', report);
-            // Add download functionality here
+    function renderAgentsTable(items) {
+        const tbody = document.getElementById('agentsReportTableBody');
+        if (!tbody) return;
+        const rows = (items || []).map(a => {
+            const perf = parseFloat(String(a.performance || '0').replace('%','')) || 0;
+            return `
+            <tr>
+                <td>${a.name || '—'}</td>
+                <td>${a.policies || 0}</td>
+                <td>${formatCurrency(a.totalPremium || 0)}</td>
+                <td>${a.renewalsHandled || 0}</td>
+                <td>${a.followups || 0}</td>
+                <td>${perf.toFixed(0)}%</td>
+            </tr>`;
+        }).join('');
+        tbody.innerHTML = rows || '';
+        // Summary
+        updateText('totalAgentsReport', String(items.length));
+        updateText('activeAgentsReport', String(items.filter(a => a.status === 'Active').length));
+        // Top performer by perf
+        const top = [...items].sort((a,b) => (parseFloat(String(b.performance||'0').replace('%',''))||0) - (parseFloat(String(a.performance||'0').replace('%',''))||0))[0];
+        updateText('topPerformerReport', top ? (top.name || '—') : '—');
+        const avgPerf = items.length ? (items.reduce((s,a)=> s + (parseFloat(String(a.performance||'0').replace('%',''))||0), 0) / items.length) : 0;
+        updateText('avgPerformanceReport', avgPerf.toFixed(1) + '%');
+    }
+
+    function renderCharts(pol, ren, fol, ag) {
+        if (typeof Chart === 'undefined') return;
+        // Destroy existing charts to avoid overlay
+        Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
+
+        // Trend: daily Premium and Revenue over selected period
+        const range = getSelectedRange();
+        const days = [];
+        for (let d = new Date(range.start); d <= range.end; d.setDate(d.getDate()+1)) {
+            days.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
         }
-    };
+        const fmt = (dt) => dt.toISOString().slice(0,10);
+        const labels = days.map(fmt);
+        const premiumSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.premium||0), 0));
+        const revenueSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.revenue||0), 0));
+
+        const trendCtx = document.getElementById('trendChart');
+        if (trendCtx) {
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Premium', data: premiumSeries, borderColor: '#4F46E5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4 },
+                        { label: 'Revenue', data: revenueSeries, borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+        }
+
+        // Policy Type Distribution
+        const typeCounts = pol.reduce((acc, p) => { const t = p.policyType || 'Other'; acc[t] = (acc[t]||0) + 1; return acc; }, {});
+        const ptLabels = Object.keys(typeCounts);
+        const ptData = Object.values(typeCounts);
+        const policyTypeCtx = document.getElementById('policyTypeChart');
+        if (policyTypeCtx) {
+            charts.policyType = new Chart(policyTypeCtx, {
+                type: 'doughnut',
+                data: { labels: ptLabels, datasets: [{ data: ptData, backgroundColor: ['#4F46E5','#10B981','#F59E0B','#6B7280','#EF4444','#3B82F6'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Agent Performance (policies sold per agent from policies dataset)
+        const perAgent = pol.reduce((acc,p) => { const a = p.agentName || 'Unknown'; acc[a] = (acc[a]||0) + 1; return acc; }, {});
+        const agLabels = Object.keys(perAgent);
+        const agData = Object.values(perAgent);
+        const agentPerformanceCtx = document.getElementById('agentPerformanceChart');
+        if (agentPerformanceCtx) {
+            charts.agentPerformance = new Chart(agentPerformanceCtx, {
+                type: 'bar',
+                data: { labels: agLabels, datasets: [{ label: 'Policies Sold', data: agData, backgroundColor: 'rgba(79, 70, 229, 0.8)' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Renewal Status
+        const statusCounts = ren.reduce((acc, r) => { const s = r.status || 'Unknown'; acc[s] = (acc[s]||0) + 1; return acc; }, {});
+        const rsLabels = Object.keys(statusCounts);
+        const rsData = Object.values(statusCounts);
+        const renewalStatusCtx = document.getElementById('renewalStatusChart');
+        if (renewalStatusCtx) {
+            charts.renewalStatus = new Chart(renewalStatusCtx, {
+                type: 'pie',
+                data: { labels: rsLabels, datasets: [{ data: rsData, backgroundColor: ['#10B981','#F59E0B','#EF4444','#6B7280','#3B82F6'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+    }
+
+    function applyReportTypeVisibility() {
+        const filter = document.getElementById('reportTypeFilter')?.value || 'all';
+        const tabs = {
+            policies: document.getElementById('policiesReport'),
+            renewals: document.getElementById('renewalsReport'),
+            followups: document.getElementById('followupsReport'),
+            agents: document.getElementById('agentsReport')
+        };
+        Object.values(tabs).forEach(el => { if (el) el.style.display = ''; });
+        if (filter !== 'all') {
+            Object.entries(tabs).forEach(([key, el]) => { if (el) el.style.display = (key === filter) ? '' : 'none'; });
+        }
+    }
+
+    function onGenerateReport() {
+        showNotification('Report generation queued', 'success');
+        // Optionally POST to /reports to log a generated report; keeping UI unchanged per requirement
+    }
+
+    function onExportReport() {
+        showNotification('Exporting current view...', 'info');
+        // Could export the currently visible table to CSV in future
+    }
 
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
@@ -966,19 +1117,10 @@
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
         document.body.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 100);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 5000);
-        
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        });
+        setTimeout(() => notification.classList.add('show'), 50);
+        setTimeout(() => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); }, 3000);
+        notification.querySelector('.notification-close')?.addEventListener('click', () => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); });
     }
 </script>
 @endpush

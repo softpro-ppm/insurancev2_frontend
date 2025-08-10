@@ -752,8 +752,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Notifications page initialized');
         
-        // Load notifications data
-        loadNotifications();
+    // Load notifications data
+    loadNotifications();
         
         // Initialize analytics charts if Chart.js is available
         if (typeof Chart !== 'undefined') {
@@ -896,15 +896,35 @@
                 // Add template management functionality here
             });
         }
+
+        // Search and filter
+        const searchInput = document.getElementById('notificationSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                applyFilters();
+                renderNotificationsTable();
+                updateStatistics();
+            });
+        }
+        const filterSelect = document.getElementById('notificationFilter');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                applyFilters();
+                renderNotificationsTable();
+                updateStatistics();
+            });
+        }
     });
 
     // Load notifications from API
     function loadNotifications() {
-        fetch('/api/notifications')
-            .then(response => response.json())
+        fetch('/api/notifications', { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error(`${response.status} ${response.statusText}`)))
             .then(data => {
                 notifications = data.notifications || [];
+                // Default filtered list
                 filteredNotifications = [...notifications];
+                applyFilters();
                 renderNotificationsTable();
                 updateStatistics();
             })
@@ -912,6 +932,21 @@
                 console.error('Error loading notifications:', error);
                 showNotification('Error loading notifications. Please refresh the page.', 'error');
             });
+    }
+
+    function applyFilters() {
+        const q = (document.getElementById('notificationSearch')?.value || '').toLowerCase();
+        const filter = (document.getElementById('notificationFilter')?.value || 'all').toLowerCase();
+        filteredNotifications = (notifications || []).filter(n => {
+            const hay = `${n.title || ''} ${n.message || ''} ${n.type || ''} ${n.recipient || ''}`.toLowerCase();
+            const matchesQuery = !q || hay.includes(q);
+            let matchesFilter = true;
+            if (filter !== 'all') {
+                // Map business filters to text search to avoid layout changes
+                matchesFilter = hay.includes(filter);
+            }
+            return matchesQuery && matchesFilter;
+        });
     }
 
     // Render notifications table
@@ -923,40 +958,64 @@
         const endIndex = startIndex + rowsPerPage;
         const pageData = filteredNotifications.slice(startIndex, endIndex);
 
-        tableBody.innerHTML = pageData.map(notification => `
+        tableBody.innerHTML = pageData.map(n => {
+            const created = n.createdAt || '—';
+            const type = n.type || '—';
+            const recipients = n.recipient ? 1 : 0; // backend has single recipient field
+            const channels = type; // show channel as the notification type (SMS/Email/Push)
+            const status = n.status || 'Pending';
+            const successRate = status === 'Sent' ? '100%' : (status === 'Failed' ? '0%' : '—');
+            return `
             <tr>
-                <td>${notification.created_at || 'N/A'}</td>
-                <td>${notification.type || 'N/A'}</td>
-                <td>${notification.recipients || 0}</td>
-                <td>${notification.channels || 'N/A'}</td>
-                <td><span class="status-badge ${(notification.status || 'pending').toLowerCase()}">${notification.status || 'Pending'}</span></td>
-                <td>${notification.success_rate || '0%'}</td>
+                <td>${created}</td>
+                <td>${n.title || '—'}</td>
+                <td>${recipients}</td>
+                <td>${channels}</td>
+                <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
+                <td>${successRate}</td>
                 <td>
-                    <button class="btn btn-sm btn-info" onclick="viewNotification(${notification.id})">
+                    <button class="btn btn-sm btn-info" onclick="viewNotification(${n.id})">
                         <i class="fas fa-eye"></i>
                     </button>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     }
 
     // Update statistics
     function updateStatistics() {
-        const totalCount = filteredNotifications.length;
-        const pendingCount = filteredNotifications.filter(n => n.status === 'Pending').length;
-        const completedCount = filteredNotifications.filter(n => n.status === 'Completed').length;
-        const failedCount = filteredNotifications.filter(n => n.status === 'Failed').length;
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0,10);
 
-        // Update stats cards if they exist
-        const totalElement = document.getElementById('totalNotificationsCount');
-        const pendingElement = document.getElementById('pendingNotificationsCount');
-        const completedElement = document.getElementById('completedNotificationsCount');
-        const failedElement = document.getElementById('failedNotificationsCount');
+        // Urgent: Pending and scheduled within next 24h (or overdue)
+        const urgent = filteredNotifications.filter(n => {
+            if ((n.status || '').toLowerCase() !== 'pending') return false;
+            const sd = n.scheduledDate ? new Date(n.scheduledDate) : null;
+            if (!sd) return false;
+            const diffHrs = (sd - now) / (1000*60*60);
+            return diffHrs <= 24; // includes overdue
+        }).length;
 
-        if (totalElement) totalElement.textContent = totalCount;
-        if (pendingElement) pendingElement.textContent = pendingCount;
-        if (completedElement) completedElement.textContent = completedCount;
-        if (failedElement) failedElement.textContent = failedCount;
+        // Scheduled: Pending scheduled in future beyond 24h
+        const scheduled = filteredNotifications.filter(n => {
+            if ((n.status || '').toLowerCase() !== 'pending') return false;
+            const sd = n.scheduledDate ? new Date(n.scheduledDate) : null;
+            if (!sd) return false;
+            const diffHrs = (sd - now) / (1000*60*60);
+            return diffHrs > 24;
+        }).length;
+
+        // Completed today and Sent today (same metric from sentDate)
+        const sentToday = filteredNotifications.filter(n => {
+            return (n.status === 'Sent') && (n.sentDate || '').slice(0,10) === todayStr;
+        }).length;
+
+        // Update stat cards
+        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = String(val); };
+        setText('urgentCount', urgent);
+        setText('scheduledCount', scheduled);
+        setText('completedToday', sentToday);
+        setText('sentToday', sentToday);
     }
 
     // Global functions
@@ -967,6 +1026,12 @@
             // Add view modal functionality here
         }
     };
+
+    // Stubs to avoid errors from HTML onclick attributes
+    window.sendBulkEmail = function(kind) { console.log('sendBulkEmail', kind); };
+    window.sendBulkWhatsApp = function(kind) { console.log('sendBulkWhatsApp', kind); };
+    window.viewNotificationDetails = function(kind) { console.log('viewNotificationDetails', kind); };
+    window.viewNotificationHistory = function(kind) { console.log('viewNotificationHistory', kind); };
 
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');

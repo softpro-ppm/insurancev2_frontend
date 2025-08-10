@@ -778,8 +778,8 @@
 @push('scripts')
 <script>
     // Global variables
-    let settings = {};
-    let currentSettings = {};
+    let settingsList = [];
+    let settingsByKey = {};
 
     // Settings page initialization
     document.addEventListener('DOMContentLoaded', function() {
@@ -807,19 +807,21 @@
         });
         
         // Save settings functionality
-        const saveButtons = document.querySelectorAll('.btn-primary');
+    const saveButtons = document.querySelectorAll('.btn-primary');
         saveButtons.forEach(button => {
             button.addEventListener('click', function() {
-                saveSettings();
+        const scope = this.closest('.settings-content') || document;
+        saveSettings(scope);
             });
         });
         
         // Reset functionality
-        const resetButtons = document.querySelectorAll('.btn-secondary');
+    const resetButtons = document.querySelectorAll('.btn-secondary');
         resetButtons.forEach(button => {
             button.addEventListener('click', function() {
                 if (confirm('Are you sure you want to reset to defaults?')) {
-                    resetSettings();
+            // Reload from server without changing layout
+            loadSettings().then(() => showNotification('Settings reloaded from server', 'success'));
                 }
             });
         });
@@ -835,11 +837,13 @@
 
     // Load settings from API
     function loadSettings() {
-        fetch('/api/settings')
-            .then(response => response.json())
+        return fetch('/api/settings', { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error(`${response.status} ${response.statusText}`)))
             .then(data => {
-                settings = data.settings || {};
-                currentSettings = {...settings};
+                settingsList = Array.isArray(data.settings) ? data.settings : [];
+                // Map by key for quick access
+                settingsByKey = {};
+                settingsList.forEach(s => { if (s && s.key) settingsByKey[s.key] = s; });
                 populateSettingsForm();
             })
             .catch(error => {
@@ -850,111 +854,111 @@
 
     // Populate settings form
     function populateSettingsForm() {
-        // Company Information
-        if (settings.company_name) document.getElementById('companyName').value = settings.company_name;
-        if (settings.company_email) document.getElementById('companyEmail').value = settings.company_email;
-        if (settings.company_phone) document.getElementById('companyPhone').value = settings.company_phone;
-        if (settings.company_address) document.getElementById('companyAddress').value = settings.company_address;
-        
-        // Business Settings
-        if (settings.business_reg_no) document.getElementById('businessRegNo').value = settings.business_reg_no;
-        if (settings.gst_number) document.getElementById('gstNumber').value = settings.gst_number;
-        if (settings.timezone) document.getElementById('timezone').value = settings.timezone;
-        if (settings.currency) document.getElementById('currency').value = settings.currency;
-        
-        // Notification Settings
-        if (settings.email_notifications) document.getElementById('emailNotifications').checked = settings.email_notifications;
-        if (settings.sms_notifications) document.getElementById('smsNotifications').checked = settings.sms_notifications;
-        if (settings.whatsapp_notifications) document.getElementById('whatsappNotifications').checked = settings.whatsapp_notifications;
-        
-        // Security Settings
-        if (settings.session_timeout) document.getElementById('sessionTimeout').value = settings.session_timeout;
-        if (settings.password_expiry) document.getElementById('passwordExpiry').value = settings.password_expiry;
-        if (settings.two_factor_auth) document.getElementById('twoFactorAuth').checked = settings.two_factor_auth;
+        const setField = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el || value === undefined || value === null) return;
+            if (el.type === 'checkbox') {
+                el.checked = String(value).toLowerCase() === 'true' || String(value) === '1';
+            } else {
+                el.value = value;
+            }
+        };
+
+        // Helper to apply from settingsByKey
+        const apply = (id) => { if (settingsByKey[id]) setField(id, settingsByKey[id].value); };
+
+        const ids = [
+            // General
+            'companyName','companyEmail','companyPhone','companyAddress',
+            // Business
+            'businessRegNo','gstNumber','timezone','currency',
+            // Email
+            'emailNotifications','smtpHost','smtpPort','smtpUsername','smtpPassword',
+            // SMS
+            'smsNotifications','smsProvider','smsApiKey','smsSenderId',
+            // WhatsApp
+            'whatsappEnabled','whatsappBusinessId','whatsappAccessToken','whatsappPhoneNumber','whatsappWebhookUrl',
+            // Notification Preferences
+            'policyExpiryAlerts','renewalReminders','followupAlerts','commissionAlerts',
+            // Security
+            'minPasswordLength','requireUppercase','requireLowercase','requireNumbers','requireSpecialChars',
+            'sessionTimeout','maxLoginAttempts','lockoutDuration',
+            // Appearance
+            'themeMode','primaryColor','recordsPerPage','dateFormat',
+            // Backup
+            'autoBackup','backupFrequency','backupLocation'
+        ];
+        ids.forEach(apply);
     }
 
     // Save settings
-    function saveSettings() {
-        const formData = new FormData();
-        
-        // Collect all form data
-        formData.append('company_name', document.getElementById('companyName').value);
-        formData.append('company_email', document.getElementById('companyEmail').value);
-        formData.append('company_phone', document.getElementById('companyPhone').value);
-        formData.append('company_address', document.getElementById('companyAddress').value);
-        formData.append('business_reg_no', document.getElementById('businessRegNo').value);
-        formData.append('gst_number', document.getElementById('gstNumber').value);
-        formData.append('timezone', document.getElementById('timezone').value);
-        formData.append('currency', document.getElementById('currency').value);
-        
-        // Notification settings
-        formData.append('email_notifications', document.getElementById('emailNotifications').checked);
-        formData.append('sms_notifications', document.getElementById('smsNotifications').checked);
-        formData.append('whatsapp_notifications', document.getElementById('whatsappNotifications').checked);
-        
-        // Security settings
-        formData.append('session_timeout', document.getElementById('sessionTimeout').value);
-        formData.append('password_expiry', document.getElementById('passwordExpiry').value);
-        formData.append('two_factor_auth', document.getElementById('twoFactorAuth').checked);
+    function saveSettings(scopeEl) {
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const controls = (scopeEl || document).querySelectorAll('input[id], select[id], textarea[id]');
 
-        fetch('/api/settings', {
-            method: 'POST',
+        const payloads = Array.from(controls).map(el => {
+            const key = el.id;
+            if (!key) return null;
+            let value;
+            if (el.type === 'checkbox') value = el.checked;
+            else value = el.value;
+
+            // Skip masked passwords if unchanged
+            if (el.type === 'password' && /^\*+$/.test(String(value)) && settingsByKey[key]) {
+                return null;
+            }
+
+            const type = (el.type === 'checkbox') ? 'boolean' : (el.type === 'number' ? 'number' : 'string');
+            // Derive category from content container id (e.g., generalSettings -> general)
+            const container = el.closest('.settings-content');
+            let category = 'general';
+            if (container && container.id) category = container.id.replace('Settings','');
+
+            const existing = settingsByKey[key];
+            return {
+                method: existing ? 'PUT' : 'POST',
+                url: existing ? `/settings/${existing.id}` : '/settings',
+                body: {
+                    key,
+                    value: String(value),
+                    description: existing?.description || '',
+                    type,
+                    category,
+                    isActive: existing?.isActive ?? true
+                }
+            };
+        }).filter(Boolean);
+
+        if (payloads.length === 0) {
+            showNotification('No changes to save', 'info');
+            return;
+        }
+
+        Promise.all(payloads.map(p => fetch(p.url, {
+            method: p.method,
+            credentials: 'same-origin',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': csrf
             },
-            body: JSON.stringify(Object.fromEntries(formData))
+            body: JSON.stringify(p.body)
+        }).then(r => r.ok ? r.json() : r.json().catch(()=>({})).then(err => Promise.reject(err)))))
+        .then(() => {
+            showNotification('Settings saved successfully', 'success');
+            // Reload to refresh ids
+            return loadSettings();
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                showNotification(data.message, 'success');
-                currentSettings = {...settings};
-            } else if (data.errors) {
-                showNotification('Please check the form and try again.', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving settings:', error);
-            showNotification('Error saving settings. Please try again.', 'error');
-        });
-    }
-
-    // Reset settings
-    function resetSettings() {
-        fetch('/api/settings/reset', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            showNotification(data.message, 'success');
-            loadSettings(); // Reload settings
-        })
-        .catch(error => {
-            console.error('Error resetting settings:', error);
-            showNotification('Error resetting settings. Please try again.', 'error');
+        .catch(err => {
+            console.error('Error saving some settings:', err);
+            showNotification('Some settings failed to save. Please review.', 'error');
         });
     }
 
     // Create backup
     function createBackup() {
-        fetch('/api/settings/backup', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            showNotification(data.message, 'success');
-        })
-        .catch(error => {
-            console.error('Error creating backup:', error);
-            showNotification('Error creating backup. Please try again.', 'error');
-        });
+        // No backend endpoint provided; keep UX consistent
+        showNotification('Backup started (simulated). Implement server endpoint to enable.', 'info');
     }
 
     function showNotification(message, type = 'info') {

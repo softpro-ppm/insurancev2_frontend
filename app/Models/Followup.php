@@ -24,8 +24,10 @@ class Followup extends Model
     ];
 
     protected $casts = [
-        'followup_date' => 'date',
-        'followup_time' => 'datetime',
+    'followup_date' => 'date',
+    // Store as time; avoid datetime casting which expects a date part
+    // We'll keep it as string to prevent Carbon parsing issues
+    // 'followup_time' => 'datetime',
     ];
 
     // Relationships
@@ -70,7 +72,9 @@ class Followup extends Model
 
     public function getFormattedDateTimeAttribute()
     {
-        return $this->followup_date->format('M d, Y') . ' at ' . $this->followup_time->format('h:i A');
+    $date = $this->followup_date ? $this->followup_date->format('M d, Y') : '';
+    $time = $this->followup_time ? date('h:i A', strtotime($this->followup_time)) : '';
+    return trim($date . ($time ? ' at ' . $time : ''));
     }
 
     public function getDaysUntilFollowupAttribute()
