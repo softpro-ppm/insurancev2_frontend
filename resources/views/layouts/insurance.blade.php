@@ -78,7 +78,10 @@
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
-            <!-- brand moved to sidebar -->
+            <a href="{{ route('dashboard') }}" class="logo" style="text-decoration:none;">
+                <i class="fas fa-shield-alt"></i>
+                <span>Insurance MS 2.0</span>
+            </a>
         </div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle">

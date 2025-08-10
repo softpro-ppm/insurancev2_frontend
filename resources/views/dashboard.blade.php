@@ -130,12 +130,10 @@
     </div>
 </div>
 
-<!-- Include Modals -->
-@include('components.policy-modal')
+<!-- Include Modals (policy + view-policy are globally included in layout) -->
 @include('components.agent-modal')
 @include('components.renewal-modal')
 @include('components.followup-modal')
-@include('components.view-policy-modal')
 @include('components.bulk-notification-modal')
 @include('components.schedule-notification-modal')
 

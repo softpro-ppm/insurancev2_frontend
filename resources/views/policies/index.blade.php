@@ -140,9 +140,7 @@
     </div>
 </div>
 
-<!-- Include Modals -->
-@include('components.policy-modal')
-@include('components.view-policy-modal')
+<!-- Modals are globally included in the layout -->
 
 @push('scripts')
 <script>

@@ -223,7 +223,7 @@ body.dark-theme {
     width: 280px;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: none;
     transition: all 0.3s ease;
     z-index: 100;
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.1);
@@ -237,7 +237,7 @@ body.dark-theme {
 
 .dark-theme .sidebar {
     background: rgba(15, 23, 42, 0.7);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -282,19 +282,15 @@ body.dark-theme {
 }
 
 .sidebar-nav ul {
-    list-style: none;
-    /* remove top padding to tighten first item spacing */
-    padding: 0 0 12px;
+    margin: 0;
+    padding: 8px 8px 12px;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    /* remove top/bottom padding to avoid double padding with inner anchor */
-    padding: 0 12px;
-    /* tighter vertical spacing between items */
-    margin: 2px 12px;
+    gap: 12px;
+    margin: 6px 8px;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -313,9 +309,8 @@ body.dark-theme {
 }
 
 .nav-item.active {
-    background: rgba(79, 70, 229, 0.15);
+    background: rgba(79, 70, 229, 0.12);
     color: #4F46E5;
-    border-left: 3px solid #4F46E5;
 }
 
 .nav-item i {
@@ -328,9 +323,8 @@ body.dark-theme {
 .sidebar .nav-item > a {
     display: flex;
     align-items: center;
-    gap: 14px;
-    /* reduce top/bottom padding to tighten item height */
-    padding: 8px 16px;
+    gap: 12px;
+    padding: 10px 14px;
     color: #6B7280;
     position: relative;
     text-decoration: none;
@@ -349,7 +343,7 @@ body.dark-theme {
 }
 
 .nav-item.active a {
-    background: rgba(79, 70, 229, 0.15);
+    background: rgba(79, 70, 229, 0.12);
     color: #4F46E5;
 }
 
@@ -383,9 +377,8 @@ body.dark-theme {
 }
 
 .nav-item.active .nav-link {
-    background: rgba(79, 70, 229, 0.15);
+    background: rgba(79, 70, 229, 0.12);
     color: #4F46E5;
-    border-left: 3px solid #4F46E5;
 }
 
 .sidebar.collapsed .nav-item span {
@@ -740,8 +733,8 @@ body.dark-theme {
 }
 
 .data-table th:hover {
-    background: rgba(79, 70, 229, 0.1);
-}
+    background: rgba(79, 70, 229, 0.12);
+    color: #4F46E5;
 
 .data-table th i {
     margin-left: 8px;

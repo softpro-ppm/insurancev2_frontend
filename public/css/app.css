@@ -207,7 +207,7 @@ body.dark-theme {
     width: 280px;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: none;
     transition: all 0.3s ease;
     z-index: 100;
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.1);
@@ -220,7 +220,7 @@ body.dark-theme {
 
 .dark-theme .sidebar {
     background: rgba(15, 23, 42, 0.7);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -265,9 +265,9 @@ body.dark-theme {
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    margin: 4px 12px;
+    gap: 12px;
+    padding: 0;
+    margin: 6px 8px;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -288,7 +288,6 @@ body.dark-theme {
 .nav-item.active {
     background: rgba(79, 70, 229, 0.15);
     color: #4F46E5;
-    border-left: 3px solid #4F46E5;
 }
 
 .nav-item i {
@@ -320,8 +319,8 @@ body.dark-theme {
 .nav-item a {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
+    gap: 12px;
+    padding: 10px 14px;
     cursor: pointer;
     transition: all 0.25s ease;
     color: #6B7280;
@@ -343,7 +342,6 @@ body.dark-theme {
 .nav-item.active a {
     background: rgba(79, 70, 229, 0.15);
     color: #4F46E5;
-    border-left: 3px solid #4F46E5;
 }
 
 .nav-item a i {
@@ -1730,12 +1728,11 @@ body.dark-theme {
 }
 
 .policy-overview {
-    background: rgba(255, 255, 255, 0.1);
+    background: #ffffff;
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 24px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dark-theme .policy-overview {
@@ -1767,17 +1764,16 @@ body.dark-theme {
 }
 
 .detail-section {
-    background: rgba(255, 255, 255, 0.05);
+    background: #ffffff;
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dark-theme .detail-section {
-    background: rgba(30, 41, 59, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #1F2937;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .detail-section h3 {
@@ -1823,15 +1819,15 @@ body.dark-theme {
     font-weight: 500;
     color: #111827;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #F9FAFB;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dark-theme .detail-item span {
     color: #F1F5F9;
-    background: rgba(30, 41, 59, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .documents-grid {
@@ -1845,24 +1841,24 @@ body.dark-theme {
     align-items: center;
     gap: 12px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #F9FAFB;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease;
 }
 
 .dark-theme .document-item {
-    background: rgba(30, 41, 59, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .document-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: #ffffff;
     transform: translateY(-2px);
 }
 
 .dark-theme .document-item:hover {
-    background: rgba(30, 41, 59, 0.5);
+    background: #1F2937;
 }
 
 .document-item i {
@@ -1885,6 +1881,27 @@ body.dark-theme {
     padding: 6px 12px;
     font-size: 12px;
     border-radius: 6px;
+}
+
+/* View Policy Modal - remove borders on fields and sections (as requested) */
+#viewPolicyModal .detail-item span {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#viewPolicyModal .detail-section,
+#viewPolicyModal .policy-overview {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.dark-theme #viewPolicyModal .detail-section,
+body.dark-theme #viewPolicyModal .policy-overview {
+    background: #1F2937 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Responsive adjustments for view modal */
