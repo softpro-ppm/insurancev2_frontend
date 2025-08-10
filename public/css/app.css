@@ -288,6 +288,7 @@ body.dark-theme {
 .nav-item.active {
     background: rgba(79, 70, 229, 0.12);
     color: #4F46E5;
+    border-right: 3px solid;
 }
 
 .nav-item i {
