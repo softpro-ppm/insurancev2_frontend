@@ -16,6 +16,14 @@
                     <i class="fas fa-plus"></i>
                     Add New Policy
                 </button>
+                <button class="bulk-upload-btn" id="bulkUploadBtn">
+                    <i class="fas fa-upload"></i>
+                    Bulk Upload
+                </button>
+                <a href="/api/policies/template/download" class="template-download-btn" id="templateDownloadBtn">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </a>
             </div>
             <div class="controls-right">
                 <div class="filter-group">
@@ -136,6 +144,53 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal" id="bulkUploadModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Bulk Upload Policies</h3>
+            <button class="close-modal" id="closeBulkUploadModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-instructions">
+                <h4>Instructions:</h4>
+                <ol>
+                    <li>Download the template using the "Download Template" button</li>
+                    <li>Fill in your policy data following the template format</li>
+                    <li>Save the file as .xlsx or .xls format</li>
+                    <li>Upload the file using the form below</li>
+                    <li>Fields marked with * are required</li>
+                </ol>
+            </div>
+            
+            <form id="bulkUploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="excelFile">Select Excel File:</label>
+                    <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" required>
+                    <small>Maximum file size: 10MB. Supported formats: .xlsx, .xls</small>
+                </div>
+                
+                <div class="upload-progress" id="uploadProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Uploading...</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="secondary-button" id="cancelBulkUpload">Cancel</button>
+                    <button type="submit" class="primary-button" id="submitBulkUpload">
+                        <i class="fas fa-upload"></i>
+                        Upload Policies
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -39,6 +39,10 @@ Route::get('/policies/{id}', [PolicyController::class, 'show'])->name('policies.
 Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policies.update');
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
+// Policy bulk upload routes
+Route::get('/api/policies/template/download', [PolicyController::class, 'downloadTemplate'])->name('policies.template.download');
+Route::post('/api/policies/bulk-upload', [PolicyController::class, 'bulkUpload'])->name('policies.bulk-upload');
+
 // Policy document download route
 Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController::class, 'downloadDocument'])->name('policies.download-document');
 

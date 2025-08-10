@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\FollowupSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,7 +23,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-    // Seed some demo follow-ups to verify listing
-    $this->call(FollowupSeeder::class);
+        // Seed agents first
+        $this->call(AgentSeeder::class);
+        
+        // Seed policies (depends on agents)
+        $this->call(PolicySeeder::class);
+        
+        // Seed followups (depends on policies and agents)
+        $this->call(FollowupSeeder::class);
     }
 }

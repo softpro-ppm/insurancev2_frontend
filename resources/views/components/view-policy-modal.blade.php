@@ -64,6 +64,21 @@
                     </div>
                 </div>
 
+                <!-- Business Information -->
+                <div class="detail-section">
+                    <h3><i class="fas fa-briefcase"></i> Business Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>BUSINESS TYPE:</label>
+                            <span id="viewBusinessType" class="business-info-value">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>AGENT NAME:</label>
+                            <span id="viewAgentName" class="business-info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Insurance Information -->
                 <div class="detail-section">
                     <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
@@ -103,14 +118,6 @@
                         <div class="detail-item">
                             <label>End Date:</label>
                             <span id="viewEndDate">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Business Type:</label>
-                            <span id="viewBusinessType">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Agent Name:</label>
-                            <span id="viewAgentName">-</span>
                         </div>
                     </div>
                 </div>

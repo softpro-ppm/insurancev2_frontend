@@ -6783,3 +6783,164 @@ const testFileUploadError = () => {
 
 // Add test function to window for easy access
 window.testFileUploadError = testFileUploadError;
+
+// Bulk Upload Functions
+const openBulkUploadModal = () => {
+    const modal = document.getElementById('bulkUploadModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+const closeBulkUploadModal = () => {
+    const modal = document.getElementById('bulkUploadModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        // Reset form
+        document.getElementById('bulkUploadForm').reset();
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('progressText').textContent = 'Uploading...';
+    }
+};
+
+const handleBulkUpload = async (e) => {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('excelFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showNotification('Please select a file to upload', 'error');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Please select a valid Excel file (.xlsx or .xls)', 'error');
+        return;
+    }
+    
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        showNotification('File size must be less than 10MB', 'error');
+        return;
+    }
+    
+    // Show progress bar
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    progressDiv.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Uploading...';
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitBulkUpload');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    
+    try {
+        // Simulate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 90) progress = 90;
+            progressFill.style.width = progress + '%';
+        }, 200);
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('excel_file', file);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        // Make API call
+        const response = await fetch('/api/policies/bulk-upload', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        clearInterval(progressInterval);
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Processing...';
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(result.message, 'success');
+            progressText.textContent = 'Upload Complete!';
+            
+            // Refresh policies data
+            setTimeout(() => {
+                loadPoliciesData();
+                closeBulkUploadModal();
+            }, 1500);
+        } else {
+            throw new Error(result.message || 'Upload failed');
+        }
+        
+    } catch (error) {
+        console.error('Bulk upload error:', error);
+        progressText.textContent = 'Upload Failed';
+        showNotification(error.message || 'An error occurred during upload', 'error');
+    } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Policies';
+        
+        // Hide progress after delay
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 3000);
+    }
+};
+
+// Initialize bulk upload event listeners
+const initializeBulkUpload = () => {
+    const bulkUploadBtn = document.getElementById('bulkUploadBtn');
+    const closeBulkUploadModalBtn = document.getElementById('closeBulkUploadModal');
+    const cancelBulkUploadBtn = document.getElementById('cancelBulkUpload');
+    const bulkUploadForm = document.getElementById('bulkUploadForm');
+    
+    if (bulkUploadBtn) {
+        bulkUploadBtn.addEventListener('click', openBulkUploadModal);
+    }
+    
+    if (closeBulkUploadModalBtn) {
+        closeBulkUploadModalBtn.addEventListener('click', closeBulkUploadModal);
+    }
+    
+    if (cancelBulkUploadBtn) {
+        cancelBulkUploadBtn.addEventListener('click', closeBulkUploadModal);
+    }
+    
+    if (bulkUploadForm) {
+        bulkUploadForm.addEventListener('submit', handleBulkUpload);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('bulkUploadModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeBulkUploadModal();
+            }
+        });
+    }
+};
+
+// Add bulk upload initialization to the main initialization
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApplication();
+    initializeBulkUpload();
+});
