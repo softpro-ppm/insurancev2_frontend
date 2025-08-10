@@ -1191,9 +1191,9 @@ const renderTable = () => {
     updatePaginationInfo();
     
     // Add event listeners for action buttons
-    tbody.find('.action-btn.edit').click(function() {
+    tbody.find('.action-btn.edit').click(async function() {
         const policyId = parseInt($(this).data('policy-id'));
-        editPolicy(policyId);
+        await editPolicy(policyId);
     });
     
     tbody.find('.action-btn.delete').click(function() {
@@ -1529,10 +1529,15 @@ const initializeEventListeners = () => {
     // View Policy Modal controls
     $('#closeViewPolicyModal').click(() => closeViewPolicyModal());
     $('#closeViewPolicyBtn').click(() => closeViewPolicyModal());
-    $('#editPolicyFromViewBtn').click(function() {
-        const policyId = parseInt($('#viewPolicyId').text().replace('#', ''));
-        closeViewPolicyModal();
-        editPolicy(policyId);
+    $('#editPolicyFromViewBtn').click(async function() {
+        // Get the policy ID from the current policy being viewed
+        // We need to store the current policy ID when populating the modal
+        if (window.currentViewingPolicyId) {
+            closeViewPolicyModal();
+            await editPolicy(window.currentViewingPolicyId);
+        } else {
+            showNotification('Policy ID not found. Please try viewing the policy again.', 'error');
+        }
     });
     
     // Renewal Modal controls
@@ -1729,8 +1734,8 @@ const closePolicyModal = () => {
     // Disable validation on all hidden fields
     $('.policy-form input[required], .policy-form select[required]').prop('required', false);
     
-    // Hide all forms
-    $('.policy-form').hide();
+    // Hide all forms by removing active class
+    $('.policy-form').removeClass('active');
 };
 
 const openAgentModal = () => {
@@ -1856,10 +1861,12 @@ const handlePolicySubmit = async (e) => {
     prepareFormForSubmission();
     
     // Determine which policy type is currently active
-    const activePolicyType = $('#policyTypeSelect').val() || 'Motor';
-    const businessType = $('#businessTypeSelect').val() || 'Self';
+    const activePolicyType = $('#hiddenPolicyType').val() || 'Motor';
+    const businessType = $('#hiddenBusinessType').val() || 'Self';
     
     console.log('HandlePolicySubmit: Active policy type:', activePolicyType, 'Business type:', businessType);
+    console.log('HandlePolicySubmit: Hidden policy type field value:', $('#hiddenPolicyType').val());
+    console.log('HandlePolicySubmit: Hidden business type field value:', $('#hiddenBusinessType').val());
     
     // Build policy data based on the active policy type
     let policyData = {
@@ -1921,13 +1928,17 @@ const handlePolicySubmit = async (e) => {
             customerPhone: $('#healthCustomerPhone').val() || '',
             customerEmail: $('#healthCustomerEmail').val() || '',
             companyName: $('#healthCompanyName').val() || '',
-            insuranceType: $('#healthPlanType').val() || '', // Map planType to insuranceType for backend
+            insuranceType: $('#healthPlanType').val() || '',
             startDate: $('#healthStartDate').val() || '',
             endDate: $('#healthEndDate').val() || '',
             premium: parseFloat($('#healthPremium').val() || 0),
             customerPaidAmount: parseFloat($('#healthCustomerPaid').val() || 0),
             revenue: parseFloat($('#healthRevenue').val() || 0),
-            payout: parseFloat($('#healthPayout').val() || 0)
+            payout: parseFloat($('#healthPayout').val() || 0),
+            // Additional health-specific fields
+            customerAge: $('#healthCustomerAge').val() || '',
+            customerGender: $('#healthCustomerGender').val() || '',
+            sumInsured: parseFloat($('#healthSumInsured').val() || 0)
         };
     } else if (activePolicyType === 'Life') {
         policyData = {
@@ -1936,19 +1947,82 @@ const handlePolicySubmit = async (e) => {
             customerPhone: $('#lifeCustomerPhone').val() || '',
             customerEmail: $('#lifeCustomerEmail').val() || '',
             companyName: $('#lifeCompanyName').val() || '',
-            insuranceType: $('#lifePlanType').val() || '', // Map planType to insuranceType for backend
+            insuranceType: $('#lifePlanType').val() || '',
             startDate: $('#lifeStartDate').val() || '',
             endDate: $('#lifeEndDate').val() || '',
             premium: parseFloat($('#lifePremium').val() || 0),
             customerPaidAmount: parseFloat($('#lifeCustomerPaid').val() || 0),
             revenue: parseFloat($('#lifeRevenue').val() || 0),
-            payout: parseFloat($('#lifePayout').val() || 0)
+            payout: parseFloat($('#lifePayout').val() || 0),
+            // Additional life-specific fields
+            customerAge: $('#lifeCustomerAge').val() || '',
+            customerGender: $('#lifeCustomerGender').val() || '',
+            sumAssured: parseFloat($('#lifeSumAssured').val() || 0),
+            policyTerm: $('#lifePolicyTerm').val() || '',
+            premiumFrequency: $('#lifePremiumFrequency').val() || ''
         };
+    }
+    
+    // Log the final policy data being sent
+    console.log('HandlePolicySubmit: Final policy data to be sent:', policyData);
+    
+    // Debug: Log individual field values
+    console.log('HandlePolicySubmit: Field validation check:', {
+        customerName: policyData.customerName,
+        customerPhone: policyData.customerPhone,
+        companyName: policyData.companyName,
+        insuranceType: policyData.insuranceType,
+        startDate: policyData.startDate,
+        endDate: policyData.endDate,
+        premium: policyData.premium,
+        customerPaidAmount: policyData.customerPaidAmount,
+        vehicleNumber: policyData.vehicleNumber,
+        vehicleType: policyData.vehicleType,
+        revenue: policyData.revenue
+    });
+    
+    // Additional debugging for form field values
+    console.log('HandlePolicySubmit: Form field values:');
+    if (activePolicyType === 'Motor') {
+        console.log('  Motor form - Customer Name:', $('#customerName').val());
+        console.log('  Motor form - Customer Phone:', $('#customerPhone').val());
+        console.log('  Motor form - Company Name:', $('#companyName').val());
+        console.log('  Motor form - Insurance Type:', $('#insuranceType').val());
+        console.log('  Motor form - Start Date:', $('#startDate').val());
+        console.log('  Motor form - End Date:', $('#endDate').val());
+        console.log('  Motor form - Premium:', $('#premium').val());
+        console.log('  Motor form - Customer Paid:', $('#customerPaidAmount').val());
+        console.log('  Motor form - Vehicle Number:', $('#vehicleNumber').val());
+        console.log('  Motor form - Vehicle Type:', $('#vehicleType').val());
+    } else if (activePolicyType === 'Health') {
+        console.log('  Health form - Customer Name:', $('#healthCustomerName').val());
+        console.log('  Health form - Customer Phone:', $('#healthCustomerPhone').val());
+        console.log('  Health form - Company Name:', $('#healthCompanyName').val());
+        console.log('  Health form - Insurance Type:', $('#healthPlanType').val());
+        console.log('  Health form - Start Date:', $('#healthStartDate').val());
+        console.log('  Health form - End Date:', $('#healthEndDate').val());
+        console.log('  Health form - Premium:', $('#healthPremium').val());
+        console.log('  Health form - Customer Paid:', $('#healthCustomerPaid').val());
+    } else if (activePolicyType === 'Life') {
+        console.log('  Life form - Customer Name:', $('#lifeCustomerName').val());
+        console.log('  Life form - Customer Phone:', $('#lifeCustomerPhone').val());
+        console.log('  Life form - Company Name:', $('#lifeCompanyName').val());
+        console.log('  Life form - Insurance Type:', $('#lifePlanType').val());
+        console.log('  Life form - Start Date:', $('#lifeStartDate').val());
+        console.log('  Life form - End Date:', $('#lifeEndDate').val());
+        console.log('  Life form - Premium:', $('#lifePremium').val());
+        console.log('  Life form - Customer Paid:', $('#lifeCustomerPaid').val());
     }
     
     // Validate required fields based on active policy type
     if (!policyData.customerName || !policyData.customerPhone || !policyData.companyName) {
         showNotification('Please fill in all required fields (Customer Name, Phone, Company)', 'error');
+        return;
+    }
+    
+    // Validate insurance type
+    if (!policyData.insuranceType) {
+        showNotification('Please select an insurance type', 'error');
         return;
     }
     
@@ -1959,8 +2033,13 @@ const handlePolicySubmit = async (e) => {
     }
     
     // Validate amounts
-    if (policyData.premium <= 0 || policyData.revenue <= 0) {
-        showNotification('Premium and revenue must be greater than 0', 'error');
+    if (policyData.premium <= 0) {
+        showNotification('Premium must be greater than 0', 'error');
+        return;
+    }
+    
+    if (policyData.customerPaidAmount <= 0) {
+        showNotification('Customer paid amount must be greater than 0', 'error');
         return;
     }
 
@@ -1997,19 +2076,41 @@ const handlePolicySubmit = async (e) => {
             formData.append(key, policyData[key]);
         });
         
+        // Log what's being added to FormData
+        console.log('HandlePolicySubmit: Adding to FormData:');
+        Object.keys(policyData).forEach(key => {
+            console.log(`  ${key}: ${policyData[key]}`);
+        });
+        
         // Add file uploads if they exist
-        const fileInputs = {
-            'policyCopy': $('#policyCopy')[0],
-            'rcCopy': $('#rcCopy')[0],
-            'aadharCopy': $('#aadharCopy')[0],
-            'panCopy': $('#panCopy')[0],
-
-        };
+        let fileInputs = {};
+        
+        if (activePolicyType === 'Motor') {
+            fileInputs = {
+                'policyCopy': $('#policyCopy')[0],
+                'rcCopy': $('#rcCopy')[0],
+                'aadharCopy': $('#aadharCopy')[0],
+                'panCopy': $('#panCopy')[0]
+            };
+        } else if (activePolicyType === 'Health') {
+            fileInputs = {
+                'policyCopy': $('#healthPolicyCopy')[0],
+                'aadharCopy': $('#healthAadharCopy')[0],
+                'panCopy': $('#healthPanCopy')[0]
+            };
+        } else if (activePolicyType === 'Life') {
+            fileInputs = {
+                'policyCopy': $('#lifePolicyCopy')[0],
+                'aadharCopy': $('#lifeAadharCopy')[0],
+                'panCopy': $('#lifePanCopy')[0]
+            };
+        }
         
         Object.keys(fileInputs).forEach(key => {
             const fileInput = fileInputs[key];
             if (fileInput && fileInput.files && fileInput.files[0]) {
                 formData.append(key, fileInput.files[0]);
+                console.log(`HandlePolicySubmit: Added file ${key}:`, fileInput.files[0].name);
             }
         });
         
@@ -2017,6 +2118,7 @@ const handlePolicySubmit = async (e) => {
         
         if (editId) {
             // Update existing policy
+            console.log('HandlePolicySubmit: Updating policy with ID:', editId);
             const response = await updatePolicyWithFiles(editId, formData);
             
             // Update local data
@@ -2073,31 +2175,14 @@ const handlePolicySubmit = async (e) => {
             updateFollowupsStats();
         }
         
-        // Update agents page if it's currently active
-        if ($('#agents').hasClass('active')) {
-            renderAgentsTable();
-            updateAgentsPagination();
-            updateAgentsStats();
-        }
-        
     } catch (error) {
-        console.error('Failed to save policy:', error);
-        
-        // Handle validation errors
-        if (error.response && error.response.data) {
-            if (error.response.status === 413) {
-                showNotification('File size too large. Please ensure each file is under 3MB and total upload size is under 3MB.', 'error');
-            } else if (error.response.data.errors) {
-                const errors = error.response.data.errors;
-                const errorMessages = Object.values(errors).flat().join(', ');
-                showNotification(errorMessages, 'error');
-            } else if (error.response.data.message) {
-                showNotification(error.response.data.message, 'error');
-            } else {
-                showNotification(`Validation failed: ${error.response.status}`, 'error');
-            }
+        console.error('HandlePolicySubmit: Error submitting policy:', error);
+        if (error.response && error.response.data && error.response.data.errors) {
+            console.error('HandlePolicySubmit: Validation errors:', error.response.data.errors);
+            const errorMessages = Object.values(error.response.data.errors).flat();
+            showNotification('Validation errors: ' + errorMessages.join(', '), 'error');
         } else {
-            showNotification('Failed to save policy. Please check your input and try again.', 'error');
+            showNotification('Failed to submit policy. Please try again.', 'error');
         }
     }
 };
@@ -2272,8 +2357,28 @@ const handleChartPeriodChange = () => {
 };
 
 // Policy actions
-const editPolicy = (id) => {
-    const policy = allPolicies.find(p => p.id === id);
+const editPolicy = async (id) => {
+    let policy = allPolicies.find(p => p.id === id);
+    
+    // If policy not found in local array, fetch it from API
+    if (!policy) {
+        try {
+            console.log('EditPolicy: Policy not found in local array, fetching from API...');
+            const response = await apiCall(`/policies/${id}`);
+            if (response.success && response.data) {
+                policy = response.data;
+                console.log('EditPolicy: Policy fetched from API:', policy);
+            } else {
+                showNotification('Failed to fetch policy data. Please try again.', 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('EditPolicy: Error fetching policy:', error);
+            showNotification('Failed to fetch policy data. Please try again.', 'error');
+            return;
+        }
+    }
+    
     if (policy) {
         console.log('EditPolicy: Policy data received:', policy);
         $('#policyModalTitle').text('Edit Policy');
@@ -2315,21 +2420,42 @@ const editPolicy = (id) => {
         $('#hiddenPolicyType').val(policyType);
         $('#hiddenBusinessType').val(businessType);
         
+        // Store the policy ID for form submission
+        $('#policyForm').data('edit-id', id);
+        
         console.log('EditPolicy: Hidden fields set:', {
             hiddenPolicyType: $('#hiddenPolicyType').val(),
             hiddenBusinessType: $('#hiddenBusinessType').val()
         });
+        
+        console.log('EditPolicy: Edit ID set:', $('#policyForm').data('edit-id'));
         
         // Show the modal and go directly to step 3 (form)
         $('#policyModal').addClass('show');
         $('#step1, #step2').hide();
         $('#step3').show();
         
+        console.log('EditPolicy: Modal steps set, step3 should be visible');
+        console.log('EditPolicy: Step3 visibility:', $('#step3').is(':visible'));
+        
         // Show the correct form and populate fields
         showPolicyForm(policyType);
         
+        // Ensure all form sections within the active form are visible
+        const $activeForm = $(`#${policyType.toLowerCase()}Form`);
+        $activeForm.find('.form-section').show();
+        
+        console.log('EditPolicy: After showPolicyForm call');
+        console.log('EditPolicy: Motor form visibility:', $('#motorForm').is(':visible'));
+        console.log('EditPolicy: Motor form has active class:', $('#motorForm').hasClass('active'));
+        console.log('EditPolicy: Motor form display style:', $('#motorForm').css('display'));
+        console.log('EditPolicy: Form sections within active form:', $activeForm.find('.form-section').length);
+        console.log('EditPolicy: Form sections visibility:', $activeForm.find('.form-section').map(function() { return $(this).is(':visible'); }).get());
+        
         // Populate form fields based on policy type
         if (policyType === 'Motor') {
+            console.log('EditPolicy: Populating Motor form fields');
+            
             // Populate motor-specific fields
             $('#vehicleNumber').val(vehicleNumber);
             $('#vehicleType').val(vehicleType);
@@ -2344,6 +2470,14 @@ const editPolicy = (id) => {
             $('#payout').val(payout);
             $('#customerPaidAmount').val(customerPaidAmount);
             $('#revenue').val(revenue);
+            
+            console.log('EditPolicy: Motor form fields populated');
+            console.log('EditPolicy: Customer name field value:', $('#customerName').val());
+            console.log('EditPolicy: Customer phone field value:', $('#customerPhone').val());
+            console.log('EditPolicy: Company name field value:', $('#companyName').val());
+            console.log('EditPolicy: Insurance type field value:', $('#insuranceType').val());
+            console.log('EditPolicy: Start date field value:', $('#startDate').val());
+            console.log('EditPolicy: End date field value:', $('#endDate').val());
             
         } else if (policyType === 'Health') {
             // Populate health-specific fields
@@ -2386,8 +2520,7 @@ const editPolicy = (id) => {
             if (policy.premiumFrequency) $('#lifePremiumFrequency').val(policy.premiumFrequency);
         }
         
-        // Store the policy ID for form submission
-        $('#policyForm').data('edit-id', id);
+
         
         // Update step indicators if they exist
         $('.step-indicator').removeClass('active');
@@ -2395,9 +2528,49 @@ const editPolicy = (id) => {
         
         // Add event listener for form submission if not already added
         if (!$('#policyForm').data('edit-listener-added')) {
-            $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
+            $('#savePolicyBtn').off('click').on('click', (e) => {
+                // Add a small delay to ensure form is populated
+                setTimeout(() => {
+                    handlePolicySubmit(e);
+                }, 50);
+            });
             $('#policyForm').data('edit-listener-added', true);
         }
+        
+        // Ensure all required fields are visible and populated
+        console.log('EditPolicy: Form populated, checking required fields...');
+        console.log('Customer Name:', $('#customerName').val() || $('#healthCustomerName').val() || $('#lifeCustomerName').val());
+        console.log('Customer Phone:', $('#customerPhone').val() || $('#healthCustomerPhone').val() || $('#lifeCustomerPhone').val());
+        console.log('Company Name:', $('#companyName').val() || $('#healthCompanyName').val() || $('#lifeCompanyName').val());
+        console.log('Insurance Type:', $('#insuranceType').val() || $('#healthPlanType').val() || $('#lifePlanType').val());
+        console.log('Start Date:', $('#startDate').val() || $('#healthStartDate').val() || $('#lifeStartDate').val());
+        console.log('End Date:', $('#endDate').val() || $('#healthEndDate').val() || $('#lifeEndDate').val());
+        console.log('Premium:', $('#premium').val() || $('#healthPremium').val() || $('#lifePremium').val());
+        console.log('Customer Paid:', $('#customerPaidAmount').val() || $('#healthCustomerPaid').val() || $('#lifeCustomerPaid').val());
+        
+        // Additional debugging for Motor-specific fields
+        if (policyType === 'Motor') {
+            console.log('EditPolicy: Motor-specific fields:');
+            console.log('  Vehicle Number:', $('#vehicleNumber').val());
+            console.log('  Vehicle Type:', $('#vehicleType').val());
+        }
+        
+        // Add a small delay to ensure form is properly populated
+        setTimeout(() => {
+            console.log('EditPolicy: After delay - checking form fields again:');
+            if (policyType === 'Motor') {
+                console.log('  Motor form - Customer Name:', $('#customerName').val());
+                console.log('  Motor form - Customer Phone:', $('#customerPhone').val());
+                console.log('  Motor form - Company Name:', $('#companyName').val());
+                console.log('  Motor form - Insurance Type:', $('#insuranceType').val());
+                console.log('  Motor form - Start Date:', $('#startDate').val());
+                console.log('  Motor form - End Date:', $('#endDate').val());
+                console.log('  Motor form - Premium:', $('#premium').val());
+                console.log('  Motor form - Customer Paid:', $('#customerPaidAmount').val());
+                console.log('  Motor form - Vehicle Number:', $('#vehicleNumber').val());
+                console.log('  Motor form - Vehicle Type:', $('#vehicleType').val());
+            }
+        }, 100);
     } else {
         showNotification('Policy not found', 'error');
     }
@@ -2595,9 +2768,9 @@ const renderPoliciesTable = () => {
     updatePoliciesPaginationInfo();
     
     // Add event listeners for action buttons
-    tbody.find('.action-btn.edit').off('click').on('click', function() {
+    tbody.find('.action-btn.edit').off('click').on('click', async function() {
         const policyId = parseInt($(this).data('policy-id'));
-        editPolicy(policyId);
+        await editPolicy(policyId);
     });
     
     tbody.find('.action-btn.delete').off('click').on('click', function() {
@@ -2771,6 +2944,9 @@ const viewPolicyDetails = (id) => {
 };
 
 const populatePolicyModal = (policy) => {
+    // Store the current policy ID for the edit button
+    window.currentViewingPolicyId = policy.id;
+    
     // Normalize policy data to handle different formats from different pages
     const normalizedPolicy = {
         id: policy.id,
@@ -3478,17 +3654,27 @@ const goToStep = (step) => {
 };
 
 const showPolicyForm = (policyType) => {
-    // Hide all forms
-    $('.policy-form').hide();
+    console.log('showPolicyForm: Called with policyType:', policyType);
+    
+    // Hide all forms by removing active class (CSS will handle display)
+    $('.policy-form').removeClass('active');
+    console.log('showPolicyForm: All forms hidden');
     
     // Disable validation on ALL hidden fields first (including those in hidden forms)
     $('.policy-form input[required], .policy-form select[required]').prop('required', false);
     
-    // Show selected form
-    $(`#${policyType.toLowerCase()}Form`).show();
+    // Show selected form and add active class (CSS will handle display)
+    const $selectedForm = $(`#${policyType.toLowerCase()}Form`);
+    console.log('showPolicyForm: Selected form element:', $selectedForm);
+    console.log('showPolicyForm: Form exists:', $selectedForm.length > 0);
+    
+    $selectedForm.addClass('active');
+    console.log('showPolicyForm: Form should now be visible');
+    console.log('showPolicyForm: Form has active class:', $selectedForm.hasClass('active'));
+    console.log('showPolicyForm: Form display style:', $selectedForm.css('display'));
     
     // Enable validation only on visible fields in the current form
-    $(`#${policyType.toLowerCase()}Form input[required], #${policyType.toLowerCase()}Form select[required]`).prop('required', true);
+    $selectedForm.find('input[required], select[required]').prop('required', true);
     
     // Set default dates for the visible form
     setDefaultDates(policyType);
@@ -3604,8 +3790,8 @@ const resetMultiStepModal = () => {
     // Reset buttons
     $('#nextStep1, #nextStep2').prop('disabled', true);
     
-    // Hide all forms
-    $('.policy-form').hide();
+    // Hide all forms by removing active class
+    $('.policy-form').removeClass('active');
     
     // Reset form
     $('#policyForm')[0].reset();
@@ -6077,21 +6263,23 @@ const initializeModals = () => {
 
 // Function to handle form validation before submission
 const prepareFormForSubmission = () => {
-    // Get the active policy type from the form or from the currently visible form
-    let activePolicyType = $('#policyTypeSelect').val();
+    // Get the active policy type from hidden fields first, then fallback to visible form detection
+    let activePolicyType = $('#hiddenPolicyType').val();
     
-    // If no policy type is selected, determine it from the currently visible form
+    // If no hidden field value, determine it from the currently visible form
     if (!activePolicyType) {
-        if ($('#motorForm').is(':visible')) {
+        if ($('#motorForm').hasClass('active')) {
             activePolicyType = 'Motor';
-        } else if ($('#healthForm').is(':visible')) {
+        } else if ($('#healthForm').hasClass('active')) {
             activePolicyType = 'Health';
-        } else if ($('#lifeForm').is(':visible')) {
+        } else if ($('#lifeForm').hasClass('active')) {
             activePolicyType = 'Life';
         } else {
             activePolicyType = 'Motor'; // default
         }
     }
+    
+    console.log('PrepareFormForSubmission: Active policy type:', activePolicyType);
     
     // Disable validation on all hidden forms
     $('.policy-form').each(function() {
@@ -6116,13 +6304,31 @@ const validateFileSize = (file, maxSizeMB = 3) => {
 
 // Validate all files before submission
 const validateAllFiles = () => {
-    const fileInputs = {
-        'policyCopy': $('#policyCopy')[0],
-        'rcCopy': $('#rcCopy')[0],
-        'aadharCopy': $('#aadharCopy')[0],
-        'panCopy': $('#panCopy')[0],
-
-    };
+    // Get the active policy type to determine which file inputs to validate
+    const activePolicyType = $('#hiddenPolicyType').val() || 'Motor';
+    
+    let fileInputs = {};
+    
+    if (activePolicyType === 'Motor') {
+        fileInputs = {
+            'policyCopy': $('#policyCopy')[0],
+            'rcCopy': $('#rcCopy')[0],
+            'aadharCopy': $('#aadharCopy')[0],
+            'panCopy': $('#panCopy')[0]
+        };
+    } else if (activePolicyType === 'Health') {
+        fileInputs = {
+            'policyCopy': $('#healthPolicyCopy')[0],
+            'aadharCopy': $('#healthAadharCopy')[0],
+            'panCopy': $('#healthPanCopy')[0]
+        };
+    } else if (activePolicyType === 'Life') {
+        fileInputs = {
+            'policyCopy': $('#lifePolicyCopy')[0],
+            'aadharCopy': $('#lifeAadharCopy')[0],
+            'panCopy': $('#lifePanCopy')[0]
+        };
+    }
     
     const errors = [];
     

@@ -224,7 +224,25 @@ class PolicyController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        // Log the incoming request data
+        \Log::info('Policy update request received', [
+            'policy_id' => $id,
+            'request_data' => $request->all(),
+            'request_headers' => $request->headers->all()
+        ]);
+        
+        // Get the policy to determine its type
+        $policy = Policy::findOrFail($id);
+        $policyType = $policy->policy_type;
+        
+        \Log::info('Policy found for update', [
+            'policy_id' => $id,
+            'policy_type' => $policyType,
+            'existing_policy_data' => $policy->toArray()
+        ]);
+        
+        // Base validation rules
+        $rules = [
             'customerName' => 'required|string|max:255',
             'customerPhone' => 'required|digits:10',
             'customerEmail' => 'nullable|email|max:255',
@@ -236,17 +254,31 @@ class PolicyController extends Controller
             'customerPaidAmount' => 'required|numeric|min:0',
             // revenue computed server-side
             'payout' => 'nullable|numeric|min:0',
-            'vehicleNumber' => 'nullable|string|max:20',
-            'vehicleType' => 'nullable|string|max:50',
             // File upload validation - set to 3MB
             'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
             'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
             'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-
+        ];
+        
+        // Add Motor-specific validation rules only for Motor policies
+        if ($policyType === 'Motor') {
+            $rules['vehicleNumber'] = 'required|string|max:20';
+            $rules['vehicleType'] = 'required|string|max:50';
+            $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072'; // 3MB max
+        }
+        
+        \Log::info('Validation rules for policy type', [
+            'policy_type' => $policyType,
+            'rules' => $rules
         ]);
+        
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            \Log::error('Policy update validation failed', [
+                'policy_id' => $id,
+                'validation_errors' => $validator->errors()->toArray()
+            ]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -260,6 +292,13 @@ class PolicyController extends Controller
         if ($computedRevenue < 0) {
             $computedRevenue = 0;
         }
+        
+        \Log::info('Policy update calculations', [
+            'premium' => $premium,
+            'payout' => $payout,
+            'customer_paid_amount' => $customerPaidAmount,
+            'computed_revenue' => $computedRevenue
+        ]);
 
         $policy->update([
             'customer_name' => $request->customerName,
@@ -279,6 +318,11 @@ class PolicyController extends Controller
             'status' => $request->status ?? $policy->status,
             'business_type' => $request->businessType ?? $policy->business_type,
             'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
+        ]);
+        
+        \Log::info('Policy updated successfully', [
+            'policy_id' => $id,
+            'updated_data' => $policy->fresh()->toArray()
         ]);
 
         // Handle file uploads
