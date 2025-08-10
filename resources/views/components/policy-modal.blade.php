@@ -50,11 +50,40 @@
 
         <!-- Step 3: Policy Details Form -->
         <div class="modal-body" id="step3" style="display: none;">
-            <form id="policyForm" method="POST" action="{{ route('policies.store') }}" enctype="multipart/form-data">
+            <form id="policyForm" method="POST" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="_method" id="formMethod" value="POST">
                 <input type="hidden" name="policy_type" id="hiddenPolicyType">
                 <input type="hidden" name="business_type" id="hiddenBusinessType">
                 
+                <!-- Policy Overview Section -->
+                <div class="form-section">
+                    <h3><i class="fas fa-info-circle"></i> Policy Overview</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="policyNumber">Policy Number</label>
+                            <input type="text" id="policyNumber" name="policyNumber" readonly placeholder="Auto-generated">
+                            <small class="hint">Auto-generated unique identifier</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyStatus">Status *</label>
+                            <select id="policyStatus" name="status" required>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Expired">Expired</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentName">Agent Name *</label>
+                        <select id="agentName" name="agent_name" required>
+                            <option value="">Select Agent</option>
+                            <!-- Agent options will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Motor Insurance Form -->
                 <div class="policy-form" id="motorForm">
                     <!-- Vehicle Info Section -->
@@ -195,8 +224,6 @@
                             </div>
                         </div>
                     </div>
-
-
                 </div>
 
                 <!-- Health Insurance Form -->
@@ -322,11 +349,8 @@
                                 <input type="file" id="healthPanCopy" name="healthPanCopy" accept=".pdf,.jpg,.jpeg,.png">
                                 <small class="hint">Max 3MB</small>
                             </div>
-
                         </div>
                     </div>
-
-
                 </div>
 
                 <!-- Life Insurance Form -->
@@ -474,16 +498,13 @@
                                 <input type="file" id="lifePanCopy" name="lifePanCopy" accept=".pdf,.jpg,.jpeg,.png">
                                 <small class="hint">Max 3MB</small>
                             </div>
-
                         </div>
                     </div>
-
-
                 </div>
             </form>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="prevStep3">Previous</button>
-                <button type="submit" form="policyForm" class="btn btn-primary">Submit Policy</button>
+                <button type="submit" form="policyForm" class="btn btn-primary" id="savePolicyBtn">Add Policy</button>
             </div>
         </div>
     </div>

@@ -183,7 +183,8 @@ const updatePolicy = async (id, policyData) => {
 const updatePolicyWithFiles = async (id, formData) => {
     try {
         const data = await apiCall(`/policies/${id}`, {
-            method: 'PUT',
+            // Use POST with method override for file uploads in Laravel
+            method: 'POST',
             body: formData,
             headers: {} // Let browser set Content-Type for FormData
         });
@@ -1702,6 +1703,14 @@ const openPolicyModal = () => {
     $('#savePolicyBtn').text('Add Policy');
     $('#policyForm')[0].reset();
     $('#policyForm').removeData('edit-id');
+    
+    // Set form action and method for creating new policies
+    $('#policyForm').attr('action', '/policies');
+    $('#formMethod').val('POST');
+    
+    // Populate agent dropdown for new policies
+    updatePolicyAgentDropdown();
+    
     $('#policyModal').addClass('show');
 };
 
@@ -1715,6 +1724,10 @@ const closePolicyModal = () => {
     $('#policyForm').removeData('edit-id');
     $('#policyModalTitle').text('Add New Policy');
     $('#savePolicyBtn').text('Add Policy');
+    
+    // Reset form action and method to default (add mode)
+    $('#policyForm').attr('action', '/policies');
+    $('#formMethod').val('POST');
     
     // Reset steps
     $('#step1').show();
@@ -1736,6 +1749,9 @@ const closePolicyModal = () => {
     
     // Hide all forms by removing active class
     $('.policy-form').removeClass('active');
+    
+    // Clear any edit listener
+    $('#policyForm').removeData('edit-listener-added');
 };
 
 const openAgentModal = () => {
@@ -2061,7 +2077,7 @@ const handlePolicySubmit = async (e) => {
     // Validate file sizes before submission
     const fileErrors = validateAllFiles();
     if (fileErrors.length > 0) {
-        showNotification(fileErrors.join(', '), 'error');
+        showNotification(fileErrors, 'error');
         return;
     }
     
@@ -2119,6 +2135,8 @@ const handlePolicySubmit = async (e) => {
         if (editId) {
             // Update existing policy
             console.log('HandlePolicySubmit: Updating policy with ID:', editId);
+            // Laravel requires method spoofing for multipart PUT
+            formData.append('_method', 'PUT');
             const response = await updatePolicyWithFiles(editId, formData);
             
             // Update local data
@@ -2180,7 +2198,7 @@ const handlePolicySubmit = async (e) => {
         if (error.response && error.response.data && error.response.data.errors) {
             console.error('HandlePolicySubmit: Validation errors:', error.response.data.errors);
             const errorMessages = Object.values(error.response.data.errors).flat();
-            showNotification('Validation errors: ' + errorMessages.join(', '), 'error');
+            showNotification(errorMessages, 'error');
         } else {
             showNotification('Failed to submit policy. Please try again.', 'error');
         }
@@ -2263,7 +2281,7 @@ const handleAgentSubmit = async (e) => {
         if (error.response && error.response.data) {
             if (error.response.data.errors) {
                 const errors = error.response.data.errors;
-                const errorMessages = Object.values(errors).flat().join(', ');
+                const errorMessages = Object.values(errors).flat();
                 showNotification(errorMessages, 'error');
             } else if (error.response.data.message) {
                 showNotification(error.response.data.message, 'error');
@@ -2382,28 +2400,46 @@ const editPolicy = async (id) => {
     if (policy) {
         console.log('EditPolicy: Policy data received:', policy);
         $('#policyModalTitle').text('Edit Policy');
+        $('#savePolicyBtn').text('Update Policy');
         
-        // Get the correct property names from the API response
-        const policyType = policy.policyType || policy.type || 'Motor';
-        const customerName = policy.customerName || policy.owner || '';
-        const customerPhone = policy.phone || '';
-        const customerEmail = policy.customerEmail || policy.email || '';
-        const companyName = policy.companyName || policy.company || '';
-        const insuranceType = policy.insuranceType || '';
-        const businessType = policy.businessType || 'Self';
-        const startDate = policy.startDate || '';
-        const endDate = policy.endDate || '';
-        const premium = policy.premium || '';
-        const customerPaidAmount = policy.customerPaidAmount || policy.customerPaid || '';
-        const revenue = policy.revenue || '';
-        const payout = policy.payout || '';
-        const vehicleNumber = policy.vehicleNumber || '';
-        const vehicleType = policy.vehicleType || '';
+        // Set form action and method for updating existing policies
+        $('#policyForm').attr('action', `/policies/${id}`);
+        $('#formMethod').val('PUT');
+        
+    // Get the correct property names from the API response (support snake_case too)
+    const policyType = policy.policyType || policy.type || policy.policy_type || 'Motor';
+    const customerName = policy.customerName || policy.owner || policy.customer_name || '';
+    const customerPhone = policy.phone || policy.customerPhone || policy.customer_phone || policy.phone_number || '';
+    const customerEmail = policy.customerEmail || policy.email || policy.customer_email || '';
+    const companyName = policy.companyName || policy.company || policy.company_name || '';
+    let insuranceType = policy.insuranceType || policy.insurance_type || policy.planType || policy.plan_type || '';
+    let businessType = policy.businessType || policy.business_type || 'Self';
+    const startDate = policy.startDate || policy.start_date || '';
+    const endDate = policy.endDate || policy.end_date || '';
+    const premium = policy.premium || '';
+    const customerPaidAmount = policy.customerPaidAmount || policy.customer_paid_amount || policy.customerPaid || '';
+    const revenue = policy.revenue || '';
+    const payout = policy.payout || '';
+    const vehicleNumber = policy.vehicleNumber || policy.vehicle_number || '';
+    const vehicleType = policy.vehicleType || policy.vehicle_type || '';
+        
+    // New fields for policy overview
+    const policyNumber = policy.policyNumber || policy.policy_number || '';
+    const statusRaw = policy.status || policy.policy_status || 'Active';
+    let agentName = policy.agentName || policy.agent_name || '';
+    const agentId = policy.agent_id || policy.agentId;
+        
+    // Normalize business type values (e.g., "Agent 1" -> "Agent1")
+    const normalizedBusinessType = (businessType || '').replace(/\s+/g, '');
+    // Normalize status casing to match options
+    const statusOptions = ['Active','Pending','Expired','Cancelled'];
+    const status = statusOptions.find(s => s.toLowerCase() === String(statusRaw).toLowerCase()) || 'Active';
         
         console.log('EditPolicy: Extracted values:', {
             policyType, customerName, customerPhone, customerEmail, 
             companyName, insuranceType, businessType, startDate, endDate,
-            premium, customerPaidAmount, revenue, payout, vehicleNumber, vehicleType
+            premium, customerPaidAmount, revenue, payout, vehicleNumber, vehicleType,
+            policyNumber, status, agentName
         });
         
         // Set global variables for the modal
@@ -2413,12 +2449,33 @@ const editPolicy = async (id) => {
         // Step 1: Set policy type
         $('#policyTypeSelect').val(policyType);
         
-        // Step 2: Set business type
-        $('#businessTypeSelect').val(businessType);
+    // Step 2: Set business type (normalized)
+    $('#businessTypeSelect').val(normalizedBusinessType);
         
         // Set the hidden fields that the form actually sends
-        $('#hiddenPolicyType').val(policyType);
-        $('#hiddenBusinessType').val(businessType);
+    $('#hiddenPolicyType').val(policyType);
+    $('#hiddenBusinessType').val(normalizedBusinessType);
+        
+        // Populate policy overview fields
+        $('#policyNumber').val(policyNumber);
+        $('#policyStatus').val(status);
+        
+        // Ensure agents are loaded, update dropdown, and set selected value
+        try {
+            if (!allAgents || allAgents.length === 0) {
+                allAgents = await fetchAgents();
+            }
+        } catch (e) {
+            console.warn('EditPolicy: Failed to fetch agents, proceeding with existing list');
+        }
+        updatePolicyAgentDropdown();
+        // If agentName still empty, try resolving by agentId
+        if (!agentName && agentId && Array.isArray(allAgents)) {
+            const match = allAgents.find(a => a.id === agentId || a.userId === agentId);
+            if (match && match.name) agentName = match.name;
+        }
+        // Safely select the agent option, add if missing
+        ensureSelectHasOption('#agentName', agentName, agentName);
         
         // Store the policy ID for form submission
         $('#policyForm').data('edit-id', id);
@@ -2430,16 +2487,20 @@ const editPolicy = async (id) => {
         
         console.log('EditPolicy: Edit ID set:', $('#policyForm').data('edit-id'));
         
-        // Show the modal and go directly to step 3 (form)
-        $('#policyModal').addClass('show');
-        $('#step1, #step2').hide();
-        $('#step3').show();
+    // Show the modal starting at step 1 to match the add flow
+    $('#policyModal').addClass('show');
+    $('#step2, #step3').hide();
+    $('#step1').show();
         
-        console.log('EditPolicy: Modal steps set, step3 should be visible');
-        console.log('EditPolicy: Step3 visibility:', $('#step3').is(':visible'));
+    // Enable Next buttons based on pre-filled selections
+    $('#nextStep1').prop('disabled', !selectedPolicyType);
+    $('#nextStep2').prop('disabled', !selectedBusinessType);
         
-        // Show the correct form and populate fields
-        showPolicyForm(policyType);
+    // Sync hidden fields for submit logic
+    updateHiddenFields();
+        
+    // Prepare the correct form so when user reaches step 3 it's ready
+    showPolicyForm(policyType);
         
         // Ensure all form sections within the active form are visible
         const $activeForm = $(`#${policyType.toLowerCase()}Form`);
@@ -2609,29 +2670,69 @@ const formatDate = (dateString) => {
 };
 
 const showNotification = (message, type = 'info') => {
-    // Create notification element
+    // Escape HTML to prevent XSS
+    const escapeHtml = (str) => String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    // Normalize message into either plain text or a list of items
+    let items = [];
+    let contentHtml = '';
+
+    if (Array.isArray(message)) {
+        items = message.filter(Boolean).map(escapeHtml);
+    } else if (typeof message === 'string' && /^validation errors[:\-]/i.test(message)) {
+        const parts = message.replace(/^validation errors[:\-]\s*/i, '');
+        items = parts.split(',').map(s => escapeHtml(s.trim())).filter(Boolean);
+    }
+
+    if (items.length > 0) {
+        contentHtml = `
+            <div class="notification-body">
+                <div class="notification-title">Validation errors</div>
+                <ul class="notification-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>
+            </div>`;
+    } else {
+        contentHtml = `<div class="notification-body"><span>${escapeHtml(message || '')}</span></div>`;
+    }
+
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
     const notification = $(`
-        <div class="notification notification-${type}">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
+        <div class="notification notification-${type}" role="alert" aria-live="polite">
+            <i class="fas fa-${icon}"></i>
+            ${contentHtml}
+            <button class="notification-close" title="Close" aria-label="Close">&times;</button>
         </div>
     `);
-    
+
     // Add to body
     $('body').append(notification);
-    
+
     // Show notification
     setTimeout(() => {
         notification.addClass('show');
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
+    }, 50);
+
+    // Auto-hide (longer for errors)
+    const DURATION = type === 'error' ? 6000 : 3000;
+    let hideTimer = setTimeout(() => hide(), DURATION);
+
+    const hide = () => {
         notification.removeClass('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
+        setTimeout(() => notification.remove(), 300);
+    };
+
+    // Close button
+    notification.find('.notification-close').on('click', hide);
+
+    // Pause on hover
+    notification.on('mouseenter', () => clearTimeout(hideTimer));
+    notification.on('mouseleave', () => {
+        hideTimer = setTimeout(() => hide(), 1500);
+    });
 };
 
 // Add notification styles
@@ -2646,15 +2747,21 @@ $('<style>')
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
-            padding: 16px 20px;
+            padding: 14px 40px 14px 16px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             z-index: 3000;
             transform: translateX(100%);
             transition: transform 0.3s ease;
-            max-width: 400px;
+            width: 420px;
+            max-width: calc(100vw - 48px);
+            max-height: 60vh;
+            overflow: auto;
+            word-break: break-word;
+            white-space: normal;
+            position: fixed;
         }
         
         .dark-theme .notification {
@@ -2680,6 +2787,8 @@ $('<style>')
         
         .notification i {
             font-size: 18px;
+            line-height: 1.2;
+            margin-top: 2px;
         }
         
         .notification-success i {
@@ -2694,14 +2803,29 @@ $('<style>')
             color: #4F46E5;
         }
         
-        .notification span {
-            color: #111827;
-            font-weight: 500;
-        }
+        .notification .notification-body { flex: 1; }
+        .notification span { color: #111827; font-weight: 500; }
+        .notification .notification-title { color: #111827; font-weight: 700; margin-bottom: 4px; }
+        .notification .notification-list { margin: 6px 0 0 18px; padding: 0; }
+        .notification .notification-list li { margin-bottom: 4px; }
         
         .dark-theme .notification span {
             color: #F1F5F9;
         }
+        .dark-theme .notification .notification-title { color: #F1F5F9; }
+        
+        .notification .notification-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            color: #6B7280;
+        }
+        .dark-theme .notification .notification-close { color: #94A3B8; }
     `)
     .appendTo('head');
 
@@ -3219,7 +3343,7 @@ const handleFollowupSubmit = async (e) => {
         if (error.response && error.response.data) {
             if (error.response.data.errors) {
                 const errors = error.response.data.errors;
-                const errorMessages = Object.values(errors).flat().join(', ');
+                const errorMessages = Object.values(errors).flat();
                 showNotification(errorMessages, 'error');
             } else if (error.response.data.message) {
                 showNotification(error.response.data.message, 'error');
@@ -3607,23 +3731,56 @@ const initializeMultiStepModal = () => {
     // Policy type selection
     $('#policyTypeSelect').change(function() {
         selectedPolicyType = $(this).val();
+        // Enable next if a policy type is selected and sync hidden field
         $('#nextStep1').prop('disabled', !selectedPolicyType);
+        if (selectedPolicyType) {
+            $('#hiddenPolicyType').val(selectedPolicyType);
+        }
     });
     
     // Business type selection
     $('#businessTypeSelect').change(function() {
         selectedBusinessType = $(this).val();
+        // Enable next if a business type is selected and sync hidden field
         $('#nextStep2').prop('disabled', !selectedBusinessType);
+        if (selectedBusinessType) {
+            $('#hiddenBusinessType').val(selectedBusinessType);
+        }
     });
     
     // Step navigation
-    $('#nextStep1').click(() => goToStep(2));
-    $('#nextStep2').click(() => goToStep(3));
+    $('#nextStep1').click(() => {
+        // Ensure hidden policy type is set before moving on
+        if (selectedPolicyType) {
+            $('#hiddenPolicyType').val(selectedPolicyType);
+        }
+        goToStep(2);
+    });
+    $('#nextStep2').click(() => {
+        // Ensure hidden fields are set before moving to form
+        if (selectedBusinessType) {
+            $('#hiddenBusinessType').val(selectedBusinessType);
+        }
+        if (selectedPolicyType) {
+            $('#hiddenPolicyType').val(selectedPolicyType);
+        }
+        goToStep(3);
+    });
     $('#prevStep2').click(() => goToStep(1));
     $('#prevStep3').click(() => goToStep(2));
     
     // Cancel button
     $('#cancelPolicy').click(closePolicyModal);
+};
+
+// Keep hidden fields in sync with current step selections
+const updateHiddenFields = () => {
+    if (selectedPolicyType) {
+        $('#hiddenPolicyType').val(selectedPolicyType);
+    }
+    if (selectedBusinessType) {
+        $('#hiddenBusinessType').val(selectedBusinessType);
+    }
 };
 
 const updateAgentDropdown = () => {
@@ -3638,6 +3795,31 @@ const updateAgentDropdown = () => {
     });
 };
 
+const updatePolicyAgentDropdown = () => {
+    const agentNameSelect = $('#agentName');
+    
+    // Clear existing options except the first one
+    agentNameSelect.find('option:not(:first)').remove();
+    
+    // Add agent options
+    allAgents.forEach((agent) => {
+        agentNameSelect.append(`<option value="${agent.name}">${agent.name}</option>`);
+    });
+};
+
+// Ensure a select has the option you want to select; if not, add it
+const ensureSelectHasOption = (selectSelector, value, label) => {
+    const $select = $(selectSelector);
+    if (!$select.length) return;
+    if (!value) return;
+    const exists = $select.find(`option[value="${CSS.escape(value)}"]`).length > 0;
+    if (!exists) {
+        // Append a temporary option so the selection sticks visually
+        $select.append(`<option value="${value}">${label || value}</option>`);
+    }
+    $select.val(value);
+};
+
 const goToStep = (step) => {
     // Hide all step contents
     $('#step1, #step2, #step3').hide();
@@ -3649,7 +3831,9 @@ const goToStep = (step) => {
     
     // Show appropriate form based on policy type
     if (step === 3) {
-        showPolicyForm(selectedPolicyType);
+    // Ensure hidden fields reflect current selections before showing the form
+    updateHiddenFields();
+    showPolicyForm(selectedPolicyType);
     }
 };
 
@@ -3795,6 +3979,14 @@ const resetMultiStepModal = () => {
     
     // Reset form
     $('#policyForm')[0].reset();
+    
+    // Reset form action and method to default (add mode)
+    $('#policyForm').attr('action', '/policies');
+    $('#formMethod').val('POST');
+    
+    // Clear any edit data
+    $('#policyForm').removeData('edit-id');
+    $('#policyForm').removeData('edit-listener-added');
 };
 
 // Renewals Functions
@@ -3898,7 +4090,7 @@ const handleRenewalSubmit = async (e) => {
         if (error.response && error.response.data) {
             if (error.response.data.errors) {
                 const errors = error.response.data.errors;
-                const errorMessages = Object.values(errors).flat().join(', ');
+                const errorMessages = Object.values(errors).flat();
                 showNotification(errorMessages, 'error');
             } else if (error.response.data.message) {
                 showNotification(error.response.data.message, 'error');
