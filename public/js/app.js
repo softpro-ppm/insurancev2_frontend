@@ -1712,7 +1712,7 @@ const toggleProfileDropdown = () => {
 };
 
 // Modal functions
-const openPolicyModal = async () => {
+const openPolicyModal = () => {
     $('#policyModalTitle').text('Add New Policy');
     $('#savePolicyBtn').text('Add Policy');
     $('#policyForm')[0].reset();
@@ -1722,14 +1722,7 @@ const openPolicyModal = async () => {
     $('#policyForm').attr('action', '/policies');
     $('#formMethod').val('POST');
     
-    // Ensure agents are loaded, then populate agent dropdown for new policies
-    try {
-        if (!allAgents || allAgents.length === 0) {
-            allAgents = await fetchAgents();
-        }
-    } catch (e) {
-        console.warn('openPolicyModal: Failed to fetch agents, proceeding with existing list');
-    }
+    // Populate agent dropdown for new policies
     updatePolicyAgentDropdown();
     
     $('#policyModal').addClass('show');
@@ -2495,8 +2488,8 @@ const editPolicy = async (id) => {
             const match = allAgents.find(a => a.id === agentId || a.userId === agentId);
             if (match && match.name) agentName = match.name;
         }
-    // Safely select the agent option, add if missing (scoped to policy modal)
-    ensureSelectHasOption('#policyModal #agentName', agentName, agentName);
+        // Safely select the agent option, add if missing
+        ensureSelectHasOption('#agentName', agentName, agentName);
         
         // Store the policy ID for form submission
         $('#policyForm').data('edit-id', id);
@@ -3857,8 +3850,7 @@ const updateAgentDropdown = () => {
 };
 
 const updatePolicyAgentDropdown = () => {
-    // Scope to policy modal to avoid conflicts with agent modal inputs using the same id
-    const agentNameSelect = $('#policyModal #agentName');
+    const agentNameSelect = $('#agentName');
     
     // Clear existing options except the first one
     agentNameSelect.find('option:not(:first)').remove();
