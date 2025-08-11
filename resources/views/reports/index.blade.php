@@ -736,6 +736,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+
         // Default date range: last 30 days
         const end = new Date();
         const start = new Date();
@@ -750,7 +751,7 @@
         });
 
         // Wire controls
-        const controls = ['reportStartDate', 'reportEndDate', 'trendPeriod', 'policyTypePeriod', 'agentPerformancePeriod', 'renewalStatusPeriod', 'reportTypeFilter'];
+    const controls = ['reportStartDate', 'reportEndDate', 'reportTypeFilter'];
         controls.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('change', () => renderAll());
@@ -881,7 +882,7 @@
         const prevStart = new Date(start); prevStart.setDate(start.getDate() - spanDays);
         const prevEnd = new Date(start); prevEnd.setDate(start.getDate() - 1); prevEnd.setHours(23,59,59,999);
 
-        const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
+    const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
         const totalPremiumPrev = polPrev.reduce((s, p) => s + Number(p.premium || 0), 0);
         const totalRevenuePrev = polPrev.reduce((s, p) => s + Number(p.revenue || 0), 0);
 
@@ -1015,16 +1016,16 @@
         // Destroy existing charts to avoid overlay
         Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
 
-        // Trend: daily Premium and Revenue over selected period
-        const range = getSelectedRange();
+    // Trend: daily Premium and Revenue over selected period
+    const range = getSelectedRange();
         const days = [];
-        for (let d = new Date(range.start); d <= range.end; d.setDate(d.getDate()+1)) {
+    for (let d = new Date(range.start); d <= range.end; d.setDate(d.getDate()+1)) {
             days.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
         }
         const fmt = (dt) => dt.toISOString().slice(0,10);
         const labels = days.map(fmt);
-        const premiumSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.premium||0), 0));
-        const revenueSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.revenue||0), 0));
+    const premiumSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.premium||0), 0));
+    const revenueSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.revenue||0), 0));
 
         const trendCtx = document.getElementById('trendChart');
         if (trendCtx) {
@@ -1041,10 +1042,10 @@
             });
         }
 
-        // Policy Type Distribution
-        const typeCounts = pol.reduce((acc, p) => { const t = p.policyType || 'Other'; acc[t] = (acc[t]||0) + 1; return acc; }, {});
-        const ptLabels = Object.keys(typeCounts);
-        const ptData = Object.values(typeCounts);
+    // Policy Type Distribution
+    const typeCounts = pol.reduce((acc, p) => { const t = p.policyType || 'Other'; acc[t] = (acc[t]||0) + 1; return acc; }, {});
+    const ptLabels = Object.keys(typeCounts);
+    const ptData = Object.values(typeCounts);
         const policyTypeCtx = document.getElementById('policyTypeChart');
         if (policyTypeCtx) {
             charts.policyType = new Chart(policyTypeCtx, {
@@ -1054,8 +1055,8 @@
             });
         }
 
-        // Agent Performance (policies sold per agent from policies dataset)
-        const perAgent = pol.reduce((acc,p) => { const a = p.agentName || 'Unknown'; acc[a] = (acc[a]||0) + 1; return acc; }, {});
+    // Agent Performance (policies sold per agent from policies dataset)
+    const perAgent = pol.reduce((acc,p) => { const a = p.agentName || 'Unknown'; acc[a] = (acc[a]||0) + 1; return acc; }, {});
         const agLabels = Object.keys(perAgent);
         const agData = Object.values(perAgent);
         const agentPerformanceCtx = document.getElementById('agentPerformanceChart');
@@ -1067,8 +1068,8 @@
             });
         }
 
-        // Renewal Status
-        const statusCounts = ren.reduce((acc, r) => { const s = r.status || 'Unknown'; acc[s] = (acc[s]||0) + 1; return acc; }, {});
+    // Renewal Status
+    const statusCounts = ren.reduce((acc, r) => { const s = r.status || 'Unknown'; acc[s] = (acc[s]||0) + 1; return acc; }, {});
         const rsLabels = Object.keys(statusCounts);
         const rsData = Object.values(statusCounts);
         const renewalStatusCtx = document.getElementById('renewalStatusChart');
