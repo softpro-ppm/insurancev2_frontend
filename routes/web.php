@@ -10,6 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB; // Added this import for DB facade
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -38,6 +39,10 @@ Route::post('/policies', [PolicyController::class, 'store'])->name('policies.sto
 Route::get('/policies/{id}', [PolicyController::class, 'show'])->name('policies.show');
 Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policies.update');
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
+
+// Policy bulk upload routes
+Route::get('/api/policies/template/download', [PolicyController::class, 'downloadTemplate'])->name('policies.template.download');
+Route::post('/api/policies/bulk-upload', [PolicyController::class, 'bulkUpload'])->name('policies.bulk-upload');
 
 // Policy document download route
 Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController::class, 'downloadDocument'])->name('policies.download-document');
@@ -118,6 +123,47 @@ Route::post('/settings', [SettingController::class, 'store'])->name('settings.st
 Route::get('/settings/{id}', [SettingController::class, 'show'])->name('settings.show');
 Route::put('/settings/{id}', [SettingController::class, 'update'])->name('settings.update');
 Route::delete('/settings/{id}', [SettingController::class, 'destroy'])->name('settings.destroy');
+
+// phpMyAdmin route
+Route::get('/phpmyadmin', function () {
+    return redirect('/phpmyadmin/index.php');
+});
+
+// Database Viewer Route
+Route::get('/database-viewer', function () {
+    $tables = [];
+    $selectedTable = request('table');
+    $tableData = [];
+    
+    // Get all tables from SQLite
+    $tablesList = DB::select("SELECT name FROM sqlite_master WHERE type='table'");
+    
+    foreach ($tablesList as $table) {
+        $tableName = $table->name;
+        $count = DB::select("SELECT COUNT(*) as count FROM `{$tableName}`")[0]->count;
+        $tables[] = [
+            'name' => $tableName,
+            'count' => $count
+        ];
+    }
+    
+    // If a table is selected, get its data
+    if ($selectedTable) {
+        try {
+            $columns = DB::select("PRAGMA table_info(`{$selectedTable}`)");
+            $data = DB::select("SELECT * FROM `{$selectedTable}` LIMIT 100");
+            
+            $tableData = [
+                'columns' => $columns,
+                'data' => $data
+            ];
+        } catch (Exception $e) {
+            $tableData = ['error' => $e->getMessage()];
+        }
+    }
+    
+    return view('database-viewer', compact('tables', 'selectedTable', 'tableData'));
+})->name('database.viewer');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

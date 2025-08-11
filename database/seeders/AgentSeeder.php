@@ -13,71 +13,41 @@ class AgentSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear existing agents
+        Agent::truncate();
+
         $agents = [
             [
-                'name' => 'Rajesh Kumar',
+                'name' => 'John Smith',
                 'phone' => '+919876543210',
-                'email' => 'rajesh@example.com',
+                'email' => 'john.smith@insurance.com',
                 'user_id' => 'AG001',
                 'status' => 'Active',
-                'policies_count' => 10,
-                'performance' => 78.50,
+                'policies_count' => 35,
+                'performance' => 85.50,
                 'address' => 'Mumbai, Maharashtra',
                 'password' => 'password123'
             ],
             [
-                'name' => 'Priya Sharma',
+                'name' => 'Sarah Johnson',
                 'phone' => '+919876543211',
-                'email' => 'priya@example.com',
+                'email' => 'sarah.johnson@insurance.com',
                 'user_id' => 'AG002',
                 'status' => 'Active',
-                'policies_count' => 8,
-                'performance' => 81.25,
+                'policies_count' => 42,
+                'performance' => 92.25,
                 'address' => 'Delhi, NCR',
                 'password' => 'password123'
             ],
             [
-                'name' => 'Amit Patel',
+                'name' => 'Michael Brown',
                 'phone' => '+919876543212',
-                'email' => 'amit@example.com',
+                'email' => 'michael.brown@insurance.com',
                 'user_id' => 'AG003',
                 'status' => 'Active',
-                'policies_count' => 12,
-                'performance' => 80.00,
+                'policies_count' => 23,
+                'performance' => 78.75,
                 'address' => 'Bangalore, Karnataka',
-                'password' => 'password123'
-            ],
-            [
-                'name' => 'Sneha Singh',
-                'phone' => '+919876543213',
-                'email' => 'sneha@example.com',
-                'user_id' => 'AG004',
-                'status' => 'Active',
-                'policies_count' => 6,
-                'performance' => 73.75,
-                'address' => 'Chennai, Tamil Nadu',
-                'password' => 'password123'
-            ],
-            [
-                'name' => 'Vikram Malhotra',
-                'phone' => '+919876543214',
-                'email' => 'vikram@example.com',
-                'user_id' => 'AG005',
-                'status' => 'Active',
-                'policies_count' => 14,
-                'performance' => 95.00,
-                'address' => 'Hyderabad, Telangana',
-                'password' => 'password123'
-            ],
-            [
-                'name' => 'Neha Gupta',
-                'phone' => '+919876543215',
-                'email' => 'neha@example.com',
-                'user_id' => 'AG006',
-                'status' => 'Active',
-                'policies_count' => 0,
-                'performance' => 77.50,
-                'address' => 'Pune, Maharashtra',
                 'password' => 'password123'
             ]
         ];

@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Policy;
+use App\Imports\PoliciesImport;
+use App\Exports\PoliciesTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 
 class PolicyController extends Controller
 {
@@ -525,5 +529,64 @@ class PolicyController extends Controller
         return response()->download($fullPath, $downloadFileName, [
             'Content-Type' => $contentType
         ]);
+    }
+
+    /**
+     * Download the Excel template for bulk policy upload
+     */
+    public function downloadTemplate()
+    {
+        return Excel::download(new PoliciesTemplateExport, 'policies_template.xlsx');
+    }
+
+    /**
+     * Bulk upload policies from Excel file
+     */
+    public function bulkUpload(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB max
+        ]);
+
+        try {
+            $import = new PoliciesImport();
+            
+            Excel::import($import, $request->file('excel_file'));
+            
+            $importedCount = $import->getRowCount();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully imported {$importedCount} policies",
+                'imported_count' => $importedCount
+            ]);
+            
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errors = [];
+            
+            foreach ($failures as $failure) {
+                $errors[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values()
+                ];
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed for some rows',
+                'errors' => $errors
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Bulk policy upload failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during import: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Policy;
+use Carbon\Carbon;
 
 class PolicySeeder extends Seeder
 {
@@ -13,111 +14,268 @@ class PolicySeeder extends Seeder
      */
     public function run(): void
     {
-        $policies = [
-            [
-                'policy_number' => 'POL001',
-                'customer_name' => 'Rajesh Kumar',
-                'phone' => '+919876543210',
-                'email' => 'rajesh@example.com',
-                'policy_type' => 'Motor',
-                'vehicle_number' => 'MH12AB1234',
-                'vehicle_type' => 'Car',
-                'company_name' => 'ICICI Lombard General Insurance Co. Ltd.',
-                'insurance_type' => 'Comprehensive',
-                'start_date' => '2024-01-15',
-                'end_date' => '2025-01-14',
-                'premium' => 8500.00,
-                'payout' => 0.00,
-                'customer_paid_amount' => 8500.00,
-                'revenue' => 1200.00,
-                'status' => 'Active',
-                'business_type' => 'Agent1',
-                'agent_name' => 'Priya Sharma'
-            ],
-            [
-                'policy_number' => 'POL002',
-                'customer_name' => 'Amit Patel',
-                'phone' => '+919876543211',
-                'email' => 'amit@example.com',
-                'policy_type' => 'Health',
-                'vehicle_number' => null,
-                'vehicle_type' => null,
-                'company_name' => 'Bajaj Allianz General Insurance Co. Ltd.',
-                'insurance_type' => 'Family Floater',
-                'start_date' => '2024-02-01',
-                'end_date' => '2025-01-31',
-                'premium' => 12000.00,
-                'payout' => 0.00,
-                'customer_paid_amount' => 12000.00,
-                'revenue' => 1800.00,
-                'status' => 'Active',
-                'business_type' => 'Self',
-                'agent_name' => 'Self'
-            ],
-            [
-                'policy_number' => 'POL003',
-                'customer_name' => 'Sneha Singh',
-                'phone' => '+919876543212',
-                'email' => 'sneha@example.com',
-                'policy_type' => 'Life',
-                'vehicle_number' => null,
-                'vehicle_type' => null,
-                'company_name' => 'LIC of India',
-                'insurance_type' => 'Term Insurance',
-                'start_date' => '2024-03-01',
-                'end_date' => '2034-02-28',
-                'premium' => 15000.00,
-                'payout' => 0.00,
-                'customer_paid_amount' => 15000.00,
-                'revenue' => 2250.00,
-                'status' => 'Active',
-                'business_type' => 'Agent2',
-                'agent_name' => 'Vikram Malhotra'
-            ],
-            [
-                'policy_number' => 'POL004',
-                'customer_name' => 'Vikram Malhotra',
-                'phone' => '+919876543213',
-                'email' => 'vikram@example.com',
-                'policy_type' => 'Motor',
-                'vehicle_number' => 'DL01CD5678',
-                'vehicle_type' => 'Bike',
-                'company_name' => 'HDFC ERGO General Insurance Co. Ltd.',
-                'insurance_type' => 'Third Party',
-                'start_date' => '2024-01-20',
-                'end_date' => '2025-01-19',
-                'premium' => 2500.00,
-                'payout' => 0.00,
-                'customer_paid_amount' => 2500.00,
-                'revenue' => 375.00,
-                'status' => 'Active',
-                'business_type' => 'Self',
-                'agent_name' => 'Self'
-            ],
-            [
-                'policy_number' => 'POL005',
-                'customer_name' => 'Neha Gupta',
-                'phone' => '+919876543214',
-                'email' => 'neha@example.com',
-                'policy_type' => 'Health',
-                'vehicle_number' => null,
-                'vehicle_type' => null,
-                'company_name' => 'Tata AIG General Insurance Co. Ltd.',
-                'insurance_type' => 'Individual',
-                'start_date' => '2024-02-10',
-                'end_date' => '2025-02-09',
-                'premium' => 8000.00,
-                'payout' => 0.00,
-                'customer_paid_amount' => 8000.00,
-                'revenue' => 1200.00,
-                'status' => 'Active',
-                'business_type' => 'Agent1',
-                'agent_name' => 'Priya Sharma'
-            ]
+        // Clear existing policies
+        Policy::truncate();
+
+        $currentMonth = Carbon::now();
+        $nextMonth = Carbon::now()->addMonth();
+        
+        $policies = [];
+        $policyNumber = 1;
+
+        // Insurance companies for variety
+        $companies = [
+            'ICICI Lombard General Insurance Co. Ltd.',
+            'Bajaj Allianz General Insurance Co. Ltd.',
+            'HDFC ERGO General Insurance Co. Ltd.',
+            'Tata AIG General Insurance Co. Ltd.',
+            'New India Assurance Co. Ltd.',
+            'Oriental Insurance Co. Ltd.',
+            'National Insurance Co. Ltd.',
+            'United India Insurance Co. Ltd.',
+            'Reliance General Insurance Co. Ltd.',
+            'SBI General Insurance Co. Ltd.'
         ];
+
+        // Policy types for variety
+        $policyTypes = ['Motor', 'Health', 'Life', 'Home', 'Travel', 'Business'];
+        $insuranceTypes = ['Comprehensive', 'Third Party', 'Family Floater', 'Individual', 'Term Insurance', 'Property'];
+        $agents = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Self'];
+
+        // 1. Issued 10 policies current month
+        for ($i = 0; $i < 10; $i++) {
+            $startDate = $currentMonth->copy()->subDays(rand(1, 30));
+            $endDate = $startDate->copy()->addYear();
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Active',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 2. Expired 5 policies current month
+        for ($i = 0; $i < 5; $i++) {
+            $startDate = $currentMonth->copy()->subYear()->subDays(rand(1, 30));
+            $endDate = $currentMonth->copy()->subDays(rand(1, 30));
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Expired',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 3. Expiring 12 policies current month
+        for ($i = 0; $i < 12; $i++) {
+            $startDate = $currentMonth->copy()->subYear()->subDays(rand(1, 30));
+            $endDate = $currentMonth->copy()->addDays(rand(1, 30));
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Active',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 4. Expiring 7 policies in September 2025 (next month)
+        for ($i = 0; $i < 7; $i++) {
+            $startDate = $nextMonth->copy()->subYear()->subDays(rand(1, 30));
+            $endDate = $nextMonth->copy()->addDays(rand(1, 30));
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Active',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 5. Expired 5 policies before July 2025
+        for ($i = 0; $i < 5; $i++) {
+            $startDate = Carbon::create(2024, 1, 1)->addDays(rand(1, 365));
+            $endDate = Carbon::create(2025, 6, 30)->subDays(rand(1, 180));
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Expired',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 6. Expired 5 policies before June 2025
+        for ($i = 0; $i < 5; $i++) {
+            $startDate = Carbon::create(2024, 1, 1)->addDays(rand(1, 365));
+            $endDate = Carbon::create(2025, 5, 31)->subDays(rand(1, 150));
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => 'Expired',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
+
+        // 7. Remaining policies (56 policies) - mix of active and expired
+        for ($i = 0; $i < 56; $i++) {
+            $startDate = Carbon::create(2023, 1, 1)->addDays(rand(1, 730));
+            $endDate = $startDate->copy()->addYear();
+            
+            // Randomly make some expired
+            if (rand(1, 3) === 1) {
+                $endDate = $startDate->copy()->addMonths(rand(6, 18));
+            }
+            
+            $policies[] = [
+                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
+                'customer_name' => $this->generateCustomerName(),
+                'phone' => '+91' . rand(7000000000, 9999999999),
+                'email' => $this->generateEmail(),
+                'policy_type' => $policyTypes[array_rand($policyTypes)],
+                'vehicle_number' => $this->generateVehicleNumber(),
+                'vehicle_type' => $this->generateVehicleType(),
+                'company_name' => $companies[array_rand($companies)],
+                'insurance_type' => $insuranceTypes[array_rand($insuranceTypes)],
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'premium' => rand(2000, 25000),
+                'payout' => 0.00,
+                'customer_paid_amount' => rand(2000, 25000),
+                'revenue' => rand(300, 3750),
+                'status' => $endDate->isPast() ? 'Expired' : 'Active',
+                'business_type' => $this->generateBusinessType(),
+                'agent_name' => $agents[array_rand($agents)]
+            ];
+        }
 
         foreach ($policies as $policy) {
             Policy::create($policy);
         }
+    }
+
+    private function generateCustomerName()
+    {
+        $firstNames = ['Rajesh', 'Priya', 'Amit', 'Sneha', 'Vikram', 'Neha', 'Rahul', 'Anjali', 'Deepak', 'Pooja', 'Sanjay', 'Meera', 'Arun', 'Kavita', 'Ramesh', 'Sunita', 'Mohan', 'Reena', 'Suresh', 'Anita'];
+        $lastNames = ['Kumar', 'Sharma', 'Patel', 'Singh', 'Malhotra', 'Gupta', 'Verma', 'Joshi', 'Yadav', 'Chopra', 'Kapoor', 'Reddy', 'Nair', 'Iyer', 'Menon', 'Pillai', 'Nayar', 'Menon', 'Nambiar', 'Kurup'];
+        
+        return $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
+    }
+
+    private function generateEmail()
+    {
+        $domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'rediffmail.com'];
+        $name = strtolower(str_replace(' ', '', $this->generateCustomerName()));
+        return $name . '@' . $domains[array_rand($domains)];
+    }
+
+    private function generateVehicleNumber()
+    {
+        $states = ['MH', 'DL', 'KA', 'TN', 'AP', 'TG', 'KL', 'GJ', 'MP', 'UP'];
+        $state = $states[array_rand($states)];
+        $district = rand(1, 99);
+        $letters = chr(rand(65, 90)) . chr(rand(65, 90));
+        $numbers = rand(1000, 9999);
+        
+        return $state . $district . $letters . $numbers;
+    }
+
+    private function generateVehicleType()
+    {
+        $types = ['Car', 'Bike', 'Scooter', 'Truck', 'Bus', 'Van', 'SUV', 'Sedan', 'Hatchback', 'Motorcycle'];
+        return $types[array_rand($types)];
+    }
+
+    private function generateBusinessType()
+    {
+        // 70% chance of Agent, 30% chance of Self
+        return rand(1, 10) <= 7 ? 'Agent' : 'Self';
     }
 }
