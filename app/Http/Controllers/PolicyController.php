@@ -54,7 +54,8 @@ class PolicyController extends Controller
     {
         $rules = [
             'policyType' => 'required|in:Motor,Health,Life',
-            'businessType' => 'required|in:Self,Agent1,Agent2',
+            // Business Type now supports only Self or Agent
+            'businessType' => 'required|in:Self,Agent',
             'customerName' => 'required|string|max:255',
             'customerPhone' => 'required|digits:10',
             'customerEmail' => 'nullable|email|max:255',
@@ -100,6 +101,11 @@ class PolicyController extends Controller
             $computedRevenue = 0; // keep non-negative to align with UI and storage expectations
         }
 
+        // Determine agent name based on business type
+        $agentNameResolved = $request->businessType === 'Self' 
+            ? 'Self' 
+            : ($request->agent_name ?? $request->agentName ?? 'Agent');
+
         $policy = Policy::create([
             'policy_number' => $policyNumber,
             'customer_name' => $request->customerName,
@@ -118,7 +124,7 @@ class PolicyController extends Controller
             'revenue' => $computedRevenue,
             'status' => 'Active',
             'business_type' => $request->businessType,
-            'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
+            'agent_name' => $agentNameResolved,
         ]);
 
         // Handle file uploads
@@ -254,6 +260,8 @@ class PolicyController extends Controller
             'customerPaidAmount' => 'required|numeric|min:0',
             // revenue computed server-side
             'payout' => 'nullable|numeric|min:0',
+            // Optional business type when updating; restrict to new values
+            'businessType' => 'nullable|in:Self,Agent',
             // File upload validation - set to 3MB
             'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
             'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
@@ -300,6 +308,12 @@ class PolicyController extends Controller
             'computed_revenue' => $computedRevenue
         ]);
 
+        // Resolve business type and agent name preserving existing when not provided
+        $incomingBusinessType = $request->businessType ?? $policy->business_type;
+        $agentNameResolved = $incomingBusinessType === 'Self' 
+            ? 'Self' 
+            : ($request->agent_name ?? $request->agentName ?? $policy->agent_name ?? 'Agent');
+
         $policy->update([
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
@@ -316,8 +330,8 @@ class PolicyController extends Controller
             'customer_paid_amount' => $customerPaidAmount,
             'revenue' => $computedRevenue,
             'status' => $request->status ?? $policy->status,
-            'business_type' => $request->businessType ?? $policy->business_type,
-            'agent_name' => $request->businessType === 'Self' ? 'Self' : 'Agent ' . substr($request->businessType, -1),
+            'business_type' => $incomingBusinessType,
+            'agent_name' => $agentNameResolved,
         ]);
         
         \Log::info('Policy updated successfully', [

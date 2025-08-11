@@ -1718,12 +1718,14 @@ const openPolicyModal = () => {
     $('#policyForm')[0].reset();
     $('#policyForm').removeData('edit-id');
     
-    // Set form action and method for creating new policies
     $('#policyForm').attr('action', '/policies');
     $('#formMethod').val('POST');
     
-    // Populate agent dropdown for new policies
+    $('#hiddenPolicyType').val('');
+    $('#hiddenBusinessType').val('');
     updatePolicyAgentDropdown();
+    // Keep enabled; only toggle required later
+    $('#policyModal #agentName').prop('required', false);
     
     $('#policyModal').addClass('show');
 };
@@ -1731,40 +1733,31 @@ const openPolicyModal = () => {
 const closePolicyModal = () => {
     $('#policyModal').removeClass('show');
     
-    // Reset form
     $('#policyForm')[0].reset();
     
-    // Reset modal state
     $('#policyForm').removeData('edit-id');
     $('#policyModalTitle').text('Add New Policy');
     $('#savePolicyBtn').text('Add Policy');
     
-    // Reset form action and method to default (add mode)
     $('#policyForm').attr('action', '/policies');
     $('#formMethod').val('POST');
     
-    // Reset steps
     $('#step1').show();
     $('#step2, #step3').hide();
     
-    // Reset policy type and business type selections
     $('#policyTypeSelect').val('');
     $('#businessTypeSelect').val('');
+    $('#hiddenPolicyType').val('');
+    $('#hiddenBusinessType').val('');
+    $('#policyModal #agentName').prop('required', false);
     
-    // Disable next buttons
     $('#nextStep1, #nextStep2').prop('disabled', true);
     
-    // Reset global variables
     selectedPolicyType = null;
     selectedBusinessType = null;
     
-    // Disable validation on all hidden fields
     $('.policy-form input[required], .policy-form select[required]').prop('required', false);
-    
-    // Hide all forms by removing active class
     $('.policy-form').removeClass('active');
-    
-    // Clear any edit listener
     $('#policyForm').removeData('edit-listener-added');
 };
 
@@ -1902,6 +1895,7 @@ const handlePolicySubmit = async (e) => {
     let policyData = {
         policyType: activePolicyType,
         businessType: businessType,
+    agent_name: $('#policyModal #agentName').val() || '',
         customerName: '',
         customerPhone: '',
         customerEmail: '',
@@ -2048,6 +2042,18 @@ const handlePolicySubmit = async (e) => {
     if (!policyData.customerName || !policyData.customerPhone || !policyData.companyName) {
         showNotification('Please fill in all required fields (Customer Name, Phone, Company)', 'error');
         return;
+    }
+
+    // If business type is Agent, ensure an agent is selected
+    if ((policyData.businessType || '').toLowerCase() === 'agent') {
+    const agentVal = $('#policyModal #agentName').val();
+        if (!agentVal) {
+            showNotification('Please select an Agent name', 'error');
+            return;
+        }
+        policyData.agent_name = agentVal;
+    } else {
+        policyData.agent_name = 'Self';
     }
     
     // Validate insurance type
@@ -2443,8 +2449,8 @@ const editPolicy = async (id) => {
     let agentName = policy.agentName || policy.agent_name || '';
     const agentId = policy.agent_id || policy.agentId;
         
-    // Normalize business type values (e.g., "Agent 1" -> "Agent1")
-    const normalizedBusinessType = (businessType || '').replace(/\s+/g, '');
+    // Normalize to Self/Agent values
+    const normalizedBusinessType = (/agent/i.test(String(businessType)) ? 'Agent' : 'Self');
     // Normalize status casing to match options
     const statusOptions = ['Active','Pending','Expired','Cancelled'];
     const status = statusOptions.find(s => s.toLowerCase() === String(statusRaw).toLowerCase()) || 'Active';
@@ -2469,6 +2475,8 @@ const editPolicy = async (id) => {
         // Set the hidden fields that the form actually sends
     $('#hiddenPolicyType').val(policyType);
     $('#hiddenBusinessType').val(normalizedBusinessType);
+    // Agent required for Agent type in edit
+    $('#policyModal #agentName').prop('required', normalizedBusinessType === 'Agent');
         
         // Populate policy overview fields
         $('#policyNumber').val(policyNumber);
@@ -2488,8 +2496,9 @@ const editPolicy = async (id) => {
             const match = allAgents.find(a => a.id === agentId || a.userId === agentId);
             if (match && match.name) agentName = match.name;
         }
-        // Safely select the agent option, add if missing
-        ensureSelectHasOption('#agentName', agentName, agentName);
+    // Safely select the agent option, add if missing; also set required if Agent selected
+        ensureSelectHasOption('#policyModal #agentName', agentName, agentName);
+    $('#policyModal #agentName').prop('required', normalizedBusinessType === 'Agent');
         
         // Store the policy ID for form submission
         $('#policyForm').data('edit-id', id);
@@ -2722,8 +2731,14 @@ const showNotification = (message, type = 'info') => {
         </div>
     `);
 
-    // Add to body
-    $('body').append(notification);
+    // Ensure a single container exists to stack notifications in the top-right
+    let $container = $('#notifications-container');
+    if (!$container.length) {
+        $container = $('<div id="notifications-container" aria-live="polite" aria-atomic="true"></div>').appendTo('body');
+    }
+
+    // Add to container
+    $container.append(notification);
 
     // Show notification
     setTimeout(() => {
@@ -2753,10 +2768,21 @@ const showNotification = (message, type = 'info') => {
 $('<style>')
     .prop('type', 'text/css')
     .html(`
-        .notification {
+        /* Fixed container to stack notifications in the top-right */
+        #notifications-container {
             position: fixed;
-            top: 90px;
+            top: 90px; /* below top nav */
             right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 3000;
+            pointer-events: none; /* allow clicks to pass through except on the toasts themselves */
+            max-width: calc(100vw - 48px);
+        }
+
+        .notification {
+            position: relative; /* positioned within the container */
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -2770,12 +2796,12 @@ $('<style>')
             transform: translateX(100%);
             transition: transform 0.3s ease;
             width: 420px;
-            max-width: calc(100vw - 48px);
+            max-width: 100%;
             max-height: 60vh;
             overflow: auto;
             word-break: break-word;
             white-space: normal;
-            position: fixed;
+            pointer-events: auto; /* clickable */
         }
         
         .dark-theme .notification {
@@ -3081,9 +3107,10 @@ const viewPolicyDetails = (id) => {
     populatePolicyModal(policy);
 };
 
-const populatePolicyModal = (policy) => {
+const populatePolicyModal = async (policy) => {
     // Store the current policy ID for the edit button
     window.currentViewingPolicyId = policy.id;
+    const $modal = $('#viewPolicyModal');
     
     // Normalize policy data to handle different formats from different pages
     const normalizedPolicy = {
@@ -3112,7 +3139,7 @@ const populatePolicyModal = (policy) => {
         revenue: policy.revenue || 0,
         payout: policy.payout || 0,
         businessType: policy.businessType || policy.business_type || 'Not provided',
-        agentName: policy.agentName || policy.agent_name || 'Not provided',
+        agentName: policy.agentName || policy.agent_name || '',
         // Document paths
         policy_copy_path: policy.policy_copy_path || policy.policyCopyPath,
         rc_copy_path: policy.rc_copy_path || policy.rcCopyPath,
@@ -3121,91 +3148,123 @@ const populatePolicyModal = (policy) => {
 
     };
 
+    // Normalize Business Type to Self/Agent and resolve Agent Name robustly
+    const normalizedBusinessType = /agent/i.test(String(normalizedPolicy.businessType)) ? 'Agent' : 'Self';
+    let resolvedAgentName = (normalizedPolicy.agentName || '').trim();
+    if (resolvedAgentName === '-' || /^not provided$/i.test(resolvedAgentName)) {
+        resolvedAgentName = '';
+    }
+
+    if (normalizedBusinessType === 'Self') {
+        resolvedAgentName = 'Self';
+    } else {
+        // Try to resolve using agent id identifiers if name missing
+        if (!resolvedAgentName) {
+            const agentId = policy.agent_id || policy.agentId || policy.user_id || policy.userId || null;
+            try {
+                if (!allAgents || allAgents.length === 0) {
+                    allAgents = await fetchAgents();
+                }
+            } catch (e) {
+                // ignore fetch error; we'll fallback
+            }
+            if (agentId && Array.isArray(allAgents) && allAgents.length > 0) {
+                const match = allAgents.find(a => String(a.id) === String(agentId) || String(a.userId) === String(agentId));
+                if (match && match.name) {
+                    resolvedAgentName = match.name;
+                }
+            }
+        }
+        if (!resolvedAgentName) {
+            resolvedAgentName = 'Not provided';
+        }
+    }
+
     // Populate modal with normalized policy details
-    $('#viewPolicyNumber').text(normalizedPolicy.policyNumber);
-    $('#viewPolicyType').text(normalizedPolicy.type).removeClass().addClass(`policy-type-badge ${normalizedPolicy.type.toLowerCase()}`);
-    $('#viewPolicyStatus').text(normalizedPolicy.status).removeClass().addClass(`status-badge ${normalizedPolicy.status.toLowerCase()}`);
+    $modal.find('#viewPolicyNumber').text(normalizedPolicy.policyNumber);
+    $modal.find('#viewPolicyType').text(normalizedPolicy.type).removeClass().addClass(`policy-type-badge ${normalizedPolicy.type.toLowerCase()}`);
+    $modal.find('#viewPolicyStatus').text(normalizedPolicy.status).removeClass().addClass(`status-badge ${normalizedPolicy.status.toLowerCase()}`);
     
     // Customer Information
-    $('#viewCustomerName').text(normalizedPolicy.customerName);
-    $('#viewCustomerPhone').text(normalizedPolicy.phone);
-    $('#viewCustomerEmail').text(normalizedPolicy.email);
+    $modal.find('#viewCustomerName').text(normalizedPolicy.customerName);
+    $modal.find('#viewCustomerPhone').text(normalizedPolicy.phone);
+    $modal.find('#viewCustomerEmail').text(normalizedPolicy.email);
     
     // Show/hide age and gender for Health/Life policies
     if (normalizedPolicy.type === 'Health' || normalizedPolicy.type === 'Life') {
-        $('#viewCustomerAgeContainer').show();
-        $('#viewCustomerGenderContainer').show();
-        $('#viewCustomerAge').text(normalizedPolicy.customerAge);
-        $('#viewCustomerGender').text(normalizedPolicy.customerGender);
+    $modal.find('#viewCustomerAgeContainer').show();
+    $modal.find('#viewCustomerGenderContainer').show();
+    $modal.find('#viewCustomerAge').text(normalizedPolicy.customerAge);
+    $modal.find('#viewCustomerGender').text(normalizedPolicy.customerGender);
     } else {
-        $('#viewCustomerAgeContainer').hide();
-        $('#viewCustomerGenderContainer').hide();
+    $modal.find('#viewCustomerAgeContainer').hide();
+    $modal.find('#viewCustomerGenderContainer').hide();
     }
     
     // Vehicle Information (Motor only)
     if (normalizedPolicy.type === 'Motor') {
-        $('#viewVehicleSection').show();
-        $('#viewVehicleNumber').text(normalizedPolicy.vehicleNumber);
-        $('#viewVehicleType').text(normalizedPolicy.vehicleType);
+    $modal.find('#viewVehicleSection').show();
+    $modal.find('#viewVehicleNumber').text(normalizedPolicy.vehicleNumber);
+    $modal.find('#viewVehicleType').text(normalizedPolicy.vehicleType);
     } else {
-        $('#viewVehicleSection').hide();
+    $modal.find('#viewVehicleSection').hide();
     }
     
     // Insurance Information
-    $('#viewCompanyName').text(normalizedPolicy.companyName);
+    $modal.find('#viewCompanyName').text(normalizedPolicy.companyName);
     
     // Show/hide insurance type vs plan type
     if (normalizedPolicy.type === 'Motor') {
-        $('#viewInsuranceTypeContainer').show();
-        $('#viewPlanTypeContainer').hide();
-        $('#viewInsuranceType').text(normalizedPolicy.insuranceType);
+    $modal.find('#viewInsuranceTypeContainer').show();
+    $modal.find('#viewPlanTypeContainer').hide();
+    $modal.find('#viewInsuranceType').text(normalizedPolicy.insuranceType);
     } else {
-        $('#viewInsuranceTypeContainer').hide();
-        $('#viewPlanTypeContainer').show();
-        $('#viewPlanType').text(normalizedPolicy.planType);
+    $modal.find('#viewInsuranceTypeContainer').hide();
+    $modal.find('#viewPlanTypeContainer').show();
+    $modal.find('#viewPlanType').text(normalizedPolicy.planType);
     }
     
     // Show/hide sum insured/assured
     if (normalizedPolicy.type === 'Health') {
-        $('#viewSumInsuredContainer').show();
-        $('#viewSumAssuredContainer').hide();
-        $('#viewPolicyTermContainer').hide();
-        $('#viewPremiumFrequencyContainer').hide();
-        $('#viewSumInsured').text(normalizedPolicy.sumInsured ? `₹${normalizedPolicy.sumInsured.toLocaleString()}` : 'Not provided');
+    $modal.find('#viewSumInsuredContainer').show();
+    $modal.find('#viewSumAssuredContainer').hide();
+    $modal.find('#viewPolicyTermContainer').hide();
+    $modal.find('#viewPremiumFrequencyContainer').hide();
+    $modal.find('#viewSumInsured').text(normalizedPolicy.sumInsured ? `₹${normalizedPolicy.sumInsured.toLocaleString()}` : 'Not provided');
     } else if (normalizedPolicy.type === 'Life') {
-        $('#viewSumInsuredContainer').hide();
-        $('#viewSumAssuredContainer').show();
-        $('#viewPolicyTermContainer').show();
-        $('#viewPremiumFrequencyContainer').show();
-        $('#viewSumAssured').text(normalizedPolicy.sumAssured ? `₹${normalizedPolicy.sumAssured.toLocaleString()}` : 'Not provided');
-        $('#viewPolicyTerm').text(normalizedPolicy.policyTerm ? `${normalizedPolicy.policyTerm} years` : 'Not provided');
-        $('#viewPremiumFrequency').text(normalizedPolicy.premiumFrequency);
+    $modal.find('#viewSumInsuredContainer').hide();
+    $modal.find('#viewSumAssuredContainer').show();
+    $modal.find('#viewPolicyTermContainer').show();
+    $modal.find('#viewPremiumFrequencyContainer').show();
+    $modal.find('#viewSumAssured').text(normalizedPolicy.sumAssured ? `₹${normalizedPolicy.sumAssured.toLocaleString()}` : 'Not provided');
+    $modal.find('#viewPolicyTerm').text(normalizedPolicy.policyTerm ? `${normalizedPolicy.policyTerm} years` : 'Not provided');
+    $modal.find('#viewPremiumFrequency').text(normalizedPolicy.premiumFrequency);
     } else {
-        $('#viewSumInsuredContainer').hide();
-        $('#viewSumAssuredContainer').hide();
-        $('#viewPolicyTermContainer').hide();
-        $('#viewPremiumFrequencyContainer').hide();
+    $modal.find('#viewSumInsuredContainer').hide();
+    $modal.find('#viewSumAssuredContainer').hide();
+    $modal.find('#viewPolicyTermContainer').hide();
+    $modal.find('#viewPremiumFrequencyContainer').hide();
     }
     
     // Dates
-    $('#viewStartDate').text(formatDate(normalizedPolicy.startDate));
-    $('#viewEndDate').text(formatDate(normalizedPolicy.endDate));
+    $modal.find('#viewStartDate').text(formatDate(normalizedPolicy.startDate));
+    $modal.find('#viewEndDate').text(formatDate(normalizedPolicy.endDate));
     
     // Financial Information
-    $('#viewPremium').text(`₹${normalizedPolicy.premium.toLocaleString()}`);
-    $('#viewCustomerPaid').text(normalizedPolicy.customerPaidAmount ? `₹${normalizedPolicy.customerPaidAmount.toLocaleString()}` : 'Not provided');
-    $('#viewRevenue').text(`₹${normalizedPolicy.revenue.toLocaleString()}`);
-    $('#viewPayout').text(normalizedPolicy.payout ? `₹${normalizedPolicy.payout.toLocaleString()}` : 'Not provided');
-    $('#viewBusinessType').text(normalizedPolicy.businessType);
-    $('#viewAgentName').text(normalizedPolicy.agentName);
+    $modal.find('#viewPremium').text(`₹${normalizedPolicy.premium.toLocaleString()}`);
+    $modal.find('#viewCustomerPaid').text(normalizedPolicy.customerPaidAmount ? `₹${normalizedPolicy.customerPaidAmount.toLocaleString()}` : 'Not provided');
+    $modal.find('#viewRevenue').text(`₹${normalizedPolicy.revenue.toLocaleString()}`);
+    $modal.find('#viewPayout').text(normalizedPolicy.payout ? `₹${normalizedPolicy.payout.toLocaleString()}` : 'Not provided');
+    $modal.find('#viewBusinessType').text(normalizedBusinessType);
+    $modal.find('#viewAgentName').text(resolvedAgentName);
     
 
     
     // Show/hide RC copy for Motor policies
     if (normalizedPolicy.type === 'Motor') {
-        $('#rcCopyItem').show();
+        $modal.find('#rcCopyItem').show();
     } else {
-        $('#rcCopyItem').hide();
+        $modal.find('#rcCopyItem').hide();
     }
     
     // Handle document download buttons
@@ -3779,8 +3838,9 @@ const generateFollowupsCSV = () => {
 
 // Multi-step modal functions
 const initializeMultiStepModal = () => {
-    // Update agent names in business type dropdown
+    // Ensure agent dropdowns are populated and listeners attached
     updateAgentDropdown();
+    updatePolicyAgentDropdown();
     
     // Policy type selection
     $('#policyTypeSelect').change(function() {
@@ -3792,14 +3852,25 @@ const initializeMultiStepModal = () => {
         }
     });
     
-    // Business type selection
+    // Business type selection (now Self/Agent). If Agent is chosen, show/require Agent Name
     $('#businessTypeSelect').change(function() {
         selectedBusinessType = $(this).val();
-        // Enable next if a business type is selected and sync hidden field
+        // Normalize values to exactly 'Self' or 'Agent'
+        if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'agent') {
+            selectedBusinessType = 'Agent';
+        } else if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'self') {
+            selectedBusinessType = 'Self';
+        }
+        // Enable next if selected
         $('#nextStep2').prop('disabled', !selectedBusinessType);
         if (selectedBusinessType) {
             $('#hiddenBusinessType').val(selectedBusinessType);
         }
+        // Toggle Agent Name required
+        const isAgent = selectedBusinessType === 'Agent';
+    $('#policyModal #agentName').prop('required', isAgent);
+        // Pre-populate options
+        updatePolicyAgentDropdown();
     });
     
     // Step navigation
@@ -3818,6 +3889,8 @@ const initializeMultiStepModal = () => {
         if (selectedPolicyType) {
             $('#hiddenPolicyType').val(selectedPolicyType);
         }
+        // Toggle agent requirement
+    $('#policyModal #agentName').prop('required', ($('#hiddenBusinessType').val() === 'Agent'));
         goToStep(3);
     });
     $('#prevStep2').click(() => goToStep(1));
@@ -3838,27 +3911,36 @@ const updateHiddenFields = () => {
 };
 
 const updateAgentDropdown = () => {
-    const businessTypeSelect = $('#businessTypeSelect');
-    
-    // Clear existing agent options
-    businessTypeSelect.find('option[value^="Agent"]').remove();
-    
-    // Add agent options
-    allAgents.forEach((agent, index) => {
-        businessTypeSelect.append(`<option value="Agent${index + 1}">${agent.name}</option>`);
-    });
+    // With new flow, business type only has Self/Agent; keep function for backward compatibility
+    // Nothing to do here now other than ensure select exists
+    return;
 };
 
 const updatePolicyAgentDropdown = () => {
-    const agentNameSelect = $('#agentName');
-    
-    // Clear existing options except the first one
-    agentNameSelect.find('option:not(:first)').remove();
-    
-    // Add agent options
-    allAgents.forEach((agent) => {
-        agentNameSelect.append(`<option value="${agent.name}">${agent.name}</option>`);
-    });
+    const agentNameSelect = $('#policyModal #agentName');
+    if (!agentNameSelect.length) return;
+    // Helper to render options
+    const renderOptions = () => {
+        agentNameSelect.find('option:not(:first)').remove();
+        (allAgents || []).forEach((agent) => {
+            if (agent && agent.name) {
+                agentNameSelect.append(`<option value="${agent.name}">${agent.name}</option>`);
+            }
+        });
+    };
+    if (!allAgents || allAgents.length === 0) {
+        // Try to fetch and then render
+        fetchAgents().then(list => {
+            if (Array.isArray(list)) {
+                allAgents = list;
+                renderOptions();
+            }
+        }).catch(() => {
+            // keep silent if fails
+        });
+    } else {
+        renderOptions();
+    }
 };
 
 // Ensure a select has the option you want to select; if not, add it
@@ -5542,7 +5624,7 @@ const editAgent = (id) => {
         $('#agentModalTitle').text('Edit Agent');
         
         // Populate form fields
-        $('#agentName').val(agent.name || '');
+    $('#agentModal #agentName').val(agent.name || '');
         $('#agentPhone').val(agent.phone || '');
         $('#agentEmail').val(agent.email || '');
         $('#agentUserId').val(agent.userId || '');

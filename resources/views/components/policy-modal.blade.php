@@ -37,8 +37,7 @@
                     <select id="businessTypeSelect" required>
                         <option value="">Select Business Type</option>
                         <option value="Self">Self</option>
-                        <option value="Agent1">Agent 1</option>
-                        <option value="Agent2">Agent 2</option>
+                        <option value="Agent">Agent</option>
                     </select>
                 </div>
             </div>
@@ -75,7 +74,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="agentNameGroup">
                         <label for="agentName">Agent Name *</label>
                         <select id="agentName" name="agent_name" required>
                             <option value="">Select Agent</option>
