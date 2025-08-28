@@ -6,7 +6,7 @@
 <div class="page active" id="dashboard">
     <div class="page-header">
         <h1>Dashboard</h1>
-        <p>Welcome to Insurance Management System 2.0</p>
+        <p>Welcome to Insurance Management System 3.0</p>
     </div>
 
     <!-- Dashboard Cards -->
@@ -100,7 +100,7 @@
                         <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
                         <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
                         <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
-                        <th data-sort="endDate">End Date <i class="fas fa-sort"></i></th>
+                        <th data-sort="startDate">Start Date <i class="fas fa-sort"></i></th>
                         <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
                         <th data-sort="status">Status <i class="fas fa-sort"></i></th>
                         <th>Actions</th>

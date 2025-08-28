@@ -855,11 +855,9 @@ const updateRecentPoliciesTable = (policies) => {
                 <td>${policy.customerName}</td>
                 <td>${policy.phone}</td>
                 <td>${policy.companyName}</td>
-                <td>${policy.endDate}</td>
+                <td>${policy.startDate}</td>
                 <td>₹${policy.premium}</td>
                 <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
-        
-            // After policies are loaded, build renewals view model from policies
                 <td>
                     <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
                         <i class="fas fa-eye"></i>
@@ -1167,7 +1165,7 @@ const renderTable = () => {
         const customerName = policy.customerName || policy.owner || 'Unknown';
         const phone = policy.phone || 'Unknown';
         const companyName = policy.companyName || policy.company || 'Unknown';
-        const endDate = policy.endDate || 'Unknown';
+        const startDate = policy.startDate || 'Unknown';
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
         
@@ -1177,7 +1175,7 @@ const renderTable = () => {
             <td>${customerName}</td>
             <td>${phone}</td>
             <td>${getShortCompanyName(companyName)}</td>
-            <td>${formatDate(endDate)}</td>
+            <td>${formatDate(startDate)}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
