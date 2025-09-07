@@ -10,7 +10,6 @@ class Renewal extends Model
     use HasFactory;
 
     protected $fillable = [
-        'policy_number',
         'customer_name',
         'phone',
         'email',
@@ -30,11 +29,6 @@ class Renewal extends Model
     ];
 
     // Relationships
-    public function policy()
-    {
-        return $this->belongsTo(Policy::class, 'policy_number', 'policy_number');
-    }
-
     public function agent()
     {
         return $this->belongsTo(Agent::class, 'agent_name', 'name');

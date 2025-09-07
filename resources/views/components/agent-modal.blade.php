@@ -11,8 +11,8 @@
             <form id="agentForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="agentName">Agent Name *</label>
-                        <input type="text" id="agentName" name="name" required placeholder="Enter agent name">
+                        <label for="agentNameInput">Agent Name *</label>
+                        <input type="text" id="agentNameInput" name="name" required placeholder="Enter agent name">
                     </div>
                     <div class="form-group">
                         <label for="agentPhone">Phone Number *</label>

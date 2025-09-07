@@ -15,8 +15,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}?v={{ filemtime(public_path('css/styles.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ time() }}">
     
     <!-- Force hide loading overlay -->
     <style>
@@ -78,10 +78,7 @@
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
-            <a href="{{ route('dashboard') }}" class="logo" style="text-decoration:none;">
-                <i class="fas fa-shield-alt"></i>
-                <span>Insurance MS 2.0</span>
-            </a>
+            <!-- Logo removed from top bar -->
         </div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle">
@@ -124,10 +121,10 @@
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <!-- <div class="logo">
+                <div class="logo">
                     <i class="fas fa-shield-alt"></i>
                     <span>Insurance MS 2.0</span>
-                </div> -->
+                </div>
                 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -195,9 +192,24 @@
     <!-- Global Modals - Available on all pages -->
     @include('components.policy-modal')
     @include('components.view-policy-modal')
+    
+    <!-- Policy History Modal - Available on all pages -->
+    <div class="modal" id="policyHistoryModal" style="display: none !important; position: fixed !important; z-index: 99999 !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; background-color: rgba(0,0,0,0.8) !important;">
+        <div class="modal-content" style="max-width: 1200px !important; width: 90% !important; margin: 2% auto !important; background: white !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; position: relative !important;">
+            <div class="modal-header" style="padding: 20px !important; border-bottom: 1px solid #eee !important; display: flex !important; justify-content: space-between !important; align-items: center !important;">
+                <h2 style="margin: 0 !important; color: #1f2937 !important;">Policy History</h2>
+                <span class="close" onclick="closePolicyHistoryModal()" style="font-size: 28px !important; font-weight: bold !important; cursor: pointer !important; color: #666 !important; line-height: 1 !important;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px !important; max-height: 70vh !important; overflow-y: auto !important;">
+                <div id="policyHistoryContent">
+                    <div class="loading" style="text-align: center; padding: 40px; color: #666;">Loading policy history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ microtime(true) }}&history_update={{ time() }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>

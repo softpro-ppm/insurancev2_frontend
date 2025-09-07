@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Policy;
+use App\Models\PolicyVersion;
 use App\Imports\PoliciesImport;
 use App\Exports\PoliciesTemplateExport;
+use App\Exports\PoliciesCSVExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 
@@ -21,7 +23,6 @@ class PolicyController extends Controller
         $policies = Policy::all()->map(function ($policy) {
             return [
                 'id' => $policy->id,
-                'policyNumber' => $policy->policy_number,
                 'customerName' => $policy->customer_name,
                 'phone' => $policy->phone,
                 'email' => $policy->email,
@@ -73,11 +74,11 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
-            // File upload validation - set to 3MB
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            // File upload validation - set to 5MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
 
         ];
 
@@ -92,9 +93,6 @@ class PolicyController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
-        // Generate unique Policy Number
-        $policyNumber = 'POL' . str_pad(Policy::count() + 1, 3, '0', STR_PAD_LEFT);
 
         // Compute revenue on server: revenue = customerPaid - (premium - payout)
         $premium = (float) $request->premium;
@@ -111,7 +109,6 @@ class PolicyController extends Controller
             : ($request->agent_name ?? $request->agentName ?? 'Agent');
 
         $policy = Policy::create([
-            'policy_number' => $policyNumber,
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
             'email' => $request->customerEmail,
@@ -165,7 +162,6 @@ class PolicyController extends Controller
             'message' => 'Policy created successfully!',
             'policy' => [
                 'id' => $policy->id,
-                'policyNumber' => $policy->policy_number,
                 'customerName' => $policy->customer_name,
                 'phone' => $policy->phone,
                 'email' => $policy->email,
@@ -202,7 +198,6 @@ class PolicyController extends Controller
         
         return response()->json(['policy' => [
             'id' => $policy->id,
-            'policyNumber' => $policy->policy_number,
             'customerName' => $policy->customer_name,
             'phone' => $policy->phone,
             'email' => $policy->email,
@@ -266,17 +261,17 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             // Optional business type when updating; restrict to new values
             'businessType' => 'nullable|in:Self,Agent',
-            // File upload validation - set to 3MB
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072', // 3MB max
+            // File upload validation - set to 5MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
         ];
         
         // Add Motor-specific validation rules only for Motor policies
         if ($policyType === 'Motor') {
             $rules['vehicleNumber'] = 'required|string|max:20';
             $rules['vehicleType'] = 'required|string|max:50';
-            $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:3072'; // 3MB max
+            $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'; // 5MB max
         }
         
         \Log::info('Validation rules for policy type', [
@@ -295,6 +290,16 @@ class PolicyController extends Controller
         }
 
         $policy = Policy::findOrFail($id);
+
+        // Save current policy state as a version before updating
+        $version = PolicyVersion::createFromPolicy(
+            $policy, 
+            'Policy updated via edit form',
+            auth()->user()->name ?? 'System'
+        );
+        
+        // Copy current documents to version-specific directory to preserve them
+        $this->preserveDocumentsForVersion($policy, $version);
 
         // Compute revenue on server using incoming values
         $premium = (float) $request->premium;
@@ -377,7 +382,6 @@ class PolicyController extends Controller
             'message' => 'Policy updated successfully!',
             'policy' => [
                 'id' => $policy->id,
-                'policyNumber' => $policy->policy_number,
                 'customerName' => $policy->customer_name,
                 'phone' => $policy->phone,
                 'email' => $policy->email,
@@ -540,20 +544,33 @@ class PolicyController extends Controller
     }
 
     /**
+     * Download the CSV template for bulk policy upload
+     */
+    public function downloadCSVTemplate()
+    {
+        return Excel::download(new PoliciesCSVExport, 'policies_template.csv');
+    }
+
+    /**
      * Bulk upload policies from Excel file
      */
     public function bulkUpload(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB max
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // 10MB max, now supports CSV
         ]);
 
         try {
             $import = new PoliciesImport();
             
+            // Add debugging
+            Log::info('Starting bulk upload import');
+            
             Excel::import($import, $request->file('excel_file'));
             
             $importedCount = $import->getRowCount();
+            
+            Log::info('Bulk upload completed successfully', ['imported_count' => $importedCount]);
             
             return response()->json([
                 'success' => true,
@@ -564,6 +581,8 @@ class PolicyController extends Controller
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
             $errors = [];
+            
+            Log::error('Bulk upload validation failed', ['failures' => $failures]);
             
             foreach ($failures as $failure) {
                 $errors[] = [
@@ -587,6 +606,369 @@ class PolicyController extends Controller
                 'success' => false,
                 'message' => 'An error occurred during import: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Preview bulk upload file
+     */
+    public function previewBulkUpload(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('excel_file');
+            $import = new PoliciesImport();
+            
+            // Read the file and get data without importing
+            $data = Excel::toArray($import, $file);
+            
+            if (empty($data) || empty($data[0])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No data found in file'
+                ], 400);
+            }
+            
+            // The import class already skips the header (startRow(): 2). Do not shift the first row.
+            $rows = $data[0];
+            
+            $validRows = [];
+            $invalidRows = [];
+            $totalRows = count($rows);
+
+            // Build canonical vehicle numbers from DB for duplicate check
+            $canonicalize = function ($value) {
+                $value = (string) $value;
+                $value = strtoupper($value);
+                // Remove spaces, hyphens and non-alphanumerics
+                return preg_replace('/[^A-Z0-9]/', '', $value);
+            };
+
+            $existingCanonicals = \App\Models\Policy::pluck('vehicle_number')
+                ->filter()
+                ->map(fn ($v) => $canonicalize($v))
+                ->values()
+                ->all();
+            $existingSet = array_fill_keys($existingCanonicals, true);
+
+            // Track duplicates within the uploaded file (by canonical vehicle number)
+            $seenInFile = [];
+            
+            // Validate each row
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
+                
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+                
+                // Create associative array from row data supporting both indexed and associative inputs
+                $get = function ($key, $index = null) use ($row) {
+                    if (is_array($row) && array_key_exists($key, $row)) {
+                        return $row[$key];
+                    }
+                    if ($index !== null && is_array($row) && array_key_exists($index, $row)) {
+                        return $row[$index];
+                    }
+                    return null;
+                };
+
+                // Template columns: policy_type[0], business_type[1], customer_name[2], phone[3], email[4], vehicle_number[5], vehicle_type[6], company_name[7], insurance_type[8], start_date[9], end_date[10], premium[11], customer_paid_amount[12], payout[13], agent_name[14]
+                $rowData = [
+                    'policy_type' => $get('policy_type', 0) ?? '',
+                    'business_type' => $get('business_type', 1) ?? '',
+                    'customer_name' => $get('customer_name', 2) ?? '',
+                    'phone' => (string) ($get('phone', 3) ?? ''),
+                    'email' => $get('email', 4) ?? '',
+                    'vehicle_number' => $get('vehicle_number', 5) ?? '',
+                    'vehicle_type' => $get('vehicle_type', 6) ?? '',
+                    'company_name' => $get('company_name', 7) ?? '',
+                    'insurance_type' => $get('insurance_type', 8) ?? '',
+                    'start_date' => $get('start_date', 9) ?? '',
+                    'end_date' => $get('end_date', 10) ?? '',
+                    'premium' => $get('premium', 11) ?? '',
+                    'customer_paid_amount' => $get('customer_paid_amount', 12) ?? '',
+                    'payout' => $get('payout', 13) ?? '',
+                    'agent_name' => $get('agent_name', 14) ?? '',
+                ];
+                
+                // Validate the row
+                $validator = Validator::make($rowData, $import->rules(), $import->customValidationMessages());
+
+                $errorsList = [];
+                if ($validator->fails()) {
+                    $errorsList = array_merge($errorsList, $validator->errors()->all());
+                }
+
+                // Duplicate checks by vehicle number (canonical)
+                $vehicle = $rowData['vehicle_number'] ?? '';
+                $canonV = $canonicalize($vehicle);
+                if (empty($canonV)) {
+                    // Validation already marks required, keep as is
+                } else {
+                    if (!empty($existingSet[$canonV])) {
+                        $errorsList[] = 'Duplicate vehicle number already exists';
+                    }
+                    // Mark only subsequent occurrences in the same file as duplicate
+                    if (!empty($seenInFile[$canonV])) {
+                        $errorsList[] = 'Duplicate vehicle number within the uploaded file';
+                    }
+                    // Record occurrence
+                    $seenInFile[$canonV] = true;
+                }
+
+                if (!empty($errorsList)) {
+                    $invalidRows[] = [
+                        'row' => $rowNumber,
+                        'policy_type' => $rowData['policy_type'] ?? 'N/A',
+                        'customer_name' => $rowData['customer_name'] ?? 'N/A',
+                        'phone' => $rowData['phone'] ?? 'N/A',
+                        'company_name' => $rowData['company_name'] ?? 'N/A',
+                        'errors' => implode(', ', $errorsList)
+                    ];
+                } else {
+                    $validRows[] = [
+                        'row' => $rowNumber,
+                        'policy_type' => $rowData['policy_type'] ?? 'N/A',
+                        'customer_name' => $rowData['customer_name'] ?? 'N/A',
+                        'phone' => $rowData['phone'] ?? 'N/A',
+                        'company_name' => $rowData['company_name'] ?? 'N/A',
+                        'status' => 'Valid'
+                    ];
+                }
+            }
+            
+            $validCount = count($validRows);
+            $invalidCount = count($invalidRows);
+            $successRate = $totalRows > 0 ? round(($validCount / $totalRows) * 100, 1) : 0;
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_rows' => $totalRows,
+                    'valid_rows' => $validCount,
+                    'invalid_rows' => $invalidCount,
+                    'success_rate' => $successRate,
+                    'valid_data' => $validRows,
+                    'invalid_data' => $invalidRows
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Bulk upload preview failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during preview: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get policy version history
+     */
+    public function getHistory($id)
+    {
+        $policy = Policy::findOrFail($id);
+        $versions = $policy->versions()->with('policy')->get();
+
+        return response()->json([
+            'policy' => [
+                'id' => $policy->id,
+                'customer_name' => $policy->customer_name,
+                'vehicle_number' => $policy->vehicle_number,
+                'policy_type' => $policy->policy_type,
+            ],
+            'versions' => $versions->map(function ($version) {
+                return [
+                    'id' => $version->id,
+                    'version_number' => $version->version_number,
+                    'version_label' => $version->version_label,
+                    'policy_period' => $version->policy_period,
+                    'company_name' => $version->company_name,
+                    'insurance_type' => $version->insurance_type,
+                    'premium' => $version->premium,
+                    'payout' => $version->payout,
+                    'customer_paid_amount' => $version->customer_paid_amount,
+                    'revenue' => $version->revenue,
+                    'status' => $version->status,
+                    'start_date' => $version->start_date->format('Y-m-d'),
+                    'end_date' => $version->end_date->format('Y-m-d'),
+                    'has_documents' => $version->hasDocuments(),
+                    'documents' => $version->getDocuments(),
+                    'notes' => $version->notes,
+                    'created_by' => $version->created_by,
+                    'version_created_at' => $version->version_created_at->format('M d, Y g:i A'),
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Download document from a specific policy version
+     */
+    public function downloadVersionDocument($versionId, $documentType)
+    {
+        $version = PolicyVersion::find($versionId);
+        
+        if (!$version) {
+            return response()->json(['message' => 'Policy version not found'], 404);
+        }
+
+        // Map document types to version fields
+        $documentFieldMap = [
+            'policy' => 'policy_copy_path',
+            'rc' => 'rc_copy_path',
+            'aadhar' => 'aadhar_copy_path',
+            'pan' => 'pan_copy_path',
+        ];
+
+        if (!isset($documentFieldMap[$documentType])) {
+            return response()->json(['message' => 'Invalid document type'], 400);
+        }
+
+        $documentField = $documentFieldMap[$documentType];
+        $filePath = $version->$documentField;
+
+        if (!$filePath) {
+            return response()->json(['message' => 'Document not found for this version'], 404);
+        }
+
+        // Try the standard storage path first
+        $fullPath = storage_path('app/' . $filePath);
+        
+        if (!file_exists($fullPath)) {
+            \Log::error("Document not found for version {$versionId}, path: {$fullPath}");
+            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+        }
+
+        // Get original filename
+        $originalName = basename($filePath);
+        
+        // Create a more user-friendly filename
+        $customerName = $version->customer_name;
+        $versionNumber = $version->version_number;
+        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+        
+        $friendlyName = "{$customerName}_Version{$versionNumber}_{$documentType}.{$extension}";
+
+        return response()->download($fullPath, $friendlyName);
+    }
+
+    /**
+     * Preserve documents for a specific version by copying them to version-specific directory
+     */
+    private function preserveDocumentsForVersion(Policy $policy, PolicyVersion $version)
+    {
+        $documentFields = ['policy_copy_path', 'rc_copy_path', 'aadhar_copy_path', 'pan_copy_path'];
+        $versionDir = "private/policies/{$policy->id}/versions/v{$version->version_number}";
+        
+        foreach ($documentFields as $field) {
+            $currentPath = $policy->$field;
+            if ($currentPath && file_exists(storage_path('app/' . $currentPath))) {
+                // Create version directory if it doesn't exist
+                $versionDirPath = storage_path('app/' . $versionDir);
+                if (!is_dir($versionDirPath)) {
+                    mkdir($versionDirPath, 0755, true);
+                }
+                
+                // Generate new filename for version
+                $originalFilename = basename($currentPath);
+                $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
+                $documentType = str_replace('_path', '', $field);
+                $newFilename = "{$documentType}_v{$version->version_number}.{$extension}";
+                $newPath = $versionDir . '/' . $newFilename;
+                
+                // Copy file to version directory
+                if (copy(storage_path('app/' . $currentPath), storage_path('app/' . $newPath))) {
+                    // Update version record with new path
+                    $version->update([$field => $newPath]);
+                    \Log::info("Document preserved for version: {$currentPath} -> {$newPath}");
+                } else {
+                    \Log::error("Failed to preserve document for version: {$currentPath}");
+                }
+            }
+        }
+    }
+
+    /**
+     * Search for existing policies by vehicle number
+     */
+    public function searchByVehicleNumber($vehicleNumber)
+    {
+        // Canonicalize the vehicle number for search (remove spaces, convert to uppercase)
+        $canonicalVehicleNumber = strtoupper(preg_replace('/[^A-Z0-9]/', '', $vehicleNumber));
+        
+        // Search for policies with matching vehicle number
+        $policies = Policy::all()->filter(function ($policy) use ($canonicalVehicleNumber) {
+            $policyVehicleNumber = strtoupper(preg_replace('/[^A-Z0-9]/', '', $policy->vehicle_number));
+            return $policyVehicleNumber === $canonicalVehicleNumber;
+        })->map(function ($policy) {
+            return [
+                'id' => $policy->id,
+                'customer_name' => $policy->customer_name,
+                'phone' => $policy->phone,
+                'email' => $policy->email,
+                'vehicle_number' => $policy->vehicle_number,
+                'vehicle_type' => $policy->vehicle_type,
+                'company_name' => $policy->company_name,
+                'insurance_type' => $policy->insurance_type,
+                'policy_type' => $policy->policy_type,
+                'start_date' => $policy->start_date->format('Y-m-d'),
+                'end_date' => $policy->end_date->format('Y-m-d'),
+                'premium' => $policy->premium,
+                'payout' => $policy->payout,
+                'customer_paid_amount' => $policy->customer_paid_amount,
+                'revenue' => $policy->revenue,
+                'status' => $policy->status,
+                'business_type' => $policy->business_type,
+                'agent_name' => $policy->agent_name,
+                'created_at' => $policy->created_at->format('Y-m-d')
+            ];
+        })->values();
+
+        return response()->json([
+            'found' => $policies->count() > 0,
+            'count' => $policies->count(),
+            'policies' => $policies
+        ]);
+    }
+
+    /**
+     * Export policies data to Excel/CSV
+     */
+    public function exportPolicies(Request $request)
+    {
+        // Get filters from request
+        $filters = [];
+        
+        if ($request->has('policy_type') && !empty($request->policy_type)) {
+            $filters['policy_type'] = $request->policy_type;
+        }
+        
+        if ($request->has('status') && !empty($request->status)) {
+            $filters['status'] = $request->status;
+        }
+        
+        if ($request->has('start_date') && !empty($request->start_date)) {
+            $filters['start_date'] = $request->start_date;
+        }
+        
+        if ($request->has('end_date') && !empty($request->end_date)) {
+            $filters['end_date'] = $request->end_date;
+        }
+
+        $format = $request->get('format', 'xlsx'); // Default to Excel
+        $filename = 'policies_export_' . date('Y-m-d_H-i-s');
+        
+        if ($format === 'csv') {
+            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        } else {
+            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx');
         }
     }
 }

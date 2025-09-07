@@ -6,7 +6,6 @@
 <div class="page active" id="reports">
     <div class="page-header">
         <h1>Reports & Analytics</h1>
-        <p>Comprehensive insights and performance analytics</p>
     </div>
     <div class="page-content">
         <!-- Reports Controls -->
@@ -200,7 +199,7 @@
                         </thead>
                         <tbody id="policiesReportTableBody">
                             <tr>
-                                <td>POL001</td>
+                                <td>#001</td>
                                 <td>John Doe</td>
                                 <td>Motor</td>
                                 <td>ABC Insurance</td>
@@ -210,7 +209,7 @@
                                 <td>2025-02-15</td>
                             </tr>
                             <tr>
-                                <td>POL002</td>
+                                <td>#002</td>
                                 <td>Jane Smith</td>
                                 <td>Health</td>
                                 <td>XYZ Insurance</td>
@@ -264,7 +263,7 @@
                         </thead>
                         <tbody id="renewalsReportTableBody">
                             <tr>
-                                <td>POL001</td>
+                                <td>#001</td>
                                 <td>John Doe</td>
                                 <td>2025-02-15</td>
                                 <td>5 days</td>
@@ -912,7 +911,7 @@
         if (!tbody) return;
         const rows = (items || []).map(p => `
             <tr>
-                <td>${p.policyNumber || p.id}</td>
+                <td>#${(p.id || 0).toString().padStart(3, '0')}</td>
                 <td>${p.customerName || '—'}</td>
                 <td>${p.policyType || '—'}</td>
                 <td>${p.companyName || '—'}</td>
@@ -941,7 +940,7 @@
             const priority = daysLeft !== null ? (daysLeft <= 7 ? 'high' : daysLeft <= 14 ? 'medium' : 'low') : 'low';
             return `
             <tr>
-                <td>${r.policyNumber || r.id}</td>
+                <td>#${(r.id || 0).toString().padStart(3, '0')}</td>
                 <td>${r.customerName || '—'}</td>
                 <td>${r.dueDate || '—'}</td>
                 <td>${daysLeft !== null ? daysLeft + ' days' : '—'}</td>

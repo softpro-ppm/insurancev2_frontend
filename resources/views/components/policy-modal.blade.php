@@ -58,25 +58,9 @@
                 <!-- Policy Overview Section -->
                 <div class="form-section">
                     <h3><i class="fas fa-info-circle"></i> Policy Overview</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="policyNumber">Policy Number</label>
-                            <input type="text" id="policyNumber" name="policyNumber" readonly placeholder="Auto-generated">
-                            <small class="hint">Auto-generated unique identifier</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="policyStatus">Status *</label>
-                            <select id="policyStatus" name="status" required>
-                                <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Expired">Expired</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
                     <div class="form-group" id="agentNameGroup">
-                        <label for="agentName">Agent Name *</label>
-                        <select id="agentName" name="agent_name" required>
+                        <label for="agentName">Agent Name</label>
+                        <select id="agentName" name="agent_name">
                             <option value="">Select Agent</option>
                             <!-- Agent options will be populated dynamically -->
                         </select>
@@ -91,19 +75,29 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="vehicleNumber">Vehicle Number *</label>
-                                <input type="text" id="vehicleNumber" name="vehicleNumber" required>
+                                <input type="text" id="vehicleNumber" name="vehicleNumber" required maxlength="10" pattern="[A-Z0-9]{10}" placeholder="AP39HG0020">
                             </div>
                             <div class="form-group">
                                 <label for="vehicleType">Vehicle Type *</label>
                                 <select id="vehicleType" name="vehicleType" required>
                                     <option value="">Select Vehicle Type</option>
-                                    <option value="Auto">Auto</option>
+                                    <option value="Auto (Goods)">Auto (Goods)</option>
+                                    <option value="Auto (Passenger)">Auto (Passenger)</option>
                                     <option value="Bus">Bus</option>
-                                    <option value="Lorry">Lorry</option>
-                                    <option value="Car">Car</option>
-                                    <option value="Bike">Bike</option>
-                                    <option value="Truck">Truck</option>
+                                    <option value="Car (Commercial)">Car (Commercial)</option>
+                                    <option value="Car (Private)">Car (Private)</option>
+                                    <option value="E-Rickshaw">E-Rickshaw</option>
+                                    <option value="Electric Car">Electric Car</option>
+                                    <option value="HGV (Goods)">HGV (Goods)</option>
+                                    <option value="JCB">JCB</option>
+                                    <option value="LCV (Goods)">LCV (Goods)</option>
+                                    <option value="Others / Misc.">Others / Misc.</option>
+                                    <option value="Private Car">Private Car</option>
+                                    <option value="School Bus">School Bus</option>
                                     <option value="Tractor">Tractor</option>
+                                    <option value="Trailer">Trailer</option>
+                                    <option value="Two-Wheeler">Two-Wheeler</option>
+                                    <option value="Van/Jeep">Van/Jeep</option>
                                 </select>
                             </div>
                         </div>
@@ -119,12 +113,16 @@
                             </div>
                             <div class="form-group">
                                 <label for="customerPhone">Phone Number *</label>
-                                <input type="tel" id="customerPhone" name="customerPhone" required>
+                                <input type="tel" id="customerPhone" name="customerPhone" required minlength="10" maxlength="10" pattern="[0-9]{10}">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="customerEmail">Email Address</label>
-                            <input type="email" id="customerEmail" name="customerEmail">
+                            <input type="email" id="customerEmail" name="customerEmail" 
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                   placeholder="Enter valid email address"
+                                   onblur="validateEmail(this)">
+                            <div class="validation-message" id="customerEmail-error"></div>
                         </div>
                     </div>
 
@@ -136,19 +134,28 @@
                                 <label for="companyName">Company Name *</label>
                                 <select id="companyName" name="companyName" required>
                                     <option value="">Select Company</option>
-                                    <!-- General Insurance Companies -->
-                                    <optgroup label="General Insurance">
-                                        <option value="The New India Assurance Co. Ltd.">The New India Assurance Co. Ltd.</option>
-                                        <option value="United India Insurance Co. Ltd.">United India Insurance Co. Ltd.</option>
-                                        <option value="National Insurance Co. Ltd.">National Insurance Co. Ltd.</option>
-                                        <option value="The Oriental Insurance Co. Ltd.">The Oriental Insurance Co. Ltd.</option>
-                                        <option value="ICICI Lombard General Insurance Co. Ltd.">ICICI Lombard General Insurance Co. Ltd.</option>
-                                        <option value="Bajaj Allianz General Insurance Co. Ltd.">Bajaj Allianz General Insurance Co. Ltd.</option>
-                                        <option value="HDFC ERGO General Insurance Co. Ltd.">HDFC ERGO General Insurance Co. Ltd.</option>
-                                        <option value="Tata AIG General Insurance Co. Ltd.">Tata AIG General Insurance Co. Ltd.</option>
-                                        <option value="Reliance General Insurance Co. Ltd.">Reliance General Insurance Co. Ltd.</option>
-                                        <option value="SBI General Insurance Co. Ltd.">SBI General Insurance Co. Ltd.</option>
-                                    </optgroup>
+                                    <option value="The New India">The New India</option>
+                                    <option value="United India">United India</option>
+                                    <option value="National Insurance">National Insurance</option>
+                                    <option value="The Oriental">The Oriental</option>
+                                    <option value="ICICI Lombard">ICICI Lombard</option>
+                                    <option value="HDFC ERGO">HDFC ERGO</option>
+                                    <option value="Bajaj Allianz">Bajaj Allianz</option>
+                                    <option value="Tata AIG">Tata AIG</option>
+                                    <option value="Reliance General">Reliance General</option>
+                                    <option value="SBI General">SBI General</option>
+                                    <option value="IFFCO-Tokio">IFFCO-Tokio</option>
+                                    <option value="Royal Sundaram">Royal Sundaram</option>
+                                    <option value="Kotak Mahindra">Kotak Mahindra</option>
+                                    <option value="Chola MS">Chola MS</option>
+                                    <option value="Shriram General">Shriram General</option>
+                                    <option value="Universal Sompo">Universal Sompo</option>
+                                    <option value="Future Generali">Future Generali</option>
+                                    <option value="Magma HDI">Magma HDI</option>
+                                    <option value="Raheja QBE">Raheja QBE</option>
+                                    <option value="Go Digit">Go Digit</option>
+                                    <option value="ACKO">ACKO</option>
+                                    <option value="Zuno">Zuno</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -189,7 +196,6 @@
                             <div class="form-group">
                                 <label for="revenue">Revenue (₹) *</label>
                                 <input type="number" id="revenue" name="revenue" step="0.01" required readonly>
-                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                         </div>
                     </div>
@@ -197,29 +203,25 @@
                     <!-- Upload Section -->
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
-                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 5MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="policyCopy">Policy Copy</label>
                                 <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="rcCopy">RC Copy</label>
                                 <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="aadharCopy">Aadhar Copy</label>
                                 <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="panCopy">PAN Copy</label>
                                 <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                     </div>
@@ -240,10 +242,14 @@
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="healthCustomerEmail">Email Address</label>
-                                <input type="email" id="healthCustomerEmail" name="healthCustomerEmail">
-                            </div>
+                                                    <div class="form-group">
+                            <label for="healthCustomerEmail">Email Address</label>
+                            <input type="email" id="healthCustomerEmail" name="healthCustomerEmail" 
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                   placeholder="Enter valid email address"
+                                   onblur="validateEmail(this)">
+                            <div class="validation-message" id="healthCustomerEmail-error"></div>
+                        </div>
                             <div class="form-group">
                                 <label for="healthCustomerAge">Age *</label>
                                 <input type="number" id="healthCustomerAge" name="healthCustomerAge" min="1" max="120" required>
@@ -322,31 +328,26 @@
                             <div class="form-group">
                                 <label for="healthRevenue">Revenue (₹) *</label>
                                 <input type="number" id="healthRevenue" name="healthRevenue" step="0.01" required readonly>
-                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
-                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPolicyCopy">Policy Copy</label>
                                 <input type="file" id="healthPolicyCopy" name="healthPolicyCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="healthAadharCopy">Aadhar Copy</label>
                                 <input type="file" id="healthAadharCopy" name="healthAadharCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPanCopy">PAN Copy</label>
                                 <input type="file" id="healthPanCopy" name="healthPanCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                     </div>
@@ -367,10 +368,14 @@
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="lifeCustomerEmail">Email Address</label>
-                                <input type="email" id="lifeCustomerEmail" name="lifeCustomerEmail">
-                            </div>
+                                                    <div class="form-group">
+                            <label for="lifeCustomerEmail">Email Address</label>
+                            <input type="email" id="lifeCustomerEmail" name="lifeCustomerEmail" 
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                   placeholder="Enter valid email address"
+                                   onblur="validateEmail(this)">
+                            <div class="validation-message" id="lifeCustomerEmail-error"></div>
+                        </div>
                             <div class="form-group">
                                 <label for="lifeCustomerAge">Age *</label>
                                 <input type="number" id="lifeCustomerAge" name="lifeCustomerAge" min="1" max="120" required>
@@ -471,31 +476,26 @@
                             <div class="form-group">
                                 <label for="lifeRevenue">Revenue (₹) *</label>
                                 <input type="number" id="lifeRevenue" name="lifeRevenue" step="0.01" required readonly>
-                                <small class="hint">Auto-calculated: Customer Paid − (Premium − Payout)</small>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
-                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 3MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePolicyCopy">Policy Copy</label>
                                 <input type="file" id="lifePolicyCopy" name="lifePolicyCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                             <div class="form-group">
                                 <label for="lifeAadharCopy">Aadhar Copy</label>
                                 <input type="file" id="lifeAadharCopy" name="lifeAadharCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePanCopy">PAN Copy</label>
                                 <input type="file" id="lifePanCopy" name="lifePanCopy" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="hint">Max 3MB</small>
                             </div>
                         </div>
                     </div>

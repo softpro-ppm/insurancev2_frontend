@@ -36,6 +36,13 @@ let currentStep = 1;
 let selectedPolicyType = '';
 let selectedBusinessType = '';
 
+// Helper function to get local date string (fixes timezone issues)
+const getLocalDateString = (date) => {
+    return date.getFullYear() + '-' + 
+           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(date.getDate()).padStart(2, '0');
+};
+
 // Debounce function for search inputs
 const debounce = (func, wait) => {
     let timeout;
@@ -367,8 +374,8 @@ $(document).ready(function() {
         oneYearLater.setFullYear(today.getFullYear() + 1);
         oneYearLater.setDate(oneYearLater.getDate() - 1);
         
-        $('#startDate').val(today.toISOString().split('T')[0]);
-        $('#endDate').val(oneYearLater.toISOString().split('T')[0]);
+        $('#startDate').val(getLocalDateString(today));
+        $('#endDate').val(getLocalDateString(oneYearLater));
         
         // Hide loading state
         hideLoadingState();
@@ -1789,7 +1796,7 @@ const openFollowupModal = () => {
     const today = new Date();
     const nextFollowup = new Date(today);
     nextFollowup.setDate(today.getDate() + 3);
-    $('#followupNextDate').val(nextFollowup.toISOString().split('T')[0]);
+    $('#followupNextDate').val(getLocalDateString(nextFollowup));
     
     // Hide previous notes section for new follow-ups
     $('#previousNotesSection').hide();
@@ -1814,7 +1821,7 @@ const handleFollowupSubmit = (e) => {
     });
     
     const newNote = {
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(new Date()),
         time: currentTime,
         telecaller: formData.get('assignedTo'),
         note: formData.get('note'),
@@ -1832,12 +1839,12 @@ const handleFollowupSubmit = (e) => {
         status: formData.get('status'),
         assignedTo: formData.get('assignedTo'),
         priority: formData.get('priority'),
-        lastFollowupDate: new Date().toISOString().split('T')[0],
+        lastFollowupDate: getLocalDateString(new Date()),
         nextFollowupDate: formData.get('nextFollowupDate'),
         reminderTime: formData.get('reminderTime'),
         notesHistory: [newNote],
         recentNote: newNote.note,
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: getLocalDateString(new Date())
     };
     
     allFollowups.push(followupData);
@@ -2269,8 +2276,9 @@ const setDefaultDates = (policyType) => {
     oneYearLater.setFullYear(today.getFullYear() + 1);
     oneYearLater.setDate(oneYearLater.getDate() - 1);
     
-    const startDate = today.toISOString().split('T')[0];
-    const endDate = oneYearLater.toISOString().split('T')[0];
+    // Use local date instead of UTC date to avoid timezone issues
+    const startDate = getLocalDateString(today);
+    const endDate = getLocalDateString(oneYearLater);
     
     if (policyType === 'Motor') {
         $('#startDate').val(startDate);
@@ -2331,7 +2339,7 @@ const openRenewalModal = () => {
     const today = new Date();
     const defaultReminder = new Date(today);
     defaultReminder.setDate(today.getDate() + 30);
-    $('#renewalReminderDate').val(defaultReminder.toISOString().split('T')[0]);
+    $('#renewalReminderDate').val(getLocalDateString(defaultReminder));
     
     $('#renewalModal').addClass('show');
 };
@@ -2360,7 +2368,7 @@ const handleRenewalSubmit = (e) => {
         emailNotification: formData.get('emailNotification') === 'on',
         smsNotification: formData.get('smsNotification') === 'on',
         notificationDays: parseInt(formData.get('notificationDays')),
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: getLocalDateString(new Date())
     };
     
     allRenewals.push(renewalData);

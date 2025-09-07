@@ -17,7 +17,7 @@
                             <span class="status-badge" id="viewPolicyStatus">Active</span>
                         </div>
                         <div class="policy-id">
-                            <strong>Policy Number:</strong> <span id="viewPolicyNumber">#001</span>
+                            <strong>Policy ID:</strong> <span id="viewPolicyId">#001</span>
                         </div>
                     </div>
                 </div>

@@ -13,7 +13,7 @@ class DashboardController extends Controller
     /**
      * Get dashboard statistics
      */
-    public function getStats()
+    public function getStats(Request $request)
     {
         $now = Carbon::now();
         $currentMonth = $now->copy()->startOfMonth();
@@ -51,31 +51,24 @@ class DashboardController extends Controller
         $monthlyRenewals = Policy::whereMonth('end_date', $currentMonth->month)
             ->whereYear('end_date', $currentMonth->year)
             ->count();
+            // Monthly renewed policies (those that have been processed/renewed)
+$monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
+->whereYear('end_date', $currentMonth->year)
+->where('status', 'Renewed')
+->count();
         
-        // Policy type distribution
+        // Policy type distribution (last 12 months)
+        $oneYearAgo = $now->copy()->subMonths(11)->startOfMonth();
         $policyTypes = Policy::selectRaw('policy_type, COUNT(*) as count')
+            ->where('start_date', '>=', $oneYearAgo)
             ->groupBy('policy_type')
             ->get()
             ->pluck('count', 'policy_type')
             ->toArray();
         
-        // Monthly chart data (last 6 months) based on START DATE
-        $chartData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $date = $now->copy()->subMonths($i);
-            $chartData[] = [
-                'month' => $date->format('M'),
-                'premium' => Policy::whereMonth('start_date', $date->month)
-                    ->whereYear('start_date', $date->year)
-                    ->sum('premium'),
-                'revenue' => Policy::whereMonth('start_date', $date->month)
-                    ->whereYear('start_date', $date->year)
-                    ->sum('revenue'),
-                'policies' => Policy::whereMonth('start_date', $date->month)
-                    ->whereYear('start_date', $date->year)
-                    ->count()
-            ];
-        }
+        // Chart data based on selected period
+        $period = $request->get('period', 'financial_year');
+        $chartData = $this->getChartDataForPeriod($period, $now);
         
         return response()->json([
             'stats' => [
@@ -91,6 +84,7 @@ class DashboardController extends Controller
                 'monthlyPremium' => $monthlyPremium,
                 'monthlyRevenue' => $monthlyRevenue,
                 'monthlyRenewals' => $monthlyRenewals,
+                'monthlyRenewed' => $monthlyRenewed,
                 'yearlyPolicies' => $yearlyPolicies,
                 'yearlyPremium' => $yearlyPremium,
                 'yearlyRevenue' => $yearlyRevenue,
@@ -99,19 +93,82 @@ class DashboardController extends Controller
             'chartData' => $chartData
         ]);
     }
+
+    /**
+     * Get chart data based on selected period
+     */
+    private function getChartDataForPeriod($period, $now)
+    {
+        $chartData = [];
+        
+        switch ($period) {
+            case 'current_month':
+                // Current month - show daily data for last 30 days
+                for ($i = 29; $i >= 0; $i--) {
+                    $date = $now->copy()->subDays($i);
+                    $chartData[] = [
+                        'month' => $date->format('d'),
+                        'premium' => Policy::whereDate('start_date', $date->toDateString())->sum('premium'),
+                        'revenue' => Policy::whereDate('start_date', $date->toDateString())->sum('revenue'),
+                        'policies' => Policy::whereDate('start_date', $date->toDateString())->count()
+                    ];
+                }
+                break;
+                
+            case 'current_quarter':
+                // Current quarter - show monthly data for last 3 months
+                for ($i = 2; $i >= 0; $i--) {
+                    $date = $now->copy()->subMonths($i);
+                    $chartData[] = [
+                        'month' => $date->format('M'),
+                        'premium' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->sum('premium'),
+                        'revenue' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->sum('revenue'),
+                        'policies' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->count()
+                    ];
+                }
+                break;
+                
+            case 'financial_year':
+            default:
+                // Financial year - show last 12 months
+                for ($i = 11; $i >= 0; $i--) {
+                    $date = $now->copy()->subMonths($i);
+                    $chartData[] = [
+                        'month' => $date->format('M'),
+                        'premium' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->sum('premium'),
+                        'revenue' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->sum('revenue'),
+                        'policies' => Policy::whereMonth('start_date', $date->month)
+                            ->whereYear('start_date', $date->year)
+                            ->count()
+                    ];
+                }
+                break;
+        }
+        
+        return $chartData;
+    }
     
     /**
      * Get recent policies for dashboard
      */
     public function getRecentPolicies()
     {
-        $recentPolicies = Policy::latest()
+        $recentPolicies = Policy::orderBy('start_date', 'desc')
             ->take(10)
             ->get()
             ->map(function ($policy) {
                 return [
                     'id' => $policy->id,
-                    'policyNumber' => $policy->policy_number,
                     'customerName' => $policy->customer_name,
                     'phone' => $policy->phone,
                     'email' => $policy->email,
@@ -153,7 +210,6 @@ class DashboardController extends Controller
             ->map(function ($policy) {
                 return [
                     'id' => $policy->id,
-                    'policyNumber' => $policy->policy_number,
                     'customerName' => $policy->customer_name,
                     'phone' => $policy->phone,
                     'endDate' => $policy->end_date->format('Y-m-d'),

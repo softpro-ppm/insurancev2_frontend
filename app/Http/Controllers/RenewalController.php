@@ -21,7 +21,6 @@ class RenewalController extends Controller
         $renewals = $query->orderBy('due_date')->get()->map(function ($renewal) {
             return [
                 'id' => $renewal->id,
-                'policyNumber' => $renewal->policy_number,
                 'customerName' => $renewal->customer_name,
                 'phone' => $renewal->phone,
                 'email' => $renewal->email,
@@ -45,7 +44,6 @@ class RenewalController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'policyNumber' => 'required|string|max:50',
             'customerName' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
             'email' => 'nullable|email|max:255',
@@ -63,7 +61,6 @@ class RenewalController extends Controller
         }
 
         $renewal = Renewal::create([
-            'policy_number' => $request->policyNumber,
             'customer_name' => $request->customerName,
             'phone' => $request->phone,
             'email' => $request->email,
@@ -80,7 +77,6 @@ class RenewalController extends Controller
             'message' => 'Renewal created successfully!',
             'renewal' => [
                 'id' => $renewal->id,
-                'policyNumber' => $renewal->policy_number,
                 'customerName' => $renewal->customer_name,
                 'phone' => $renewal->phone,
                 'email' => $renewal->email,
@@ -105,7 +101,6 @@ class RenewalController extends Controller
         
         return response()->json(['renewal' => [
             'id' => $renewal->id,
-            'policyNumber' => $renewal->policy_number,
             'customerName' => $renewal->customer_name,
             'phone' => $renewal->phone,
             'email' => $renewal->email,
@@ -126,7 +121,6 @@ class RenewalController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'policyNumber' => 'required|string|max:50',
             'customerName' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
             'email' => 'nullable|email|max:255',
@@ -145,7 +139,6 @@ class RenewalController extends Controller
 
         $renewal = Renewal::findOrFail($id);
         $renewal->update([
-            'policy_number' => $request->policyNumber,
             'customer_name' => $request->customerName,
             'phone' => $request->phone,
             'email' => $request->email,
@@ -162,7 +155,6 @@ class RenewalController extends Controller
             'message' => 'Renewal updated successfully!',
             'renewal' => [
                 'id' => $renewal->id,
-                'policyNumber' => $renewal->policy_number,
                 'customerName' => $renewal->customer_name,
                 'phone' => $renewal->phone,
                 'email' => $renewal->email,

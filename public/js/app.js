@@ -6,6 +6,111 @@ let filteredData = [];
 let allPolicies = [];
 let allAgents = [];
 
+// Vehicle number search debounce timer and toggle
+let vehicleSearchTimeout = null;
+let vehicleDuplicateCheckEnabled = true;
+let duplicateDialogOpen = false;
+
+// Helper to show a small confirm dialog for duplicate policy
+const showDuplicateDialog = (policy) => {
+    if (duplicateDialogOpen) return;
+    duplicateDialogOpen = true;
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'duplicatePolicyOverlay';
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 100000;
+    `;
+    
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #fff; color: #111; width: 420px; max-width: 90vw;
+        border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        padding: 18px; font-size: 14px;
+    `;
+    
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight: 700; margin-bottom: 8px;';
+    title.textContent = 'Policy already exists';
+    
+    const body = document.createElement('div');
+    body.style.cssText = 'margin-bottom: 14px; line-height: 1.4;';
+    body.innerHTML = `Customer: <strong>${policy.customer_name}</strong><br>
+                      Vehicle: <strong>${policy.vehicle_number}</strong> (${policy.vehicle_type || 'Motor'})<br>
+                      Period: ${policy.start_date} → ${policy.end_date}`;
+    
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex; gap:10px; justify-content:flex-end;';
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = 'padding:8px 12px; border:1px solid #e5e7eb; background:#fff; border-radius:6px; cursor:pointer;';
+    cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        duplicateDialogOpen = false;
+    });
+    
+    const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.textContent = 'Renew/Edit';
+    confirmBtn.style.cssText = 'padding:8px 12px; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;';
+    confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Opening...';
+        vehicleDuplicateCheckEnabled = false;
+        try {
+            closePolicyModal();
+            await editPolicy(policy.id);
+        } finally {
+            if (document.body.contains(overlay)) document.body.removeChild(overlay);
+            duplicateDialogOpen = false;
+        }
+    }, { once: true });
+    
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
+    dialog.appendChild(title);
+    dialog.appendChild(body);
+    dialog.appendChild(actions);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+};
+
+// Vehicle number validation and duplicate check
+const checkVehicleNumberDuplicate = async (vehicleNumber, inputElement) => {
+    // Clear previous timeout
+    if (vehicleSearchTimeout) {
+        clearTimeout(vehicleSearchTimeout);
+        vehicleSearchTimeout = null;
+    }
+    
+    // Remove any existing inline message (legacy)
+    const existingMessage = inputElement.parentElement.querySelector('.vehicle-validation-message');
+    if (existingMessage) existingMessage.remove();
+    
+    // Don't search if disabled or vehicle number is too short
+    if (!vehicleDuplicateCheckEnabled || !vehicleNumber || vehicleNumber.length < 4) {
+        return;
+    }
+    
+    vehicleSearchTimeout = setTimeout(async () => {
+        if (!vehicleDuplicateCheckEnabled) return;
+        try {
+            const result = await searchPolicyByVehicleNumber(vehicleNumber);
+            if (result.found && result.policies.length > 0) {
+                const policy = result.policies[0];
+                showDuplicateDialog(policy);
+            }
+        } catch (error) {
+            console.error('Error checking vehicle number:', error);
+        }
+    }, 500);
+};
+
 // Policies page variables
 let policiesCurrentPage = 1;
 let policiesRowsPerPage = 10;
@@ -101,7 +206,9 @@ const apiCall = async (endpoint, options = {}) => {
 // Dashboard API calls
 const fetchDashboardStats = async () => {
     try {
-        const data = await apiCall('/api/dashboard/stats');
+        // Add cache-busting parameter to force fresh data
+        const timestamp = new Date().getTime();
+        const data = await apiCall(`/api/dashboard/stats?t=${timestamp}`);
         return data;
     } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -157,6 +264,12 @@ const createPolicy = async (policyData) => {
 
 const createPolicyWithFiles = async (formData) => {
     try {
+        // Add CSRF token to FormData as backup
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            formData.append('_token', csrfToken);
+        }
+        
         const data = await apiCall('/policies', {
             method: 'POST',
             body: formData,
@@ -254,6 +367,17 @@ const deleteAgent = async (id) => {
         return data;
     } catch (error) {
         console.error('Failed to delete agent:', error);
+        throw error;
+    }
+};
+
+// Vehicle number search API call
+const searchPolicyByVehicleNumber = async (vehicleNumber) => {
+    try {
+        const data = await apiCall(`/api/policies/search/vehicle/${encodeURIComponent(vehicleNumber)}`);
+        return data;
+    } catch (error) {
+        console.error('Failed to search policy by vehicle number:', error);
         throw error;
     }
 };
@@ -629,7 +753,6 @@ const generateDummyRenewals = () => {
     
     return renewals;
 };
-
 // Dummy data for follow-ups
 const generateDummyFollowups = () => {
     const statuses = ['Pending', 'In Progress', 'Completed', 'No Response', 'Not Interested'];
@@ -706,7 +829,11 @@ const generateDummyFollowups = () => {
 };
 
 // Initialize the application
+console.log('UPDATED JAVASCRIPT FILE LOADED - app.js with vehicle numbers AND POLICY HISTORY FEATURE');
 $(document).ready(function() {
+    // Initialize theme immediately to prevent flash
+    initializeTheme();
+    
     // Show loading state
     showLoadingState();
     
@@ -757,18 +884,28 @@ const initializeApplication = async () => {
         hideLoadingState();
     }
 };
-
 // Load dashboard data
 const loadDashboardData = async () => {
     try {
-        const stats = await fetchDashboardStats();
-        if (stats) {
-            updateDashboardStats(stats);
+        // Load dashboard stats (charts might fail, but that's ok)
+        try {
+            const stats = await fetchDashboardStats();
+            if (stats) {
+                updateDashboardStats(stats);
+            }
+        } catch (statsError) {
+            console.warn('Failed to load dashboard stats (charts):', statsError);
         }
         
-        const recentPolicies = await fetchRecentPolicies();
-        if (recentPolicies.length > 0) {
-            updateRecentPoliciesTable(recentPolicies);
+        // Load recent policies separately (this should always work)
+        try {
+            const recentPolicies = await fetchRecentPolicies();
+            console.log('Fetched recent policies:', recentPolicies);
+            if (recentPolicies.length > 0) {
+                updateRecentPoliciesTable(recentPolicies);
+            }
+        } catch (policiesError) {
+            console.error('Failed to load recent policies:', policiesError);
         }
         
         const expiringPolicies = await fetchExpiringPolicies();
@@ -779,7 +916,6 @@ const loadDashboardData = async () => {
         console.error('Failed to load dashboard data:', error);
     }
 };
-
 // Load policies data
 const loadPoliciesData = async () => {
     try {
@@ -831,48 +967,176 @@ const updateDashboardStats = (stats) => {
         $('#yearlyPremium').text('₹' + (stats.stats.yearlyPremium || 0).toLocaleString() + ' (FY)');
         $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
         $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
-        $('#monthlyRenewals').text(stats.stats.monthlyRenewals || 0);
+        const renewed = stats.stats.monthlyRenewed || 0;
+        const totalRenewals = stats.stats.monthlyRenewals || 0;
+        $('#monthlyRenewals').text(`${renewed}/${totalRenewals}`);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
         $('#monthlyRevenue').text('₹' + (stats.stats.monthlyRevenue || 0).toLocaleString());
         $('#yearlyRevenue').text('₹' + (stats.stats.yearlyRevenue || 0).toLocaleString() + ' (FY)');
     }
     
     if (stats.chartData) {
+        // Cache the latest chart data in case charts are not yet initialized
+        window.latestChartData = stats.chartData;
+        window.latestPolicyTypes = stats.policyTypes || {};
         updateDashboardCharts(stats.chartData, stats.policyTypes);
     }
 };
 
 // Update recent policies table
 const updateRecentPoliciesTable = (policies) => {
+    // Store the recent policies data for search and sort functionality
+    window.recentPoliciesData = policies || [];
+    
+    // Apply search filter if there's a search term
+    const searchTerm = $('#policySearch').val().toLowerCase().trim();
+    let filteredPolicies = [...window.recentPoliciesData];
+    
+    if (searchTerm !== '') {
+        console.log('Applying search filter:', searchTerm);
+        filteredPolicies = window.recentPoliciesData.filter(policy => {
+            // Search across ALL possible fields in recent policies
+            const searchableFields = [
+                // Basic info
+                policy.customerName || '',
+                policy.phone || '',
+                policy.customerEmail || policy.email || '',
+                policy.policyType || '',
+                policy.vehicleNumber || '',
+                
+                // Insurance details
+                policy.insuranceType || policy.planType || '',
+                policy.startDate || '',
+                policy.endDate || '',
+                policy.status || '',
+                
+                // Financial details
+                (policy.premium || 0).toString(),
+                (policy.payout || 0).toString(),
+                (policy.customerPaidAmount || 0).toString(),
+                (policy.revenue || 0).toString(),
+                
+                // Business details
+                policy.businessType || policy.business_type || '',
+                policy.agentName || policy.agent_name || '',
+                
+                // ID
+                (policy.id || '').toString()
+            ];
+            
+            // Check if any field contains the search term
+            return searchableFields.some(field => 
+                field.toString().toLowerCase().includes(searchTerm)
+            );
+        });
+        console.log('Filtered policies count:', filteredPolicies.length);
+    }
+    
+    // Apply sorting if there's a current sort
+    if (window.currentSort && window.currentSort.column) {
+        console.log('Applying sort:', window.currentSort.column, window.currentSort.direction);
+        filteredPolicies.sort((a, b) => {
+            const property = getColumnProperty(window.currentSort.column);
+            let aVal = a[property] || '';
+            let bVal = b[property] || '';
+            
+            // Handle different data types properly
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                // Numeric sorting
+                if (window.currentSort.direction === 'asc') {
+                    return aVal - bVal;
+                } else {
+                    return bVal - aVal;
+                }
+            } else if (typeof aVal === 'string' && typeof bVal === 'string') {
+                // String sorting (case-insensitive)
+                aVal = aVal.toLowerCase();
+                bVal = bVal.toLowerCase();
+                if (aVal < bVal) return window.currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return window.currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            } else {
+                // Mixed types - convert to string for comparison
+                aVal = String(aVal).toLowerCase();
+                bVal = String(bVal).toLowerCase();
+                if (aVal < bVal) return window.currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return window.currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            }
+        });
+    }
+    
     const tbody = $('#policiesTable tbody');
     tbody.empty();
     
-    policies.forEach((policy, index) => {
+    // Default sort by most recent start date if no explicit sort chosen
+    if (!window.currentSort || !window.currentSort.column) {
+        filteredPolicies.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+    }
+
+    filteredPolicies.forEach((policy, index) => {
+        console.log('Recent Policies - Policy data:', policy); // Debug log
+        console.log('Vehicle Number from policy:', policy.vehicleNumber); // Debug vehicle number
         const row = `
             <tr>
                 <td>${index + 1}</td>
-                <td>${policy.policyType}</td>
+                <td>
+                    <span class="policy-type-badge ${(policy.policyType || '').toLowerCase()}">${policy.policyType}</span>
+                    <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || ''}</div>
+                </td>
                 <td>${policy.customerName}</td>
                 <td>${policy.phone}</td>
-                <td>${policy.companyName}</td>
+                <td>${policy.companyName || ''}</td>
                 <td>${policy.startDate}</td>
                 <td>₹${policy.premium}</td>
-                <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+                <td><span class="status-badge ${(policy.status || 'Active').toLowerCase()}">${policy.status || 'Active'}</span></td>
                 <td>
-                    <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <div class="action-buttons">
+                        <button class="action-btn edit" data-policy-id="${policy.id}" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" data-policy-id="${policy.id}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn history" data-policy-id="${policy.id}" title="View History">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
         tbody.append(row);
     });
 
-    // Bind view action for recent policies
+    // Bind all action buttons for recent policies
     tbody.find('.action-btn.view').off('click').on('click', function() {
         const policyId = parseInt($(this).data('policy-id'));
         if (!isNaN(policyId)) {
             viewPolicyDetails(policyId);
+        }
+    });
+    
+    tbody.find('.action-btn.edit').off('click').on('click', async function() {
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            await editPolicy(policyId);
+        }
+    });
+    
+    tbody.find('.action-btn.delete').off('click').on('click', function() {
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            deletePolicyHandler(policyId);
+        }
+    });
+    
+    tbody.find('.action-btn.history').off('click').on('click', function() {
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            openPolicyHistoryModal(policyId);
         }
     });
 };
@@ -887,7 +1151,7 @@ const updateExpiringPoliciesList = (policies) => {
             const item = `
                 <div class="expiring-policy-item">
                     <div class="policy-info">
-                        <h4>${policy.policyNumber}</h4>
+                        <h4>#${policy.id.toString().padStart(3, '0')}</h4>
                         <p>${policy.customerName} - ${policy.phone}</p>
                     </div>
                     <div class="expiry-info">
@@ -906,7 +1170,7 @@ const updateExpiringPoliciesList = (policies) => {
 // Update dashboard charts
 const updateDashboardCharts = (chartData, policyTypes) => {
     // Update bar chart with real data
-    if (window.barChart && chartData) {
+    if (window.barChart && window.barChart.data && chartData) {
         const labels = chartData.map(item => item.month);
         const premiumData = chartData.map(item => item.premium);
         const revenueData = chartData.map(item => item.revenue);
@@ -920,7 +1184,7 @@ const updateDashboardCharts = (chartData, policyTypes) => {
     }
     
     // Update pie chart with real data
-    if (window.pieChart && policyTypes) {
+    if (window.pieChart && window.pieChart.data && policyTypes) {
         const labels = Object.keys(policyTypes);
         const data = Object.values(policyTypes);
         
@@ -951,18 +1215,16 @@ const initializeCharts = () => {
     // Wait for DOM to be ready
     setTimeout(() => {
         const barCtx = document.getElementById('barChart');
-        const pieCtx = document.getElementById('pieChart');
-        
-        if (!barCtx || !pieCtx) {
-            console.log('Chart canvases not found - this is normal on non-dashboard pages');
+        if (!barCtx) {
+            console.log('Bar chart canvas not found');
             return;
         }
         
         // Destroy existing charts if they exist
-        if (window.barChart) {
+        if (window.barChart && typeof window.barChart.destroy === 'function') {
             window.barChart.destroy();
         }
-        if (window.pieChart) {
+        if (window.pieChart && typeof window.pieChart.destroy === 'function') {
             window.pieChart.destroy();
         }
         
@@ -970,11 +1232,11 @@ const initializeCharts = () => {
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels: [],
                 datasets: [
                     {
                         label: 'Premium (₹)',
-                        data: [45000, 52000, 48000, 61000, 55000, 67000, 72000, 68000, 75000, 82000, 78000, 85000],
+                        data: [],
                         backgroundColor: 'rgba(79, 70, 229, 0.8)',
                         borderColor: 'rgba(79, 70, 229, 1)',
                         borderWidth: 1,
@@ -982,7 +1244,7 @@ const initializeCharts = () => {
                     },
                     {
                         label: 'Revenue (₹)',
-                        data: [12000, 14000, 13000, 16000, 15000, 18000, 19000, 17000, 20000, 22000, 21000, 23000],
+                        data: [],
                         backgroundColor: 'rgba(16, 185, 129, 0.8)',
                         borderColor: 'rgba(16, 185, 129, 1)',
                         borderWidth: 1,
@@ -990,7 +1252,7 @@ const initializeCharts = () => {
                     },
                     {
                         label: 'Policies (Count)',
-                        data: [15, 18, 16, 22, 20, 25, 28, 24, 30, 32, 29, 35],
+                        data: [],
                         backgroundColor: 'rgba(245, 158, 11, 0.8)',
                         borderColor: 'rgba(245, 158, 11, 1)',
                         borderWidth: 1,
@@ -1086,57 +1348,15 @@ const initializeCharts = () => {
             }
         });
 
-        // Pie Chart
-        const pieChart = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Motor Insurance', 'Health Insurance', 'Life Insurance'],
-                datasets: [{
-                    data: [65, 20, 15],
-                    backgroundColor: [
-                        'rgba(79, 70, 229, 0.8)',
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(245, 158, 11, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(79, 70, 229, 1)',
-                        'rgba(16, 185, 129, 1)',
-                        'rgba(245, 158, 11, 1)'
-                    ],
-                    borderWidth: 2,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: $('body').hasClass('dark-theme') ? '#F1F5F9' : '#111827',
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((value / total) * 100).toFixed(1);
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        // Pie chart removed from layout; no initialization
 
         // Store chart references
         window.barChart = barChart;
-        window.pieChart = pieChart;
+        
+        // If we already fetched data before charts were ready, apply it now
+        if (window.latestChartData) {
+            updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+        }
     }, 100);
 };
 
@@ -1171,7 +1391,10 @@ const renderTable = () => {
         
         row.innerHTML = `
             <td>${startIndex + idx + 1}</td>
-            <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+            <td>
+                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
+                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
+            </td>
             <td>${customerName}</td>
             <td>${phone}</td>
             <td>${getShortCompanyName(companyName)}</td>
@@ -1188,6 +1411,9 @@ const renderTable = () => {
                     </button>
                     <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
                         <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn history" data-policy-id="${policy.id}" title="View History">
+                        <i class="fas fa-history"></i>
                     </button>
                 </div>
             </td>
@@ -1276,6 +1502,9 @@ const initializePoliciesPage = () => {
     renderPoliciesTable();
     updatePoliciesPagination();
     updatePoliciesStats();
+    
+    // Initialize bulk upload functionality
+    initializeBulkUpload();
 };
 
 // Initialize renewals page
@@ -1335,7 +1564,6 @@ const initializeReportsPage = () => {
     initializeReportTabs();
     generateReports();
 };
-
 // Initialize event listeners
 const initializeEventListeners = () => {
     // Theme toggle
@@ -1355,20 +1583,17 @@ const initializeEventListeners = () => {
     });
     
     // Profile dropdown
-    $('#profileBtn').click(toggleProfileDropdown);
+    $('#profileBtn').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleProfileDropdown();
+    });
+    
     $(document).click(function(e) {
         if (!$(e.target).closest('.profile-dropdown').length) {
             $('#profileDropdown').removeClass('show');
         }
     });
-    
-    // Modal controls - Policy Modal
-    $('#addPolicyBtn, #addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openPolicyModal();
-    });
-    $('#closePolicyModal, #cancelPolicy').click(() => closePolicyModal());
     
     // Modal controls - Agent Modal
     $('#addAgentBtn').click(() => openAgentModal());
@@ -1424,7 +1649,7 @@ const initializeEventListeners = () => {
     $('#policyTypeFilter').change(handlePoliciesFilter);
     $('#statusFilter').change(handlePoliciesFilter);
     $('#policiesRowsPerPage').change(handlePoliciesRowsPerPageChange);
-    $('#exportPolicies').click(exportPoliciesData);
+    $('#exportPoliciesBtn').click(exportPoliciesData);
     
     // Policies pagination
     $('#policiesPrevPage').click(() => goToPoliciesPage(policiesCurrentPage - 1));
@@ -1592,8 +1817,14 @@ const initializeEventListeners = () => {
 
 // Theme toggle
 const toggleTheme = () => {
+    console.log('Toggle theme clicked');
     $('body').toggleClass('dark-theme');
     const isDark = $('body').hasClass('dark-theme');
+    console.log('Theme is now:', isDark ? 'dark' : 'light');
+    
+    // Save theme preference to localStorage
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    console.log('Theme saved to localStorage');
     
     // Update theme toggle icon
     const icon = $('#themeToggle i');
@@ -1606,6 +1837,25 @@ const toggleTheme = () => {
     }
     if (window.pieChart) {
         updateChartColors(window.pieChart);
+    }
+};
+
+// Initialize theme from localStorage
+const initializeTheme = () => {
+    console.log('Initializing theme...');
+    const savedTheme = localStorage.getItem('theme');
+    console.log('Saved theme:', savedTheme);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Use saved theme, or system preference, or default to light
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    if (shouldUseDark) {
+        $('body').addClass('dark-theme');
+        $('#themeToggle i').removeClass('fas fa-moon').addClass('fas fa-sun');
+    } else {
+        $('body').removeClass('dark-theme');
+        $('#themeToggle i').removeClass('fas fa-sun').addClass('fas fa-moon');
     }
 };
 
@@ -1687,6 +1937,12 @@ $(window).on('resize', function() {
 
 // Navigation
 const navigateToPage = (page) => {
+    // Clear recent policies data when navigating away from dashboard
+    if (page !== 'dashboard') {
+        window.recentPoliciesData = null;
+        window.currentSort = null;
+    }
+    
     // Navigate to Laravel routes instead of SPA navigation
     const routes = {
         'dashboard': '/dashboard',
@@ -1706,11 +1962,33 @@ const navigateToPage = (page) => {
 
 // Profile dropdown toggle
 const toggleProfileDropdown = () => {
-    $('#profileDropdown').toggleClass('show');
+    const dropdown = $('#profileDropdown');
+    dropdown.toggleClass('show');
+    
+    // Ensure proper positioning
+    if (dropdown.hasClass('show')) {
+        dropdown.css({
+            'opacity': '1',
+            'visibility': 'visible',
+            'transform': 'translateY(0)'
+        });
+    } else {
+        dropdown.css({
+            'opacity': '0',
+            'visibility': 'hidden',
+            'transform': 'translateY(-10px)'
+        });
+    }
 };
 
 // Modal functions
 const openPolicyModal = () => {
+    console.log('openPolicyModal called');
+    console.log('Policy modal element:', $('#policyModal').length);
+    
+    // Enable duplicate check for add mode
+    vehicleDuplicateCheckEnabled = true;
+    
     $('#policyModalTitle').text('Add New Policy');
     $('#savePolicyBtn').text('Add Policy');
     $('#policyForm')[0].reset();
@@ -1725,7 +2003,68 @@ const openPolicyModal = () => {
     // Keep enabled; only toggle required later
     $('#policyModal #agentName').prop('required', false);
     
+    // Reset step navigation
+    $('#step1').show();
+    $('#step2, #step3').hide();
+    $('#nextStep1').prop('disabled', true);
+    $('#nextStep2').prop('disabled', true);
+    
+    // Reset selections
+    selectedPolicyType = '';
+    selectedBusinessType = '';
+    
+    // Reset dropdowns to empty state
+    $('#policyTypeSelect').val('');
+    $('#businessTypeSelect').val('');
+    
+    console.log('Initial button states - Next Step 1 disabled:', $('#nextStep1').prop('disabled'));
+    console.log('Initial button states - Next Step 2 disabled:', $('#nextStep2').prop('disabled'));
+    
+    // Setup form validations
+    setupFormValidations();
+    
+    // Setup modal-specific event handlers after modal is visible
+    setupModalEventHandlers();
+    
+    // Explicitly ensure Agent Name field is hidden if Self is selected
+    const currentBusinessType = $('#businessTypeSelect').val();
+    if (currentBusinessType === 'Self') {
+        $('#agentNameGroup').hide(); // Hide the entire field group
+        $('#policyModal #agentName').val('').prop('required', false);
+        $('#policyModal #agentName').removeAttr('required');
+        $('#policyModal #agentName').removeClass('required');
+        console.log('Agent name field group hidden for Self in openPolicyModal');
+    } else if (currentBusinessType === 'Agent') {
+        $('#agentNameGroup').show(); // Show the field group
+        $('#policyModal #agentName').prop('required', true);
+        console.log('Agent name field group shown for Agent in openPolicyModal');
+    }
+    
     $('#policyModal').addClass('show');
+    console.log('Policy modal should now be visible');
+    
+    // Add vehicle number validation event listeners
+    setupVehicleNumberValidation();
+};
+
+// Setup vehicle number validation for all vehicle number inputs
+const setupVehicleNumberValidation = () => {
+    // Remove existing listeners to prevent duplicates
+    $(document).off('input blur', '#vehicleNumber');
+    
+    // Add event listeners for the vehicle number input
+    $(document).on('input blur', '#vehicleNumber', function(e) {
+        if (!vehicleDuplicateCheckEnabled) {
+            // If disabled (edit mode), ensure any warning is removed
+            const existingMessage = this.parentElement.querySelector('.vehicle-validation-message');
+            if (existingMessage) existingMessage.remove();
+            return;
+        }
+        const vehicleNumber = $(this).val().trim();
+        if (vehicleNumber.length >= 4) {
+            checkVehicleNumberDuplicate(vehicleNumber, this);
+        }
+    });
 };
 
 const closePolicyModal = () => {
@@ -1757,6 +2096,9 @@ const closePolicyModal = () => {
     $('.policy-form input[required], .policy-form select[required]').prop('required', false);
     $('.policy-form').removeClass('active');
     $('#policyForm').removeData('edit-listener-added');
+    
+    // Reset duplicate check to default (enabled)
+    vehicleDuplicateCheckEnabled = true;
 };
 
 const openAgentModal = () => {
@@ -1871,7 +2213,6 @@ const setupDocumentDownloadButtons = (policy) => {
         }
     });
 };
-
 // Form handlers
 const handlePolicySubmit = async (e) => {
     e.preventDefault();
@@ -1884,6 +2225,19 @@ const handlePolicySubmit = async (e) => {
     // Determine which policy type is currently active
     const activePolicyType = $('#hiddenPolicyType').val() || 'Motor';
     const businessType = $('#hiddenBusinessType').val() || 'Self';
+    
+    // Explicitly ensure Agent Name field is hidden if Self is selected
+    if (businessType === 'Self') {
+        $('#agentNameGroup').hide(); // Hide the entire field group
+        $('#policyModal #agentName').val('').prop('required', false);
+        $('#policyModal #agentName').removeAttr('required');
+        $('#policyModal #agentName').removeClass('required');
+        console.log('HandlePolicySubmit: Agent name field group hidden for Self');
+    } else if (businessType === 'Agent') {
+        $('#agentNameGroup').show(); // Show the field group
+        $('#policyModal #agentName').prop('required', true);
+        console.log('HandlePolicySubmit: Agent name field group shown for Agent');
+    }
     
     console.log('HandlePolicySubmit: Active policy type:', activePolicyType, 'Business type:', businessType);
     console.log('HandlePolicySubmit: Hidden policy type field value:', $('#hiddenPolicyType').val());
@@ -2084,6 +2438,18 @@ const handlePolicySubmit = async (e) => {
         return;
     }
     
+    // Client-side email validation
+    if (policyData.customerEmail && policyData.customerEmail.trim() !== '') {
+        const emailField = activePolicyType === 'Motor' ? '#customerEmail' : 
+                          activePolicyType === 'Health' ? '#healthCustomerEmail' : 
+                          '#lifeCustomerEmail';
+        const emailInput = document.querySelector(emailField);
+        if (emailInput && !validateEmail(emailInput)) {
+            showNotification('Please enter a valid email address', 'error');
+            return;
+        }
+    }
+    
     // Additional validation for Motor policies
     if (activePolicyType === 'Motor') {
         if (!policyData.vehicleNumber || !policyData.vehicleType) {
@@ -2228,7 +2594,7 @@ const handleAgentSubmit = async (e) => {
     
     // Get form data
     const agentData = {
-        name: $('#agentName').val().trim(),
+        name: $('#agentNameInput').val().trim(),
         phone: $('#agentPhone').val().trim(),
         email: $('#agentEmail').val().trim(),
         userId: $('#agentUserId').val().trim(),
@@ -2248,9 +2614,14 @@ const handleAgentSubmit = async (e) => {
         return;
     }
     
+    // For new agents, password is required
+    const editId = $('#agentForm').data('edit-id');
+    if (!editId && !password) {
+        showNotification('Password is required for new agents', 'error');
+        return;
+    }
+    
     try {
-        const editId = $('#agentForm').data('edit-id');
-        
         if (editId) {
             // Update existing agent
             const response = await updateAgent(editId, agentData);
@@ -2320,22 +2691,62 @@ const handleSearch = () => {
     searchTimeout = setTimeout(() => {
         const searchTerm = $('#policySearch').val().toLowerCase().trim();
         
+        // Check if we're on the dashboard page (Recent Policies table)
+        if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
+            // We're on dashboard, update the recent policies table
+            updateRecentPoliciesTable(window.recentPoliciesData);
+            return;
+        }
+        
+        // Enhanced search for main policies table - search ALL columns
         if (searchTerm === '') {
             filteredData = [...allPolicies];
         } else {
-            filteredData = allPolicies.filter(policy => 
-                policy.owner.toLowerCase().includes(searchTerm) ||
-                policy.vehicle.toLowerCase().includes(searchTerm) ||
-                policy.phone.toLowerCase().includes(searchTerm) ||
-                policy.company.toLowerCase().includes(searchTerm) ||
-                policy.id.toString().includes(searchTerm)
-            );
+            console.log('Searching for term:', searchTerm);
+            filteredData = allPolicies.filter(policy => {
+                // Search across ALL possible fields
+                const searchableFields = [
+                    // Basic info
+                    policy.customerName || policy.owner || '',
+                    policy.phone || '',
+                    policy.customerEmail || policy.email || '',
+                    policy.policyType || policy.type || '',
+                    policy.vehicleNumber || policy.vehicle || '',
+                    policy.vehicleType || '',
+                    
+                    // Insurance details
+                    policy.companyName || policy.company || '',
+                    policy.insuranceType || policy.planType || '',
+                    policy.startDate || '',
+                    policy.endDate || '',
+                    policy.status || '',
+                    
+                    // Financial details
+                    (policy.premium || 0).toString(),
+                    (policy.payout || 0).toString(),
+                    (policy.customerPaidAmount || 0).toString(),
+                    (policy.revenue || 0).toString(),
+                    
+                    // Business details
+                    policy.businessType || policy.business_type || '',
+                    policy.agentName || policy.agent_name || '',
+                    
+                    // ID
+                    (policy.id || '').toString()
+                ];
+                
+                // Check if any field contains the search term
+                return searchableFields.some(field => 
+                    field.toString().toLowerCase().includes(searchTerm)
+                );
+            });
+            console.log('Search results:', filteredData.length, 'policies found');
         }
         
         currentPage = 1;
         renderTable();
         updatePagination();
-    }, 300); // 300ms delay to prevent excessive filtering
+    }, 200); // Reduced delay for more responsive search
 };
 
 // Rows per page change
@@ -2346,8 +2757,46 @@ const handleRowsPerPageChange = () => {
     updatePagination();
 };
 
-// Sorting functionality
+// Column mapping function to map table headers to actual data properties
+const getColumnProperty = (column) => {
+    const columnMap = {
+        'id': 'id',
+        'type': 'policyType',
+        'owner': 'customerName',
+        'phone': 'phone',
+        'company': 'companyName',
+        'startDate': 'startDate',
+        'premium': 'premium',
+        'status': 'status',
+        // Add more mappings as needed
+    };
+    
+    return columnMap[column] || column;
+};
+
+// Enhanced sorting functionality with proper data type handling
 const handleSort = (column) => {
+    // Check if we're on the dashboard page (Recent Policies table)
+    if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
+        // Initialize currentSort if not exists
+        if (!window.currentSort) {
+            window.currentSort = { column: '', direction: 'asc' };
+        }
+        
+        if (window.currentSort.column === column) {
+            window.currentSort.direction = window.currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            window.currentSort.column = column;
+            window.currentSort.direction = 'asc';
+        }
+        
+        // Update the recent policies table with sorting
+        updateRecentPoliciesTable(window.recentPoliciesData);
+        updateSortIcons();
+        return;
+    }
+    
+    // Enhanced logic for main policies table
     if (currentSort.column === column) {
         currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
     } else {
@@ -2355,18 +2804,36 @@ const handleSort = (column) => {
         currentSort.direction = 'asc';
     }
     
+    console.log('Sorting by:', column, 'Direction:', currentSort.direction);
+    
     filteredData.sort((a, b) => {
-        let aVal = a[column];
-        let bVal = b[column];
+        const property = getColumnProperty(column);
+        let aVal = a[property] || '';
+        let bVal = b[property] || '';
         
-        if (typeof aVal === 'string') {
+        // Handle different data types properly
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            // Numeric sorting
+            if (currentSort.direction === 'asc') {
+                return aVal - bVal;
+            } else {
+                return bVal - aVal;
+            }
+        } else if (typeof aVal === 'string' && typeof bVal === 'string') {
+            // String sorting (case-insensitive)
             aVal = aVal.toLowerCase();
             bVal = bVal.toLowerCase();
+            if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        } else {
+            // Mixed types - convert to string for comparison
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+            if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
         }
-        
-        if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
-        return 0;
     });
     
     renderTable();
@@ -2377,37 +2844,113 @@ const handleSort = (column) => {
 const updateSortIcons = () => {
     $('.data-table th[data-sort] i').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
     
-    const currentHeader = $(`.data-table th[data-sort="${currentSort.column}"]`);
-    const icon = currentHeader.find('i');
+    // Determine which sort state to use
+    const sortState = window.currentSort || currentSort;
     
-    icon.removeClass('fa-sort');
-    icon.addClass(currentSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+    if (sortState && sortState.column) {
+        const currentHeader = $(`.data-table th[data-sort="${sortState.column}"]`);
+        const icon = currentHeader.find('i');
+        
+        icon.removeClass('fa-sort');
+        icon.addClass(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+    }
 };
 
 // Chart period change
-const handleChartPeriodChange = () => {
+const handleChartPeriodChange = async () => {
     const period = $('#chartPeriod').val();
-    // Here you would typically fetch new data based on the selected period
-    // For now, we'll just show a notification
-    showNotification(`Chart data updated for ${period}`, 'info');
+    console.log('Chart period changed to:', period);
+    
+    try {
+        // Show loading state
+        const chartContainer = $('#barChart').parent();
+        chartContainer.addClass('loading');
+        
+        // Fetch filtered data based on period
+        let url = '/api/dashboard/stats';
+        const params = new URLSearchParams();
+        
+        switch(period) {
+            case 'month':
+                params.append('period', 'current_month');
+                break;
+            case 'quarter':
+                params.append('period', 'current_quarter');
+                break;
+            case 'fy':
+            default:
+                params.append('period', 'financial_year');
+                break;
+        }
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await fetch(url + '&cache_bust=' + Date.now());
+        const data = await response.json();
+        
+        if (data.chartData && data.chartData.length > 0) {
+            // Update charts with filtered data
+            updateDashboardCharts(data.chartData, data.policyTypes);
+            showNotification(`Chart updated for ${getPeriodLabel(period)}`, 'success');
+        } else {
+            showNotification('No data available for selected period', 'warning');
+        }
+        
+    } catch (error) {
+        console.error('Error updating chart period:', error);
+        showNotification('Failed to update chart data', 'error');
+    } finally {
+        // Remove loading state
+        const chartContainer = $('#barChart').parent();
+        chartContainer.removeClass('loading');
+    }
 };
 
+// Helper function to get period label
+const getPeriodLabel = (period) => {
+    switch(period) {
+        case 'month': return 'Current Month';
+        case 'quarter': return 'Current Quarter';
+        case 'fy': return 'Financial Year';
+        default: return 'Financial Year';
+    }
+};
 // Policy actions
 const editPolicy = async (id) => {
-    let policy = allPolicies.find(p => p.id === id);
+    // Initialize from local cache if available
+    let policy = (Array.isArray(allPolicies) ? allPolicies.find(p => p.id === id) : null) || null;
+    // Clear any pending duplicate timers and messages before proceeding
+    if (vehicleSearchTimeout) {
+        clearTimeout(vehicleSearchTimeout);
+        vehicleSearchTimeout = null;
+    }
+    vehicleDuplicateCheckEnabled = false;
+    const vehicleInputPre = document.querySelector('#vehicleNumber');
+    if (vehicleInputPre) {
+        const msgPre = vehicleInputPre.parentElement.querySelector('.vehicle-validation-message');
+        if (msgPre) msgPre.remove();
+    }
     
     // If policy not found in local array, fetch it from API
     if (!policy) {
         try {
             console.log('EditPolicy: Policy not found in local array, fetching from API...');
             const response = await apiCall(`/policies/${id}`);
-            if (response.success && response.data) {
+            // Accept multiple response shapes
+            if (response && response.policy) {
+                policy = response.policy;
+            } else if (response && response.data) {
                 policy = response.data;
-                console.log('EditPolicy: Policy fetched from API:', policy);
+            } else if (response && response.success && response.result) {
+                policy = response.result;
             } else {
+                console.error('EditPolicy: Unexpected API response shape:', response);
                 showNotification('Failed to fetch policy data. Please try again.', 'error');
                 return;
             }
+            console.log('EditPolicy: Policy fetched from API:', policy);
         } catch (error) {
             console.error('EditPolicy: Error fetching policy:', error);
             showNotification('Failed to fetch policy data. Please try again.', 'error');
@@ -2442,7 +2985,6 @@ const editPolicy = async (id) => {
     const vehicleType = policy.vehicleType || policy.vehicle_type || '';
         
     // New fields for policy overview
-    const policyNumber = policy.policyNumber || policy.policy_number || '';
     const statusRaw = policy.status || policy.policy_status || 'Active';
     let agentName = policy.agentName || policy.agent_name || '';
     const agentId = policy.agent_id || policy.agentId;
@@ -2457,7 +2999,7 @@ const editPolicy = async (id) => {
             policyType, customerName, customerPhone, customerEmail, 
             companyName, insuranceType, businessType, startDate, endDate,
             premium, customerPaidAmount, revenue, payout, vehicleNumber, vehicleType,
-            policyNumber, status, agentName
+            status, agentName
         });
         
         // Set global variables for the modal
@@ -2477,7 +3019,6 @@ const editPolicy = async (id) => {
     $('#policyModal #agentName').prop('required', normalizedBusinessType === 'Agent');
         
         // Populate policy overview fields
-        $('#policyNumber').val(policyNumber);
         $('#policyStatus').val(status);
         
         // Ensure agents are loaded, update dropdown, and set selected value
@@ -2674,6 +3215,11 @@ const deletePolicyHandler = async (id) => {
             renderPoliciesTable();
             updatePoliciesPagination();
             updatePoliciesStats();
+        }
+        
+        // Update dashboard if it's currently active
+        if ($('#dashboard').hasClass('active')) {
+            await loadDashboardData();
         }
         
         showNotification('Policy deleted successfully!', 'success');
@@ -2902,7 +3448,10 @@ const renderPoliciesTable = () => {
         
         row.innerHTML = `
             <td>${startIndex + index + 1}</td>
-            <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+            <td>
+                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
+                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
+            </td>
             <td>${customerName}</td>
             <td>${phone}</td>
             <td>${getShortCompanyName(companyName)}</td>
@@ -2919,6 +3468,9 @@ const renderPoliciesTable = () => {
                     </button>
                     <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
                         <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn history" data-policy-id="${policy.id}" title="View History">
+                        <i class="fas fa-history"></i>
                     </button>
                 </div>
             </td>
@@ -3021,13 +3573,15 @@ const applyPoliciesFilters = () => {
     
     policiesFilteredData = allPolicies.filter(policy => {
         const matchesSearch = searchTerm === '' || 
-            policy.owner.toLowerCase().includes(searchTerm) ||
-            policy.phone.toLowerCase().includes(searchTerm) ||
-            policy.company.toLowerCase().includes(searchTerm) ||
-            policy.type.toLowerCase().includes(searchTerm) ||
+            (policy.customerName || policy.owner || '').toLowerCase().includes(searchTerm) ||
+            (policy.phone || '').toLowerCase().includes(searchTerm) ||
+            (policy.companyName || policy.company || '').toLowerCase().includes(searchTerm) ||
+            (policy.policyType || policy.type || '').toLowerCase().includes(searchTerm) ||
+            (policy.vehicleNumber || policy.vehicle || '').toLowerCase().includes(searchTerm) ||
+            (policy.email || '').toLowerCase().includes(searchTerm) ||
             policy.id.toString().includes(searchTerm);
         
-        const matchesType = policyTypeFilter === '' || policy.type === policyTypeFilter;
+        const matchesType = policyTypeFilter === '' || (policy.policyType || policy.type) === policyTypeFilter;
         const matchesStatus = statusFilter === '' || policy.status === statusFilter;
         
         return matchesSearch && matchesType && matchesStatus;
@@ -3104,7 +3658,6 @@ const viewPolicyDetails = (id) => {
     
     populatePolicyModal(policy);
 };
-
 const populatePolicyModal = async (policy) => {
     // Store the current policy ID for the edit button
     window.currentViewingPolicyId = policy.id;
@@ -3113,7 +3666,6 @@ const populatePolicyModal = async (policy) => {
     // Normalize policy data to handle different formats from different pages
     const normalizedPolicy = {
         id: policy.id,
-        policyNumber: policy.policyNumber || policy.policy_number || `#${policy.id.toString().padStart(3, '0')}`,
         type: policy.type || policy.policyType || policy.policy_type || 'Unknown',
         status: policy.status || 'Active',
         customerName: policy.customerName || policy.owner || policy.customer_name || 'Unknown',
@@ -3179,7 +3731,7 @@ const populatePolicyModal = async (policy) => {
     }
 
     // Populate modal with normalized policy details
-    $modal.find('#viewPolicyNumber').text(normalizedPolicy.policyNumber);
+    $modal.find('#viewPolicyId').text(`#${normalizedPolicy.id.toString().padStart(3, '0')}`);
     $modal.find('#viewPolicyType').text(normalizedPolicy.type).removeClass().addClass(`policy-type-badge ${normalizedPolicy.type.toLowerCase()}`);
     $modal.find('#viewPolicyStatus').text(normalizedPolicy.status).removeClass().addClass(`status-badge ${normalizedPolicy.status.toLowerCase()}`);
     
@@ -3272,19 +3824,48 @@ const populatePolicyModal = async (policy) => {
     $('#viewPolicyModal').addClass('show');
 };
 
-const exportPoliciesData = () => {
-    const csvContent = generatePoliciesCSV();
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `policies_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotification('Policies data exported successfully!', 'success');
+const exportPoliciesData = async () => {
+    try {
+        // Show loading state
+        const exportBtn = $('#exportPoliciesBtn');
+        const originalText = exportBtn.html();
+        exportBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Exporting...');
+        
+        // Get current filter values
+        const filters = {
+            policy_type: $('#policyTypeFilter').val(),
+            status: $('#statusFilter').val(),
+            format: 'xlsx' // Default to Excel
+        };
+        
+        // Build URL with filters
+        const params = new URLSearchParams();
+        Object.keys(filters).forEach(key => {
+            if (filters[key]) {
+                params.append(key, filters[key]);
+            }
+        });
+        
+        const url = '/api/policies/export?' + params.toString();
+        
+        // Create temporary link to download file
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = ''; // Let server determine filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Export started! Your download will begin shortly.', 'success');
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        showNotification('Failed to export policies. Please try again.', 'error');
+    } finally {
+        // Restore button state
+        const exportBtn = $('#exportPoliciesBtn');
+        exportBtn.prop('disabled', false).html('<i class="fas fa-download"></i> Export Data');
+    }
 };
 
 const generatePoliciesCSV = () => {
@@ -3833,7 +4414,6 @@ const generateFollowupsCSV = () => {
     
     return csvRows.join('\n');
 }; 
-
 // Multi-step modal functions
 const initializeMultiStepModal = () => {
     // Ensure agent dropdowns are populated and listeners attached
@@ -3851,25 +4431,47 @@ const initializeMultiStepModal = () => {
     });
     
     // Business type selection (now Self/Agent). If Agent is chosen, show/require Agent Name
-    $('#businessTypeSelect').change(function() {
-        selectedBusinessType = $(this).val();
-        // Normalize values to exactly 'Self' or 'Agent'
-        if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'agent') {
-            selectedBusinessType = 'Agent';
-        } else if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'self') {
-            selectedBusinessType = 'Self';
-        }
-        // Enable next if selected
-        $('#nextStep2').prop('disabled', !selectedBusinessType);
-        if (selectedBusinessType) {
-            $('#hiddenBusinessType').val(selectedBusinessType);
-        }
-        // Toggle Agent Name required
-        const isAgent = selectedBusinessType === 'Agent';
-    $('#policyModal #agentName').prop('required', isAgent);
-        // Pre-populate options
-        updatePolicyAgentDropdown();
-    });
+    console.log('Setting up business type selection handler...');
+    console.log('Business type select element exists:', $('#businessTypeSelect').length);
+    
+    // Test if the element exists before setting up the handler
+    if ($('#businessTypeSelect').length > 0) {
+        console.log('Business type select found, setting up change handler...');
+        $('#businessTypeSelect').off('change').on('change', function() {
+            console.log('Business type change event triggered');
+            selectedBusinessType = $(this).val();
+            console.log('Business type selected:', selectedBusinessType);
+            
+            // Normalize values to exactly 'Self' or 'Agent'
+            if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'agent') {
+                selectedBusinessType = 'Agent';
+            } else if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'self') {
+                selectedBusinessType = 'Self';
+            }
+            
+            console.log('Normalized business type:', selectedBusinessType);
+            
+            // Enable next if selected
+            $('#nextStep2').prop('disabled', !selectedBusinessType);
+            console.log('Next Step 2 button disabled:', $('#nextStep2').prop('disabled'));
+            console.log('Next Step 2 button element:', $('#nextStep2').length);
+            
+            if (selectedBusinessType) {
+                $('#hiddenBusinessType').val(selectedBusinessType);
+            }
+            
+            // Toggle Agent Name required
+            const isAgent = selectedBusinessType === 'Agent';
+            $('#policyModal #agentName').prop('required', isAgent);
+            console.log('Agent name required:', isAgent);
+            
+            // Pre-populate options
+            updatePolicyAgentDropdown();
+        });
+        console.log('Business type change handler set up successfully');
+    } else {
+        console.log('Business type select element NOT found!');
+    }
     
     // Step navigation
     $('#nextStep1').click(() => {
@@ -3879,7 +4481,16 @@ const initializeMultiStepModal = () => {
         }
         goToStep(2);
     });
-    $('#nextStep2').click(() => {
+    // Next Step 2 button handler
+    console.log('Setting up Next Step 2 button handler...');
+    console.log('Next Step 2 button element exists:', $('#nextStep2').length);
+    
+    $('#nextStep2').off('click').on('click', function(e) {
+        console.log('Next Step 2 button clicked');
+        console.log('Event:', e);
+        console.log('Selected business type:', selectedBusinessType);
+        console.log('Selected policy type:', selectedPolicyType);
+        
         // Ensure hidden fields are set before moving to form
         if (selectedBusinessType) {
             $('#hiddenBusinessType').val(selectedBusinessType);
@@ -3887,8 +4498,11 @@ const initializeMultiStepModal = () => {
         if (selectedPolicyType) {
             $('#hiddenPolicyType').val(selectedPolicyType);
         }
+        
         // Toggle agent requirement
-    $('#policyModal #agentName').prop('required', ($('#hiddenBusinessType').val() === 'Agent'));
+        $('#policyModal #agentName').prop('required', ($('#hiddenBusinessType').val() === 'Agent'));
+        
+        console.log('Calling goToStep(3)...');
         goToStep(3);
     });
     $('#prevStep2').click(() => goToStep(1));
@@ -3896,6 +4510,119 @@ const initializeMultiStepModal = () => {
     
     // Cancel button
     $('#cancelPolicy').click(closePolicyModal);
+};
+
+// Setup modal-specific event handlers
+const setupModalEventHandlers = () => {
+    console.log('Setting up modal event handlers...');
+    
+    // Policy type selection
+    console.log('Setting up policy type selection handler...');
+    $('#policyTypeSelect').off('change').on('change', function() {
+        selectedPolicyType = $(this).val();
+        console.log('Policy type selected:', selectedPolicyType);
+        // Enable next if a policy type is selected and sync hidden field
+        $('#nextStep1').prop('disabled', !selectedPolicyType);
+        if (selectedPolicyType) {
+            $('#hiddenPolicyType').val(selectedPolicyType);
+        }
+    });
+    
+    // Business type selection
+    console.log('Setting up business type selection handler...');
+    console.log('Business type select element exists:', $('#businessTypeSelect').length);
+    
+    if ($('#businessTypeSelect').length > 0) {
+        console.log('Business type select found, setting up change handler...');
+        $('#businessTypeSelect').off('change').on('change', function() {
+            console.log('Business type change event triggered');
+            selectedBusinessType = $(this).val();
+            console.log('Business type selected:', selectedBusinessType);
+            
+            // Normalize values to exactly 'Self' or 'Agent'
+            if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'agent') {
+                selectedBusinessType = 'Agent';
+            } else if (selectedBusinessType && selectedBusinessType.toLowerCase() === 'self') {
+                selectedBusinessType = 'Self';
+            }
+            
+            console.log('Normalized business type:', selectedBusinessType);
+            
+            // Enable next if selected
+            $('#nextStep2').prop('disabled', !selectedBusinessType);
+            console.log('Next Step 2 button disabled:', $('#nextStep2').prop('disabled'));
+            console.log('Next Step 2 button element:', $('#nextStep2').length);
+            
+            if (selectedBusinessType) {
+                $('#hiddenBusinessType').val(selectedBusinessType);
+            }
+            
+            // Toggle Agent Name required
+            const isAgent = selectedBusinessType === 'Agent';
+            $('#policyModal #agentName').prop('required', isAgent);
+            console.log('Agent name required:', isAgent);
+            
+            // Hide/show agent name field based on business type
+            if (selectedBusinessType === 'Self') {
+                $('#agentNameGroup').hide(); // Hide the entire field group
+                $('#policyModal #agentName').val('').prop('required', false);
+                $('#policyModal #agentName').removeAttr('required');
+                $('#policyModal #agentName').removeClass('required');
+                console.log('Agent name field group hidden for Self');
+            } else if (selectedBusinessType === 'Agent') {
+                $('#agentNameGroup').show(); // Show the field group
+                $('#policyModal #agentName').prop('required', true);
+                console.log('Agent name field group shown for Agent');
+            }
+            
+            // Pre-populate options
+            updatePolicyAgentDropdown();
+        });
+        console.log('Business type change handler set up successfully');
+    } else {
+        console.log('Business type select element NOT found!');
+    }
+    
+    // Next Step 2 button handler
+    console.log('Setting up Next Step 2 button handler...');
+    console.log('Next Step 2 button element exists:', $('#nextStep2').length);
+    
+    $('#nextStep2').off('click').on('click', function(e) {
+        console.log('Next Step 2 button clicked');
+        console.log('Event:', e);
+        console.log('Selected business type:', selectedBusinessType);
+        console.log('Selected policy type:', selectedPolicyType);
+        
+        // Ensure hidden fields are set before moving to form
+        if (selectedBusinessType) {
+            $('#hiddenBusinessType').val(selectedBusinessType);
+        }
+        if (selectedPolicyType) {
+            $('#hiddenPolicyType').val(selectedPolicyType);
+        }
+        
+        // Toggle agent requirement
+        const businessType = $('#hiddenBusinessType').val();
+        $('#policyModal #agentName').prop('required', (businessType === 'Agent'));
+        
+        // Hide/show agent name field based on business type
+        if (businessType === 'Self') {
+            $('#agentNameGroup').hide(); // Hide the entire field group
+            $('#policyModal #agentName').val('').prop('required', false);
+            $('#policyModal #agentName').removeAttr('required');
+            $('#policyModal #agentName').removeClass('required');
+            console.log('Agent name field group hidden for Self in step 3');
+        } else if (businessType === 'Agent') {
+            $('#agentNameGroup').show(); // Show the field group
+            $('#policyModal #agentName').prop('required', true);
+            console.log('Agent name field group shown for Agent in step 3');
+        }
+        
+        console.log('Calling goToStep(3)...');
+        goToStep(3);
+    });
+    
+    console.log('Modal event handlers setup complete');
 };
 
 // Keep hidden fields in sync with current step selections
@@ -3955,6 +4682,8 @@ const ensureSelectHasOption = (selectSelector, value, label) => {
 };
 
 const goToStep = (step) => {
+    console.log('goToStep called with step:', step);
+    
     // Hide all step contents
     $('#step1, #step2, #step3').hide();
     
@@ -3962,12 +4691,14 @@ const goToStep = (step) => {
     $(`#step${step}`).show();
     
     currentStep = step;
+    console.log('Current step set to:', currentStep);
     
     // Show appropriate form based on policy type
     if (step === 3) {
-    // Ensure hidden fields reflect current selections before showing the form
-    updateHiddenFields();
-    showPolicyForm(selectedPolicyType);
+        console.log('Step 3 reached, showing policy form...');
+        // Ensure hidden fields reflect current selections before showing the form
+        updateHiddenFields();
+        showPolicyForm(selectedPolicyType);
     }
 };
 
@@ -4028,7 +4759,8 @@ const setupRevenueAutoCalcForPolicyType = (policyType) => {
     let $payoutInput;
     let $customerPaidInput;
     let $revenueInput;
-
+    
+    // Set up field references based on policy type
     if (policyType === 'Motor') {
         $premiumInput = $('#premium');
         $payoutInput = $('#payout');
@@ -4044,53 +4776,73 @@ const setupRevenueAutoCalcForPolicyType = (policyType) => {
         $payoutInput = $('#lifePayout');
         $customerPaidInput = $('#lifeCustomerPaid');
         $revenueInput = $('#lifeRevenue');
-    } else {
-        return;
     }
-
-    // Make revenue read-only to reflect auto-calc nature
-    if ($revenueInput && $revenueInput.length) {
-        $revenueInput.prop('readonly', true);
-    }
-
-    const recalcRevenue = () => {
+    
+    if (!$premiumInput || !$customerPaidInput || !$revenueInput) return;
+    
+    // Calculate revenue: Customer Paid - (Premium - Payout)
+    const calculateRevenue = () => {
         const premium = parseFloat($premiumInput.val()) || 0;
         const payout = parseFloat($payoutInput.val()) || 0;
         const customerPaid = parseFloat($customerPaidInput.val()) || 0;
-
-        let revenue = customerPaid - (premium - payout);
-        if (!isFinite(revenue)) revenue = 0;
-        // Prevent negative revenue to satisfy backend min:0 validation
-        if (revenue < 0) revenue = 0;
-
+        
+        const revenue = customerPaid - (premium - payout);
         $revenueInput.val(revenue.toFixed(2));
         
-        // Add visual feedback
-        if (revenue > 0) {
-            $revenueInput.addClass('calculated');
+        // Apply color styling based on revenue value
+        if (revenue < 0) {
+            $revenueInput.removeClass('revenue-positive').addClass('revenue-negative');
+            console.log('Revenue negative:', revenue, '- Applied red color');
+        } else if (revenue > 0) {
+            $revenueInput.removeClass('revenue-negative').addClass('revenue-positive');
+            console.log('Revenue positive:', revenue, '- Applied green color');
         } else {
-            $revenueInput.removeClass('calculated');
-        }
-        
-        // Show a brief notification for the first calculation
-        if (revenue > 0 && !$revenueInput.data('notified')) {
-            $revenueInput.data('notified', true);
-            showNotification(`Revenue calculated: ₹${revenue.toFixed(2)}`, 'success');
+            $revenueInput.removeClass('revenue-positive revenue-negative');
+            console.log('Revenue zero:', revenue, '- Removed color classes');
         }
     };
-
-    // Remove existing namespaced listeners to avoid duplicates, then attach
-    $premiumInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
-    $payoutInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
-    $customerPaidInput.off('input.revenueCalc change.revenueCalc').on('input.revenueCalc change.revenueCalc', recalcRevenue);
-
-    // Initial calculation to populate field
-    recalcRevenue();
     
-    // Add a small delay to ensure the form is fully rendered
-    setTimeout(() => {
-        recalcRevenue();
-    }, 100);
+    // Attach event listeners
+    $premiumInput.off('input').on('input', calculateRevenue);
+    $payoutInput.off('input').on('input', calculateRevenue);
+    $customerPaidInput.off('input').on('input', calculateRevenue);
+    
+    // Initial calculation
+    calculateRevenue();
+};
+
+// Form validation and formatting functions
+const setupFormValidations = () => {
+    // Vehicle Number - Force capital letters and validate format
+    $('#vehicleNumber').off('input').on('input', function() {
+        let value = $(this).val().toUpperCase();
+        // Remove any non-alphanumeric characters
+        value = value.replace(/[^A-Z0-9]/g, '');
+        // Limit to 10 characters
+        value = value.substring(0, 10);
+        $(this).val(value);
+    });
+    
+    // Customer Name - Capitalize first letter of each word
+    $('#customerName').off('input').on('input', function() {
+        let value = $(this).val();
+        // Capitalize first letter of each word
+        value = value.replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+        $(this).val(value);
+    });
+    
+    // Phone Number - Ensure only digits and limit to 10
+    $('#customerPhone').off('input').on('input', function() {
+        let value = $(this).val();
+        // Remove any non-digit characters
+        value = value.replace(/\D/g, '');
+        // Limit to 10 digits
+        value = value.substring(0, 10);
+        $(this).val(value);
+    });
+    
+    // Agent Name requirement based on business type - REMOVED duplicate handler
+    // This is now handled in setupModalEventHandlers() to avoid conflicts
 };
 
 const resetMultiStepModal = () => {
@@ -4218,7 +4970,6 @@ const handleRenewalSubmit = async (e) => {
     else backendStatus = 'Scheduled';
     
     const backendPayload = {
-        policyNumber: policy.policyNumber,
         customerName: policy.customerName,
         phone: policy.phone,
         email: policy.email ?? null,
@@ -4334,6 +5085,9 @@ const renderRenewalsTable = () => {
                     </button>
                     <button class="action-btn view" data-renewal-id="${renewal.id}" title="View Details">
                         <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn history" data-policy-id="${policyId}" title="View Policy History">
+                        <i class="fas fa-history"></i>
                     </button>
                 </div>
             </td>
@@ -4460,7 +5214,6 @@ const applyRenewalsFilters = () => {
     updateRenewalsPagination();
     updateRenewalsStats();
 };
-
 const handleRenewalsRowsPerPageChange = () => {
     renewalsRowsPerPage = parseInt($('#renewalsRowsPerPage').val());
     renewalsCurrentPage = 1;
@@ -4540,7 +5293,6 @@ const buildRenewalsFromPolicies = () => {
         return {
             id: idx + 1,
             policyId: p.id,
-            policyNumber: p.policyNumber,
             customerName: p.customerName,
             policyType: p.policyType,
             expiryDate: endDateStr,
@@ -5181,7 +5933,10 @@ const generatePoliciesReport = () => {
             <tr>
                 <td>#${policy.id.toString().padStart(3, '0')}</td>
                 <td>${customerName}</td>
-                <td><span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span></td>
+                <td>
+                    <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
+                    <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
+                </td>
                 <td>${getShortCompanyName(companyName)}</td>
                 <td>₹${parseFloat(premium).toLocaleString()}</td>
                 <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
@@ -5241,7 +5996,6 @@ const generateRenewalsReport = () => {
         : 0;
     $('#renewalRateReport').text(`${renewalRate.toFixed(1)}%`);
 };
-
 const generateFollowupsReport = () => {
     const tbody = $('#followupsReportTableBody');
     tbody.empty();
@@ -5622,7 +6376,7 @@ const editAgent = (id) => {
         $('#agentModalTitle').text('Edit Agent');
         
         // Populate form fields
-    $('#agentModal #agentName').val(agent.name || '');
+    $('#agentNameInput').val(agent.name || '');
         $('#agentPhone').val(agent.phone || '');
         $('#agentEmail').val(agent.email || '');
         $('#agentUserId').val(agent.userId || '');
@@ -6032,7 +6786,6 @@ const getAllCustomers = () => {
         policyId: policy.id
     }));
 };
-
 const updateMessagePreview = () => {
     const filterType = $('#bulkFilterType').val();
     
@@ -6618,9 +7371,9 @@ const initializeAnalyticsCharts = () => {
         new Chart(deliveryCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: [],
                 datasets: [{
-                    data: [92, 94, 96, 95, 97, 93, 95],
+                    data: [],
                     borderColor: '#10B981',
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     borderWidth: 2,
@@ -6647,9 +7400,9 @@ const initializeAnalyticsCharts = () => {
         new Chart(openCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: [],
                 datasets: [{
-                    data: [65, 68, 70, 67, 72, 69, 68],
+                    data: [],
                     borderColor: '#4F46E5',
                     backgroundColor: 'rgba(79, 70, 229, 0.1)',
                     borderWidth: 2,
@@ -6676,9 +7429,9 @@ const initializeAnalyticsCharts = () => {
         new Chart(responseCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: [],
                 datasets: [{
-                    data: [13, 12, 14, 11, 15, 12, 11],
+                    data: [],
                     borderColor: '#EF4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     borderWidth: 2,
@@ -6699,20 +7452,46 @@ const initializeAnalyticsCharts = () => {
         });
     }
 };
-
 // Initialize all modals and their event listeners
 const initializeModals = () => {
+    console.log('initializeModals called');
+    
     // Agent Modal
     $('#addAgentBtn').off('click').on('click', openAgentModal);
     $('#closeAgentModal, #cancelAgent').off('click').on('click', closeAgentModal);
     $('#saveAgentBtn').off('click').on('click', handleAgentSubmit);
     
     // Policy Modal - Fix for header button
-    $('#addPolicyBtn, #addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openPolicyModal();
-    });
+    console.log('Setting up policy modal buttons in initializeModals...');
+    console.log('addPolicyBtn found:', $('#addPolicyBtn').length);
+    console.log('addPolicyFromPoliciesBtn found:', $('#addPolicyFromPoliciesBtn').length);
+    
+    // Test if buttons exist and add simple click handler
+    if ($('#addPolicyBtn').length > 0) {
+        console.log('addPolicyBtn exists, adding click handler');
+        $('#addPolicyBtn').off('click').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add Policy button clicked from initializeModals:', this.id);
+            openPolicyModal();
+        });
+    } else {
+        console.log('addPolicyBtn NOT found - checking if it exists in DOM...');
+        console.log('All buttons with "add" in ID:', $('[id*="add"]').map(function() { return this.id; }).get());
+    }
+    
+    if ($('#addPolicyFromPoliciesBtn').length > 0) {
+        console.log('addPolicyFromPoliciesBtn exists, adding click handler');
+        $('#addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add Policy button clicked from initializeModals:', this.id);
+            openPolicyModal();
+        });
+    } else {
+        console.log('addPolicyFromPoliciesBtn NOT found - checking if it exists in DOM...');
+        console.log('All buttons with "policy" in ID:', $('[id*="policy"]').map(function() { return this.id; }).get());
+    }
     $('#closePolicyModal, #cancelPolicy').off('click').on('click', closePolicyModal);
     $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
     
@@ -6740,7 +7519,76 @@ const initializeModals = () => {
         }
     });
     
+    // Global fallback for add policy buttons (in case they're not found during initialization)
+    $(document).off('click', '#addPolicyBtn, #addPolicyFromPoliciesBtn').on('click', '#addPolicyBtn, #addPolicyFromPoliciesBtn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Add Policy button clicked from global fallback:', this.id);
+        openPolicyModal();
+    });
+    
     console.log('Modals initialized successfully');
+    
+    // Test modal functionality
+    setTimeout(() => {
+        console.log('Testing modal functionality...');
+        console.log('Policy modal element:', $('#policyModal').length);
+        console.log('Policy modal display:', $('#policyModal').css('display'));
+        console.log('Policy modal visibility:', $('#policyModal').css('visibility'));
+        console.log('Policy modal opacity:', $('#policyModal').css('opacity'));
+        
+        // Test if we can manually show the modal
+        if ($('#policyModal').length > 0) {
+            console.log('Policy modal exists, testing manual show...');
+            // Uncomment the next line to test if modal can be shown manually
+            // $('#policyModal').addClass('show');
+            // console.log('Modal should now be visible');
+        }
+        
+        // Test button functionality
+        console.log('Testing button functionality...');
+        console.log('Next Step 2 button exists:', $('#nextStep2').length);
+        console.log('Next Step 2 button disabled:', $('#nextStep2').prop('disabled'));
+        console.log('Next Step 2 button visible:', $('#nextStep2').is(':visible'));
+        console.log('Next Step 2 button clickable:', !$('#nextStep2').prop('disabled') && $('#nextStep2').is(':visible'));
+        
+        // Test business type select
+        console.log('Business type select exists:', $('#businessTypeSelect').length);
+        console.log('Business type select options:', $('#businessTypeSelect option').length);
+        
+        // Test manual button enable
+        console.log('Manually enabling Next Step 2 button for testing...');
+        $('#nextStep2').prop('disabled', false);
+        console.log('Next Step 2 button disabled after manual enable:', $('#nextStep2').prop('disabled'));
+        
+        // Test business type selection manually - REMOVED to fix default selection issue
+        console.log('Testing business type selection manually...');
+        if ($('#businessTypeSelect').length > 0) {
+            console.log('Business type select found, but not setting default value');
+        }
+        
+        // Fallback: Check for add policy buttons again and set up if they exist
+        console.log('Fallback: Checking for add policy buttons again...');
+        if ($('#addPolicyBtn').length > 0) {
+            console.log('Fallback: addPolicyBtn found, setting up click handler');
+            $('#addPolicyBtn').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add Policy button clicked from fallback:', this.id);
+                openPolicyModal();
+            });
+        }
+        
+        if ($('#addPolicyFromPoliciesBtn').length > 0) {
+            console.log('Fallback: addPolicyFromPoliciesBtn found, setting up click handler');
+            $('#addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add Policy button clicked from fallback:', this.id);
+                openPolicyModal();
+            });
+        }
+    }, 2000);
 };
 
 // Function to handle form validation before submission
@@ -6775,8 +7623,136 @@ const prepareFormForSubmission = () => {
     $(`#${activePolicyType.toLowerCase()}Form input[required], #${activePolicyType.toLowerCase()}Form select[required]`).prop('required', true);
 };
 
-// File size validation function (3MB = 3 * 1024 * 1024 bytes)
-const validateFileSize = (file, maxSizeMB = 3) => {
+// Email validation function
+const validateEmail = (emailInput) => {
+    const email = emailInput.value.trim();
+    const errorElement = document.getElementById(emailInput.id + '-error');
+    
+    // Clear previous error
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+    }
+    
+    // If email is empty, it's valid (optional field)
+    if (email === '') {
+        emailInput.classList.remove('error');
+        emailInput.classList.remove('valid');
+        return true;
+    }
+    
+    // Email validation regex pattern (RFC 5322 compliant)
+    const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    if (!emailPattern.test(email)) {
+        // Show error message
+        if (errorElement) {
+            errorElement.textContent = 'Please enter a valid email address';
+            errorElement.style.display = 'block';
+        }
+        emailInput.classList.add('error');
+        emailInput.classList.remove('valid');
+        return false;
+    }
+    
+    // Additional validation checks
+    const parts = email.split('@');
+    const localPart = parts[0];
+    const domainPart = parts[1];
+    
+    // Check local part length (RFC 5321 limit)
+    if (localPart.length > 64) {
+        if (errorElement) {
+            errorElement.textContent = 'Email local part is too long (max 64 characters)';
+            errorElement.style.display = 'block';
+        }
+        emailInput.classList.add('error');
+        emailInput.classList.remove('valid');
+        return false;
+    }
+    
+    // Check domain part length (RFC 5321 limit)
+    if (domainPart.length > 255) {
+        if (errorElement) {
+            errorElement.textContent = 'Email domain is too long (max 255 characters)';
+            errorElement.style.display = 'block';
+        }
+        emailInput.classList.add('error');
+        emailInput.classList.remove('valid');
+        return false;
+    }
+    
+    // Check for common invalid patterns
+    if (email.includes('..') || email.includes('--') || email.startsWith('.') || email.endsWith('.')) {
+        if (errorElement) {
+            errorElement.textContent = 'Email contains invalid characters or patterns';
+            errorElement.style.display = 'block';
+        }
+        emailInput.classList.add('error');
+        emailInput.classList.remove('valid');
+        return false;
+    }
+    
+    // Check for common disposable email domains (optional - can be customized)
+    const disposableDomains = [
+        'tempmail.org', 'guerrillamail.com', 'mailinator.com', '10minutemail.com',
+        'throwaway.email', 'temp-mail.org', 'fakeinbox.com', 'sharklasers.com'
+    ];
+    
+    const domain = domainPart.toLowerCase();
+    if (disposableDomains.some(d => domain.includes(d))) {
+        if (errorElement) {
+            errorElement.textContent = 'Please use a valid email address (disposable emails not allowed)';
+            errorElement.style.display = 'block';
+        }
+        emailInput.classList.add('error');
+        emailInput.classList.remove('valid');
+        return false;
+    }
+    
+    // Valid email
+    emailInput.classList.remove('error');
+    emailInput.classList.add('valid');
+    return true;
+};
+
+// Real-time email validation
+const setupEmailValidation = () => {
+    const emailFields = ['customerEmail', 'healthCustomerEmail', 'lifeCustomerEmail'];
+    
+    emailFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Add input event for real-time validation
+            field.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    validateEmail(this);
+                } else {
+                    // Clear error when field is empty
+                    const errorElement = document.getElementById(this.id + '-error');
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                        errorElement.style.display = 'none';
+                    }
+                    this.classList.remove('error');
+                    this.classList.remove('valid');
+                }
+            });
+            
+            // Add blur event for validation on focus out
+            field.addEventListener('blur', function() {
+                validateEmail(this);
+            });
+            
+            // Add focus event to clear validation state
+            field.addEventListener('focus', function() {
+                this.classList.remove('error');
+                this.classList.remove('valid');
+            });
+        }
+    });
+};
+const validateFileSize = (file, maxSizeMB = 5) => {
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file && file.size > maxSizeBytes) {
         return `File "${file.name}" is too large. Maximum size is ${maxSizeMB}MB.`;
@@ -6856,7 +7832,7 @@ const testFileUploadError = () => {
     // Simulate the error handling
     if (mockError.response && mockError.response.data) {
         if (mockError.response.status === 413) {
-            showNotification('File size too large. Please ensure each file is under 3MB and total upload size is under 3MB.', 'error');
+            showNotification('File size too large. Please ensure each file is under 5MB and total upload size is within server limits.', 'error');
         }
     }
 };
@@ -6866,17 +7842,21 @@ window.testFileUploadError = testFileUploadError;
 
 // Bulk Upload Functions
 const openBulkUploadModal = () => {
+    console.log('Opening bulk upload modal...');
     const modal = document.getElementById('bulkUploadModal');
     if (modal) {
-        modal.style.display = 'flex';
+        modal.classList.add('show');
         document.body.style.overflow = 'hidden';
+        console.log('Modal opened successfully');
+    } else {
+        console.error('Bulk upload modal not found!');
     }
 };
 
 const closeBulkUploadModal = () => {
     const modal = document.getElementById('bulkUploadModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
         document.body.style.overflow = 'auto';
         // Reset form
         document.getElementById('bulkUploadForm').reset();
@@ -6898,9 +7878,17 @@ const handleBulkUpload = async (e) => {
     }
     
     // Validate file type
-    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
-    if (!allowedTypes.includes(file.type)) {
-        showNotification('Please select a valid Excel file (.xlsx or .xls)', 'error');
+    const allowedTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+        'application/vnd.ms-excel',
+        'text/csv',
+        'application/csv'
+    ];
+    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        showNotification('Please select a valid file (.xlsx, .xls, or .csv)', 'error');
         return;
     }
     
@@ -6939,6 +7927,10 @@ const handleBulkUpload = async (e) => {
         
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        if (!csrfToken) {
+            throw new Error('CSRF token not found');
+        }
         
         // Make API call
         const response = await fetch('/api/policies/bulk-upload', {
@@ -6985,15 +7977,192 @@ const handleBulkUpload = async (e) => {
     }
 };
 
+// Preview file function
+const previewFile = async () => {
+    const fileInput = document.getElementById('excelFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showNotification('Please select a file to preview', 'error');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+        'application/vnd.ms-excel',
+        'text/csv',
+        'application/csv'
+    ];
+    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        showNotification('Please select a valid file (.xlsx, .xls, or .csv)', 'error');
+        return;
+    }
+    
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        showNotification('File size must be less than 10MB', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const previewBtn = document.getElementById('previewBtn');
+    previewBtn.disabled = true;
+    previewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Previewing...';
+    
+    try {
+        // Create FormData
+        const formData = new FormData();
+        formData.append('excel_file', file);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        if (!csrfToken) {
+            throw new Error('CSRF token not found');
+        }
+        
+        // Make API call
+        const response = await fetch('/api/policies/bulk-upload/preview', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayPreviewResults(result.data);
+        } else {
+            throw new Error(result.message || 'Preview failed');
+        }
+        
+    } catch (error) {
+        console.error('Preview error:', error);
+        showNotification(error.message || 'An error occurred during preview', 'error');
+    } finally {
+        // Re-enable preview button
+        previewBtn.disabled = false;
+        previewBtn.innerHTML = 'Preview File';
+    }
+};
+
+// Display preview results
+const displayPreviewResults = (data) => {
+    // Update stats
+    document.getElementById('totalRows').textContent = data.total_rows;
+    document.getElementById('validRows').textContent = data.valid_rows;
+    document.getElementById('invalidRows').textContent = data.invalid_rows;
+    document.getElementById('successRate').textContent = data.success_rate + '%';
+    
+    // Populate unified preview table
+    const tableBody = document.querySelector('#previewTable tbody');
+    tableBody.innerHTML = '';
+
+    // Add valid rows first
+    data.valid_data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.row}</td>
+            <td>${row.policy_type}</td>
+            <td>${row.customer_name}</td>
+            <td>${row.phone}</td>
+            <td>${row.company_name}</td>
+            <td><span class="status-badge valid">VALID</span></td>
+        `;
+        tableBody.appendChild(tr);
+    });
+
+    // Then invalid rows
+    data.invalid_data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.row}</td>
+            <td>${row.policy_type}</td>
+            <td>${row.customer_name}</td>
+            <td>${row.phone}</td>
+            <td>${row.company_name}</td>
+            <td><span class="status-badge invalid" title="${row.errors}">INVALID</span></td>
+        `;
+        tableBody.appendChild(tr);
+    });
+    
+    // Show preview section
+    document.getElementById('previewSection').style.display = 'block';
+    
+    // Show success rate color
+    const successRateElement = document.getElementById('successRate');
+    if (data.success_rate >= 80) {
+        successRateElement.className = 'stat-value valid';
+    } else if (data.success_rate >= 50) {
+        successRateElement.className = 'stat-value warning';
+    } else {
+        successRateElement.className = 'stat-value invalid';
+    }
+};
+
+// Download template function
+const downloadTemplate = () => {
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = '/api/policies/template/download';
+    link.download = 'policies_template.xlsx';
+    link.style.display = 'none';
+    
+    // Add to document, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Download CSV template function
+const downloadCSVTemplate = () => {
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = '/api/policies/template/download-csv';
+    link.download = 'policies_template.csv';
+    link.style.display = 'none';
+    
+    // Add to document, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 // Initialize bulk upload event listeners
 const initializeBulkUpload = () => {
+    console.log('Initializing bulk upload...');
     const bulkUploadBtn = document.getElementById('bulkUploadBtn');
     const closeBulkUploadModalBtn = document.getElementById('closeBulkUploadModal');
     const cancelBulkUploadBtn = document.getElementById('cancelBulkUpload');
     const bulkUploadForm = document.getElementById('bulkUploadForm');
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+    const downloadCSVTemplateBtn = document.getElementById('downloadCSVTemplateBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const fileInput = document.getElementById('excelFile');
+    
+    console.log('Bulk upload button found:', !!bulkUploadBtn);
+    console.log('Modal found:', !!document.getElementById('bulkUploadModal'));
     
     if (bulkUploadBtn) {
         bulkUploadBtn.addEventListener('click', openBulkUploadModal);
+        console.log('Bulk upload button event listener added');
+    } else {
+        console.error('Bulk upload button not found!');
+    }
+    
+    if (downloadTemplateBtn) {
+        downloadTemplateBtn.addEventListener('click', downloadTemplate);
+    }
+    
+    if (downloadCSVTemplateBtn) {
+        downloadCSVTemplateBtn.addEventListener('click', downloadCSVTemplate);
     }
     
     if (closeBulkUploadModalBtn) {
@@ -7008,6 +8177,23 @@ const initializeBulkUpload = () => {
         bulkUploadForm.addEventListener('submit', handleBulkUpload);
     }
     
+    if (previewBtn) {
+        previewBtn.addEventListener('click', previewFile);
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                previewBtn.style.display = 'inline-block';
+                // Hide preview section when new file is selected
+                document.getElementById('previewSection').style.display = 'none';
+            } else {
+                previewBtn.style.display = 'none';
+            }
+        });
+    }
+    
     // Close modal when clicking outside
     const modal = document.getElementById('bulkUploadModal');
     if (modal) {
@@ -7018,9 +8204,204 @@ const initializeBulkUpload = () => {
         });
     }
 };
+// Policy History Functions
+function openPolicyHistoryModal(policyId) {
+    console.log('Opening policy history modal for ID:', policyId);
+    const modal = document.getElementById('policyHistoryModal');
+    const content = document.getElementById('policyHistoryContent');
+    
+    if (!modal) {
+        console.error('Policy history modal not found!');
+        alert('Policy history modal not found. Please refresh the page.');
+        return;
+    }
+    
+    console.log('Modal element found:', modal);
+    console.log('Modal current style:', modal.getAttribute('style'));
+    
+    // Force show with multiple methods
+    modal.style.display = 'block !important';
+    modal.style.visibility = 'visible !important';
+    modal.style.opacity = '1 !important';
+    modal.setAttribute('style', 'display: block !important; position: fixed !important; z-index: 99999 !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; background-color: rgba(0,0,0,0.8) !important; visibility: visible !important; opacity: 1 !important;');
+    
+    console.log('Modal display set to block, should be visible now');
+    console.log('Modal after style change:', modal.getAttribute('style'));
+    content.innerHTML = '<div class="loading">Loading policy history...</div>';
+    
+    // Fetch policy history
+    fetch(`/api/policies/${policyId}/history?t=${Date.now()}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => {
+            console.log('API response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Policy history data:', data);
+            if (data.policy && data.versions) {
+                renderPolicyHistory(data);
+            } else {
+                content.innerHTML = '<div class="error">Failed to load policy history</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching policy history:', error);
+            content.innerHTML = '<div class="error">Error loading policy history: ' + error.message + '</div>';
+        });
+}
+
+function closePolicyHistoryModal() {
+    const modal = document.getElementById('policyHistoryModal');
+    modal.style.display = 'none';
+}
+
+function renderPolicyHistory(data) {
+    const content = document.getElementById('policyHistoryContent');
+    const { policy, versions } = data;
+    
+    if (!versions || versions.length === 0) {
+        content.innerHTML = `
+            <div class="policy-info">
+                <h3>${policy.customer_name} - ${policy.vehicle_number || 'N/A'}</h3>
+                <p>No version history available for this policy.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="policy-info">
+            <h3>${policy.customer_name} - ${policy.vehicle_number || 'N/A'}</h3>
+            <p class="policy-type-badge ${policy.policy_type.toLowerCase()}">${policy.policy_type}</p>
+        </div>
+        <div class="history-timeline">
+    `;
+    
+    versions.forEach((version, index) => {
+        const isLatest = index === 0;
+        html += `
+            <div class="history-item ${isLatest ? 'latest' : ''}">
+                <div class="history-marker">
+                    <i class="fas ${isLatest ? 'fa-star' : 'fa-circle'}"></i>
+                </div>
+                <div class="history-content">
+                    <div class="history-header">
+                        <h4>${version.version_label} ${isLatest ? '(Current)' : ''}</h4>
+                        <span class="history-date">${version.version_created_at}</span>
+                    </div>
+                    <div class="history-details">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Period:</label>
+                                <span>${version.policy_period}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Company:</label>
+                                <span>${version.company_name}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Insurance Type:</label>
+                                <span>${version.insurance_type}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Premium:</label>
+                                <span>₹${parseFloat(version.premium).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Payout:</label>
+                                <span>₹${parseFloat(version.payout).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Customer Paid:</label>
+                                <span>₹${parseFloat(version.customer_paid_amount).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Revenue:</label>
+                                <span>₹${parseFloat(version.revenue).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Status:</label>
+                                <span class="status-badge ${version.status.toLowerCase()}">${version.status}</span>
+                            </div>
+                        </div>
+                        <div class="documents-section">
+                            <h5>Documents:</h5>
+                            <div class="document-list">
+                                ${version.has_documents ? 
+                                    Object.entries(version.documents).map(([type, path]) => 
+                                        path ? `<a href="/api/policy-versions/${version.id}/download/${type.replace('_copy', '')}" class="document-item downloadable" target="_blank" title="Download ${type.replace('_', ' ').toUpperCase()}">${type.replace('_', ' ').toUpperCase()} <i class="fas fa-download"></i></a>` : ''
+                                    ).filter(Boolean).join('') || '<span class="document-item no-docs">No documents available for this version</span>'
+                                    : '<span class="document-item no-docs">No documents available for this version</span>'
+                                }
+                            </div>
+                        </div>
+                        ${version.notes ? `
+                            <div class="notes-section">
+                                <h5>Notes:</h5>
+                                <p>${version.notes}</p>
+                            </div>
+                        ` : ''}
+                        ${version.created_by ? `
+                            <div class="created-by">
+                                <small>Updated by: ${version.created_by}</small>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+// Event delegation for history buttons
+$(document).on('click', '.action-btn.history', function(e) {
+    e.preventDefault();
+    const policyId = $(this).data('policy-id');
+    console.log('History button clicked for policy ID:', policyId);
+    openPolicyHistoryModal(policyId);
+});
+
+// Close modal when clicking outside
+$(document).on('click', '#policyHistoryModal', function(e) {
+    if (e.target === this) {
+        closePolicyHistoryModal();
+    }
+});
+
+// Test function to debug modal
+function testModal() {
+    console.log('Testing modal manually...');
+    openPolicyHistoryModal(1);
+}
+
+// Make test function available globally
+window.testModal = testModal;
+window.openPolicyHistoryModal = openPolicyHistoryModal;
+window.closePolicyHistoryModal = closePolicyHistoryModal;
 
 // Add bulk upload initialization to the main initialization
 document.addEventListener('DOMContentLoaded', function() {
     initializeApplication();
-    initializeBulkUpload();
+    setupEmailValidation();
+    
+    // Test if modal exists after DOM is loaded
+    setTimeout(() => {
+        const modal = document.getElementById('policyHistoryModal');
+        console.log('Modal check after DOM loaded:', modal ? 'FOUND' : 'NOT FOUND');
+        if (modal) {
+            console.log('Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
+        }
+    }, 1000);
 });

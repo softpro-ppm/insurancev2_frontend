@@ -18,8 +18,6 @@ class FollowupController extends Controller
         $followups = Followup::orderByDesc('id')->get()->map(function ($followup) {
             return [
                 'id' => $followup->id,
-                // Optional policy context if available; fallback to nulls
-                'policyNumber' => $followup->policy_number ?? null,
                 'customerName' => $followup->customer_name,
                 'phone' => $followup->phone,
                 'email' => $followup->email,

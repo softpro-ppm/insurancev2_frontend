@@ -11,7 +11,6 @@ class Policy extends Model
     use HasFactory;
 
     protected $fillable = [
-        'policy_number',
         'customer_name',
         'phone',
         'email',
@@ -54,6 +53,21 @@ class Policy extends Model
 
         static::saving(function (Policy $policy) {
             $policy->refreshStatusIfExpired();
+
+            // Enforce unique vehicle number (canonicalized) at application level
+            if (!empty($policy->vehicle_number)) {
+                $canonical = self::canonicalizeVehicleNumber($policy->vehicle_number);
+                if (!empty($canonical)) {
+                    $duplicateExists = Policy::where('id', '!=', $policy->id)
+                        ->get()
+                        ->contains(function ($existing) use ($canonical) {
+                            return self::canonicalizeVehicleNumber($existing->vehicle_number) === $canonical;
+                        });
+                    if ($duplicateExists) {
+                        throw new \RuntimeException('Duplicate vehicle number not allowed');
+                    }
+                }
+            }
         });
     }
 
@@ -74,9 +88,19 @@ class Policy extends Model
         return $this->belongsTo(Agent::class, 'agent_name', 'name');
     }
 
-    public function renewals()
+    public function versions()
     {
-        return $this->hasMany(Renewal::class, 'policy_number', 'policy_number');
+        return $this->hasMany(PolicyVersion::class)->orderBy('version_number', 'desc');
+    }
+
+    public function latestVersion()
+    {
+        return $this->hasOne(PolicyVersion::class)->latestOfMany('version_number');
+    }
+
+    public function firstVersion()
+    {
+        return $this->hasOne(PolicyVersion::class)->oldestOfMany('version_number');
     }
 
 
@@ -122,5 +146,12 @@ class Policy extends Model
     public function getFormattedRevenueAttribute()
     {
         return '₹' . number_format($this->revenue, 2);
+    }
+
+    private static function canonicalizeVehicleNumber(?string $value): string
+    {
+        $value = (string) $value;
+        $value = strtoupper($value);
+        return preg_replace('/[^A-Z0-9]/', '', $value);
     }
 }

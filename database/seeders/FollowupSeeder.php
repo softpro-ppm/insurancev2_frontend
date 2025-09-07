@@ -178,7 +178,7 @@ class FollowupSeeder extends Seeder
     private function generateRenewalNotes($policy)
     {
         $notes = [
-            "Policy {$policy->policy_number} expiring soon. Contact customer for renewal discussion.",
+            "Policy #{$policy->id} expiring soon. Contact customer for renewal discussion.",
             "Follow up on renewal options for {$policy->policy_type} policy. Customer interested in upgrading coverage.",
             "Renewal reminder sent. Awaiting customer response for policy renewal.",
             "Discuss premium changes and new features for policy renewal.",
@@ -195,7 +195,7 @@ class FollowupSeeder extends Seeder
     private function generateExpiredPolicyNotes($policy)
     {
         $notes = [
-            "Policy {$policy->policy_number} expired. Urgent follow up required for renewal.",
+            "Policy #{$policy->id} expired. Urgent follow up required for renewal.",
             "Customer unaware of policy expiry. Need to explain implications and renewal process.",
             "Expired policy follow up. Customer interested in reinstatement options.",
             "Policy lapsed. Discussing renewal with grace period benefits.",

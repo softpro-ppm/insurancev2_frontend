@@ -6,7 +6,6 @@
 <div class="page active" id="renewals">
     <div class="page-header">
         <h1>Renewals</h1>
-        <p>Manage policy renewals and track upcoming expirations</p>
     </div>
     <div class="page-content">
         <!-- Renewals Controls -->
@@ -477,7 +476,7 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${serial}</td>
-                    <td>${row.policyNumber}</td>
+                    <td>#${(row.id || 0).toString().padStart(3, '0')}</td>
                     <td>${row.customerName}</td>
                     <td>${policyTypeBadge(row.policyType)}</td>
                     <td>${row.endDate}</td>
@@ -528,7 +527,7 @@
 
         state.filtered = state.all.filter(row => {
             const matchText = !q ||
-                row.policyNumber.toLowerCase().includes(q) ||
+                (row.id || 0).toString().toLowerCase().includes(q) ||
                 row.customerName.toLowerCase().includes(q) ||
                 (row.agentName||'').toLowerCase().includes(q) ||
                 (row.policyType||'').toLowerCase().includes(q);
@@ -573,7 +572,6 @@
             const dleft = daysUntil(endDate);
             return {
                 id: p.id,
-                policyNumber: p.policyNumber,
                 customerName: p.customerName,
                 policyType: p.policyType,
                 endDate: endDate,

@@ -367,11 +367,12 @@ body.dark-theme {
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    padding: 28px;
+    padding: 16px;
     transition: all 0.3s ease;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    min-height: 80px;
 }
 
 .dark-theme .card {
@@ -436,7 +437,7 @@ body.dark-theme {
     font-size: 28px;
     font-weight: 700;
     color: #111827;
-    margin-bottom: 4px;
+    margin-bottom: 0;
 }
 
 .dark-theme .card-value {
@@ -4450,6 +4451,35 @@ body.dark-theme {
     box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
+.export-btn {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.export-btn:hover {
+    background: linear-gradient(135deg, #D97706, #B45309);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.export-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .template-download-btn {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
@@ -4643,5 +4673,288 @@ body.dark-theme {
     
     .secondary-button:hover {
         background: #6b7280;
+    }
+}
+
+/* Policy History Modal Styles */
+.history-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.policy-info {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(147, 51, 234, 0.1));
+    border-radius: 12px;
+    border-left: 4px solid #4F46E5;
+}
+
+.policy-info h3 {
+    margin: 0 0 8px 0;
+    color: #1f2937;
+    font-size: 1.3em;
+}
+
+.history-item {
+    position: relative;
+    padding: 0 0 30px 60px;
+    border-left: 2px solid #e5e7eb;
+}
+
+.history-item:last-child {
+    border-left: none;
+    padding-bottom: 0;
+}
+
+.history-item.latest {
+    border-left-color: #4F46E5;
+}
+
+.history-marker {
+    position: absolute;
+    left: -9px;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-item.latest .history-marker {
+    border-color: #4F46E5;
+    background: #4F46E5;
+    color: white;
+    width: 24px;
+    height: 24px;
+    left: -12px;
+}
+
+.history-marker i {
+    font-size: 8px;
+    color: #6b7280;
+}
+
+.history-item.latest .history-marker i {
+    color: white;
+    font-size: 10px;
+}
+
+.history-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.history-item.latest .history-content {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(147, 51, 234, 0.05));
+    border-color: #4F46E5;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.history-header h4 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.1em;
+}
+
+.history-date {
+    color: #6b7280;
+    font-size: 0.9em;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: #4b5563;
+    font-size: 0.9em;
+}
+
+.detail-item span {
+    color: #1f2937;
+    font-size: 0.95em;
+}
+
+.documents-section,
+.notes-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.documents-section h5,
+.notes-section h5 {
+    margin: 0 0 8px 0;
+    color: #4b5563;
+    font-size: 0.95em;
+}
+
+.document-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.document-item {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.document-item.downloadable {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    cursor: pointer;
+}
+
+.document-item.downloadable:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.document-item.downloadable i {
+    margin-left: 4px;
+    font-size: 0.7em;
+}
+
+.document-item.no-docs {
+    background: #f9fafb;
+    color: #9ca3af;
+    font-style: italic;
+    border: 1px dashed #d1d5db;
+}
+
+.notes-section p {
+    margin: 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.created-by {
+    margin-top: 12px;
+    text-align: right;
+}
+
+.created-by small {
+    color: #9ca3af;
+    font-size: 0.8em;
+}
+
+.loading, .error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* History button styling */
+.action-btn.history {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: white;
+}
+
+.action-btn.history:hover {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    transform: translateY(-1px);
+}
+
+/* Dark mode support for history modal */
+@media (prefers-color-scheme: dark) {
+    .policy-info {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(147, 51, 234, 0.2));
+        color: #f9fafb;
+    }
+    
+    .policy-info h3 {
+        color: #f9fafb;
+    }
+    
+    .history-content {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .history-item.latest .history-content {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(147, 51, 234, 0.15));
+    }
+    
+    .history-header {
+        border-color: #374151;
+    }
+    
+    .history-header h4 {
+        color: #f9fafb;
+    }
+    
+    .detail-item label {
+        color: #d1d5db;
+    }
+    
+    .detail-item span {
+        color: #f9fafb;
+    }
+    
+    .documents-section,
+    .notes-section {
+        border-color: #374151;
+    }
+    
+    .documents-section h5,
+    .notes-section h5 {
+        color: #d1d5db;
+    }
+    
+    .document-item {
+        background: #374151;
+        color: #f9fafb;
+    }
+    
+    .document-item.downloadable {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+    
+    .document-item.downloadable:hover {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+    }
+    
+    .notes-section p {
+        color: #d1d5db;
     }
 }

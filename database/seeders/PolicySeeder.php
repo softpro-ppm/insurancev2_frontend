@@ -21,25 +21,36 @@ class PolicySeeder extends Seeder
         $nextMonth = Carbon::now()->addMonth();
         
         $policies = [];
-        $policyNumber = 1;
 
         // Insurance companies for variety
         $companies = [
-            'ICICI Lombard General Insurance Co. Ltd.',
-            'Bajaj Allianz General Insurance Co. Ltd.',
-            'HDFC ERGO General Insurance Co. Ltd.',
-            'Tata AIG General Insurance Co. Ltd.',
-            'New India Assurance Co. Ltd.',
-            'Oriental Insurance Co. Ltd.',
-            'National Insurance Co. Ltd.',
-            'United India Insurance Co. Ltd.',
-            'Reliance General Insurance Co. Ltd.',
-            'SBI General Insurance Co. Ltd.'
+            'The New India',
+            'United India',
+            'National Insurance',
+            'The Oriental',
+            'ICICI Lombard',
+            'HDFC ERGO',
+            'Bajaj Allianz',
+            'Tata AIG',
+            'Reliance General',
+            'SBI General',
+            'IFFCO-Tokio',
+            'Royal Sundaram',
+            'Kotak Mahindra',
+            'Chola MS',
+            'Shriram General',
+            'Universal Sompo',
+            'Future Generali',
+            'Magma HDI',
+            'Raheja QBE',
+            'Go Digit',
+            'ACKO',
+            'Zuno'
         ];
 
         // Policy types for variety
-        $policyTypes = ['Motor', 'Health', 'Life', 'Home', 'Travel', 'Business'];
-        $insuranceTypes = ['Comprehensive', 'Third Party', 'Family Floater', 'Individual', 'Term Insurance', 'Property'];
+        $policyTypes = ['Motor', 'Health', 'Life'];
+        $insuranceTypes = ['Comprehensive', 'Stand Alone OD', 'Third Party'];
         $agents = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Self'];
 
         // 1. Issued 10 policies current month
@@ -48,7 +59,6 @@ class PolicySeeder extends Seeder
             $endDate = $startDate->copy()->addYear();
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -75,7 +85,6 @@ class PolicySeeder extends Seeder
             $endDate = $currentMonth->copy()->subDays(rand(1, 30));
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -102,7 +111,6 @@ class PolicySeeder extends Seeder
             $endDate = $currentMonth->copy()->addDays(rand(1, 30));
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -129,7 +137,6 @@ class PolicySeeder extends Seeder
             $endDate = $nextMonth->copy()->addDays(rand(1, 30));
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -156,7 +163,6 @@ class PolicySeeder extends Seeder
             $endDate = Carbon::create(2025, 6, 30)->subDays(rand(1, 180));
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -183,7 +189,6 @@ class PolicySeeder extends Seeder
             $endDate = Carbon::create(2025, 5, 31)->subDays(rand(1, 150));
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -215,7 +220,6 @@ class PolicySeeder extends Seeder
             }
             
             $policies[] = [
-                'policy_number' => 'POL' . str_pad($policyNumber++, 3, '0', STR_PAD_LEFT),
                 'customer_name' => $this->generateCustomerName(),
                 'phone' => '+91' . rand(7000000000, 9999999999),
                 'email' => $this->generateEmail(),
@@ -269,7 +273,41 @@ class PolicySeeder extends Seeder
 
     private function generateVehicleType()
     {
-        $types = ['Car', 'Bike', 'Scooter', 'Truck', 'Bus', 'Van', 'SUV', 'Sedan', 'Hatchback', 'Motorcycle'];
+        $types = [
+            'Auto (Goods)',
+            'Auto (Passenger)',
+            'Bus',
+            'Car (Commercial)',
+            'Car (Private)',
+            'E-Rickshaw',
+            'Electric Car',
+            'HGV (Goods)',
+            'JCB',
+            'LCV (Goods)',
+            'Others / Misc.',
+            'Private Car',
+            'School Bus',
+            'Tractor',
+            'Trailer',
+            'Two-Wheeler',
+            'Van/Jeep',
+            'SUV',
+            'Sedan',
+            'Hatchback',
+            'Motorcycle',
+            'Scooter',
+            'Bike',
+            'Truck',
+            'Van',
+            'Mini Bus',
+            'Tempo',
+            'Pickup Truck',
+            'Ambulance',
+            'Fire Truck',
+            'Police Vehicle',
+            'Taxi',
+            'Auto Rickshaw'
+        ];
         return $types[array_rand($types)];
     }
 

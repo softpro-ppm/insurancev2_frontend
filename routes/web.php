@@ -35,17 +35,36 @@ Route::get('/policies', function () {
 
 // Policy CRUD routes
 Route::get('/api/policies', [PolicyController::class, 'index'])->name('policies.list');
-Route::post('/policies', [PolicyController::class, 'store'])->name('policies.store');
+Route::post('/policies', [PolicyController::class, 'store'])->name('policies.store')->middleware(['auth', 'verified']);
+Route::post('/api/policies', [PolicyController::class, 'store'])->name('policies.api.store')->middleware(['auth', 'verified']);
 Route::get('/policies/{id}', [PolicyController::class, 'show'])->name('policies.show');
 Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policies.update');
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
-// Policy bulk upload routes
-Route::get('/api/policies/template/download', [PolicyController::class, 'downloadTemplate'])->name('policies.template.download');
-Route::post('/api/policies/bulk-upload', [PolicyController::class, 'bulkUpload'])->name('policies.bulk-upload');
+// Policy export and bulk upload routes
+Route::get('/api/policies/export', [PolicyController::class, 'exportPolicies'])->name('policies.export')->middleware(['auth', 'verified']);
+Route::get('/api/policies/template/download', [PolicyController::class, 'downloadTemplate'])->name('policies.template.download')->middleware(['auth', 'verified']);
+Route::get('/api/policies/template/download-csv', [PolicyController::class, 'downloadCSVTemplate'])->name('policies.template.download-csv')->middleware(['auth', 'verified']);
+Route::post('/api/policies/bulk-upload', [PolicyController::class, 'bulkUpload'])->name('policies.bulk-upload')->middleware(['auth', 'verified']);
+Route::post('/api/policies/bulk-upload/preview', [PolicyController::class, 'previewBulkUpload'])->name('policies.bulk-upload-preview')->middleware(['auth', 'verified']);
+
+// Bulk upload test page
+Route::get('/bulk-upload-test', function () {
+    return view('bulk-upload-test');
+})->middleware(['auth', 'verified'])->name('bulk-upload-test');
 
 // Policy document download route
 Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController::class, 'downloadDocument'])->name('policies.download-document');
+
+// Policy history route
+Route::get('/api/policies/{id}/history', [PolicyController::class, 'getHistory'])->name('policies.history')->middleware(['auth', 'verified']);
+
+// Vehicle number search route
+Route::get('/api/policies/search/vehicle/{vehicleNumber}', [PolicyController::class, 'searchByVehicleNumber'])->name('policies.search-vehicle')->middleware(['auth', 'verified']);
+
+
+// Policy version document download route
+Route::get('/api/policy-versions/{versionId}/download/{documentType}', [PolicyController::class, 'downloadVersionDocument'])->name('policy-versions.download-document')->middleware(['auth', 'verified']);
 
 // Renewals routes
 Route::get('/renewals', function () {

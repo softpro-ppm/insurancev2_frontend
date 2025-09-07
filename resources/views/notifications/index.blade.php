@@ -6,7 +6,6 @@
 <div class="page active" id="notifications">
     <div class="page-header">
         <h1>Notifications</h1>
-        <p>Manage bulk notifications and communication channels</p>
     </div>
     <div class="page-content">
         <!-- Notification Statistics -->

@@ -6,7 +6,6 @@
 <div class="page active" id="policies">
     <div class="page-header">
         <h1>Policies</h1>
-        <p>Manage all insurance policies</p>
     </div>
     <div class="page-content">
         <!-- Policies Controls -->
@@ -20,10 +19,10 @@
                     <i class="fas fa-upload"></i>
                     Bulk Upload
                 </button>
-                <a href="/api/policies/template/download" class="template-download-btn" id="templateDownloadBtn">
+                <button class="export-btn" id="exportPoliciesBtn">
                     <i class="fas fa-download"></i>
-                    Download Template
-                </a>
+                    Export Data
+                </button>
             </div>
             <div class="controls-right">
                 <div class="filter-group">
@@ -161,19 +160,76 @@
             <div class="upload-instructions">
                 <h4>Instructions:</h4>
                 <ol>
-                    <li>Download the template using the "Download Template" button</li>
+                    <li>Download the template using the buttons below (Excel or CSV format)</li>
                     <li>Fill in your policy data following the template format</li>
-                    <li>Save the file as .xlsx or .xls format</li>
+                    <li>Save the file as .xlsx, .xls, or .csv format</li>
                     <li>Upload the file using the form below</li>
                     <li>Fields marked with * are required</li>
+                    <li><strong>CSV format is recommended for better compatibility</strong></li>
                 </ol>
+                
+                <div class="template-download">
+                    <button type="button" class="secondary-button" id="downloadTemplateBtn">
+                        <i class="fas fa-download"></i>
+                        Download Excel Template
+                    </button>
+                    <button type="button" class="secondary-button" id="downloadCSVTemplateBtn">
+                        <i class="fas fa-file-csv"></i>
+                        Download CSV Template
+                    </button>
+                </div>
             </div>
             
             <form id="bulkUploadForm" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="excelFile">Select Excel File:</label>
-                    <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" required>
-                    <small>Maximum file size: 10MB. Supported formats: .xlsx, .xls</small>
+                    <label for="excelFile">Select File:</label>
+                    <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls,.csv" required>
+                    <small>Maximum file size: 10MB. Supported formats: .xlsx, .xls, .csv</small>
+                </div>
+                
+                <!-- Preview Section -->
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <h4>File Preview</h4>
+                    <div class="preview-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Rows:</span>
+                            <span class="stat-value" id="totalRows">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Valid Rows:</span>
+                            <span class="stat-value valid" id="validRows">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Invalid Rows:</span>
+                            <span class="stat-value invalid" id="invalidRows">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Success Rate:</span>
+                            <span class="stat-value" id="successRate">0%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Table (Unified) -->
+                    <div class="preview-tables">
+                        <div class="table-section">
+                            <h5>Rows</h5>
+                            <div class="table-container">
+                                <table class="preview-table" id="previewTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Policy Type</th>
+                                            <th>Customer Name</th>
+                                            <th>Phone</th>
+                                            <th>Company</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="upload-progress" id="uploadProgress" style="display: none;">
@@ -185,6 +241,7 @@
                 
                 <div class="form-actions">
                     <button type="button" class="secondary-button" id="cancelBulkUpload">Cancel</button>
+                    <button type="button" class="secondary-button" id="previewBtn" style="display: none;">Preview File</button>
                     <button type="submit" class="primary-button" id="submitBulkUpload">
                         <i class="fas fa-upload"></i>
                         Upload Policies

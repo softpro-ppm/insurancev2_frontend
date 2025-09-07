@@ -6,56 +6,59 @@
 <div class="page active" id="dashboard">
     <div class="page-header">
         <h1>Dashboard</h1>
-        <p>Welcome to Insurance Management System 3.0</p>
     </div>
 
     <!-- Dashboard Cards -->
     <div class="dashboard-cards">
         <div class="card glass-effect">
-            <div class="card-icon premium">
-                <i class="fas fa-rupee-sign"></i>
+            <div class="card-header">
+                <div class="card-icon premium">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="card-value" id="monthlyPremium">₹0</div>
             </div>
             <div class="card-content">
                 <h3>Premium (Current Month)</h3>
-                <p class="card-value" id="monthlyPremium">₹0</p>
-                <p class="card-subtitle" id="yearlyPremium">₹0 (FY)</p>
             </div>
         </div>
         <div class="card glass-effect">
-            <div class="card-icon policies">
-                <i class="fas fa-file-contract"></i>
+            <div class="card-header">
+                <div class="card-icon policies">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="card-value" id="monthlyPolicies">0</div>
             </div>
             <div class="card-content">
                 <h3>Policies (Current Month)</h3>
-                <p class="card-value" id="monthlyPolicies">0</p>
-                <p class="card-subtitle" id="yearlyPolicies">0 (FY)</p>
             </div>
         </div>
         <div class="card glass-effect">
-            <div class="card-icon renewals">
-                <i class="fas fa-sync-alt"></i>
+            <div class="card-header">
+                <div class="card-icon renewals">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="card-value" id="monthlyRenewals">0</div>
             </div>
             <div class="card-content">
                 <h3>Renewals (Current Month)</h3>
-                <p class="card-value" id="monthlyRenewals">0</p>
-                <p class="card-subtitle" id="pendingRenewals">0 Pending</p>
             </div>
         </div>
         <div class="card glass-effect">
-            <div class="card-icon revenue">
-                <i class="fas fa-chart-line"></i>
+            <div class="card-header">
+                <div class="card-icon revenue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-value" id="monthlyRevenue">₹0</div>
             </div>
             <div class="card-content">
                 <h3>Revenue (Current Month)</h3>
-                <p class="card-value" id="monthlyRevenue">₹0</p>
-                <p class="card-subtitle" id="yearlyRevenue">₹0 (FY)</p>
             </div>
         </div>
     </div>
 
     <!-- Charts Section -->
     <div class="charts-section">
-        <div class="chart-container glass-effect">
+        <div class="chart-container glass-effect" style="grid-column: 1 / -1; width: 100%">
             <div class="chart-header">
                 <h3>Premium vs Revenue vs Policies</h3>
                 <select class="chart-dropdown" id="chartPeriod">
@@ -65,12 +68,6 @@
                 </select>
             </div>
             <canvas id="barChart"></canvas>
-        </div>
-        <div class="chart-container glass-effect">
-            <div class="chart-header">
-                <h3>Insurance Distribution</h3>
-            </div>
-            <canvas id="pieChart"></canvas>
         </div>
     </div>
 
@@ -99,7 +96,7 @@
                         <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
                         <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
                         <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
-                        <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
+                                                    <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
                         <th data-sort="startDate">Start Date <i class="fas fa-sort"></i></th>
                         <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
                         <th data-sort="status">Status <i class="fas fa-sort"></i></th>
@@ -136,6 +133,7 @@
 @include('components.followup-modal')
 @include('components.bulk-notification-modal')
 @include('components.schedule-notification-modal')
+
 
 @push('scripts')
 <script>
