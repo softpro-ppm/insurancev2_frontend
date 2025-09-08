@@ -60,7 +60,7 @@
     <div class="charts-section">
         <div class="chart-container glass-effect" style="grid-column: 1 / -1; width: 100%">
             <div class="chart-header">
-                <h3>Premium vs Revenue vs Policies</h3>
+                <h3>Premium vs Revenue vs Policy</h3>
                 <select class="chart-dropdown" id="chartPeriod">
                     <option value="fy">Financial Year</option>
                     <option value="month">Current Month</option>
