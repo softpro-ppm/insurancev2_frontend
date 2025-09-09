@@ -844,6 +844,11 @@ $(document).ready(function() {
 // Main initialization function
 const initializeApplication = async () => {
     try {
+        console.log('🚀 Starting application initialization...');
+        
+        // Initialize charts first so they're ready for data
+        initializeCharts();
+        
         // Load all data from APIs
         await Promise.all([
             loadDashboardData(),
@@ -853,11 +858,26 @@ const initializeApplication = async () => {
             loadFollowupsData()
         ]);
         
+        console.log('📊 Data loaded, ensuring charts have data...');
+        
+        // Ensure charts get the loaded data
+        if (window.latestChartData && window.barChart) {
+            console.log('🔄 Applying data to initialized charts');
+            updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+        } else if (window.barChart) {
+            console.log('📊 Chart initialized but no data yet, triggering fresh fetch...');
+            // Force a fresh data fetch for the default period
+            setTimeout(() => {
+                const defaultPeriod = $('#chartPeriod').val() || 'fy';
+                console.log('🔄 Fetching data for default period:', defaultPeriod);
+                handleChartPeriodChange();
+            }, 300);
+        }
+        
     // Build renewals VM from policies before initializing components
     await buildRenewalsFromPoliciesAsync();
 
-    // Initialize components
-        initializeCharts();
+    // Initialize other components
         initializeTable();
         initializeAgents();
         initializePoliciesPage();
@@ -1272,10 +1292,17 @@ const hideLoadingState = () => {
 const initializeCharts = () => {
     console.log('🚀 Initializing charts...');
     
-    // Only initialize charts on dashboard page
-    if (!$('#dashboard').hasClass('active')) {
-        console.log('⏭️ Dashboard not active, skipping chart initialization');
+    // Check if we're on dashboard page OR if this is initial load
+    const isDashboardActive = $('#dashboard').hasClass('active');
+    const isDashboardPage = window.location.pathname === '/dashboard' || window.location.pathname === '/';
+    
+    if (!isDashboardActive && !isDashboardPage) {
+        console.log('⏭️ Not on dashboard page, skipping chart initialization');
         return;
+    }
+    
+    if (!isDashboardActive) {
+        console.log('📊 Dashboard not active yet but we\'re on dashboard page, proceeding...');
     }
     
     // Wait for DOM to be ready
@@ -1432,7 +1459,23 @@ const initializeCharts = () => {
             console.log('📊 Applying cached chart data');
             updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
         } else {
-            console.log('⏳ No cached chart data, will wait for API response');
+            console.log('⏳ No cached chart data, fetching fresh data...');
+            // Fetch data immediately if not cached
+            setTimeout(() => {
+                fetch('/api/dashboard/stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('📊 Fresh chart data fetched for initialization:', data);
+                        if (data.chartData) {
+                            window.latestChartData = data.chartData;
+                            window.latestPolicyTypes = data.policyTypes || {};
+                            updateDashboardCharts(data.chartData, data.policyTypes);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Failed to fetch initial chart data:', error);
+                    });
+            }, 200);
         }
     }, 100);
 };
