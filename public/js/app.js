@@ -986,10 +986,13 @@ const updateDashboardStats = (stats) => {
     }
     
     if (stats.chartData) {
+        console.log('📊 Received chart data from API:', stats.chartData);
         // Cache the latest chart data in case charts are not yet initialized
         window.latestChartData = stats.chartData;
         window.latestPolicyTypes = stats.policyTypes || {};
         updateDashboardCharts(stats.chartData, stats.policyTypes);
+    } else {
+        console.warn('⚠️ No chart data received from API');
     }
 };
 
@@ -1179,46 +1182,78 @@ const updateExpiringPoliciesList = (policies) => {
 
 // Update dashboard charts
 const updateDashboardCharts = (chartData, policyTypes) => {
-    // Prevent double updates by checking if data has changed
-    if (window.lastChartDataHash === JSON.stringify(chartData)) {
+    console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
+    
+    // Validate chart data
+    if (!chartData || !Array.isArray(chartData)) {
+        console.warn('⚠️ Invalid chart data received:', chartData);
         return;
     }
-    window.lastChartDataHash = JSON.stringify(chartData);
+    
+    // Prevent double updates by checking if data has changed
+    const dataHash = JSON.stringify(chartData);
+    if (window.lastChartDataHash === dataHash) {
+        console.log('📊 Chart data unchanged, skipping update');
+        return;
+    }
+    window.lastChartDataHash = dataHash;
     
     // Update bar chart with real data
-    if (window.barChart && window.barChart.data && chartData) {
-        const labels = chartData.map(item => item.month);
-        const premiumData = chartData.map(item => item.premium);
-        const revenueData = chartData.map(item => item.revenue);
-        const policiesData = chartData.map(item => item.policies);
+    if (window.barChart && window.barChart.data) {
+        console.log('📈 Updating bar chart with', chartData.length, 'data points');
         
+        const labels = chartData.map(item => item.month || 'Unknown');
+        const premiumData = chartData.map(item => parseFloat(item.premium || 0));
+        const revenueData = chartData.map(item => parseFloat(item.revenue || 0));
+        const policiesData = chartData.map(item => parseInt(item.policies || 0));
+        
+        console.log('📊 Processed chart data:', { 
+            labels, 
+            premiumData, 
+            revenueData, 
+            policiesData,
+            hasData: premiumData.some(val => val > 0) || revenueData.some(val => val > 0) || policiesData.some(val => val > 0)
+        });
+        
+        // Update chart data
         window.barChart.data.labels = labels;
         window.barChart.data.datasets[0].data = premiumData;
         window.barChart.data.datasets[1].data = revenueData;
         window.barChart.data.datasets[2].data = policiesData;
         
-        // Update without animation to prevent double animation
-        window.barChart.update('none');
+        // Force chart update with animation
+        window.barChart.update('active');
+        console.log('✅ Bar chart updated successfully');
         
-        // Re-enable animation for future updates
+        // Show notification if no data
+        const hasAnyData = premiumData.some(val => val > 0) || revenueData.some(val => val > 0) || policiesData.some(val => val > 0);
+        if (!hasAnyData) {
+            console.log('📊 No data available for current period');
+            showNotification('No data available for the selected time period', 'info');
+        }
+    } else {
+        console.error('❌ Bar chart not initialized:', {
+            hasBarChart: !!window.barChart,
+            hasBarChartData: !!(window.barChart && window.barChart.data)
+        });
+        
+        // Try to reinitialize chart
         setTimeout(() => {
-            if (window.barChart) {
-                window.barChart.options.animation = {
-                    duration: 1000,
-                    easing: 'easeInOutQuart'
-                };
-            }
-        }, 100);
+            console.log('🔄 Attempting to reinitialize charts...');
+            initializeCharts();
+        }, 1000);
     }
     
     // Update pie chart with real data
-    if (window.pieChart && window.pieChart.data && policyTypes) {
+    if (window.pieChart && window.pieChart.data && policyTypes && Object.keys(policyTypes).length > 0) {
+        console.log('🥧 Updating pie chart');
         const labels = Object.keys(policyTypes);
         const data = Object.values(policyTypes);
         
         window.pieChart.data.labels = labels;
         window.pieChart.data.datasets[0].data = data;
-        window.pieChart.update('none');
+        window.pieChart.update('active');
+        console.log('✅ Pie chart updated successfully');
     }
 };
 
@@ -1235,8 +1270,11 @@ const hideLoadingState = () => {
 
 // Initialize charts
 const initializeCharts = () => {
+    console.log('🚀 Initializing charts...');
+    
     // Only initialize charts on dashboard page
     if (!$('#dashboard').hasClass('active')) {
+        console.log('⏭️ Dashboard not active, skipping chart initialization');
         return;
     }
     
@@ -1244,15 +1282,19 @@ const initializeCharts = () => {
     setTimeout(() => {
         const barCtx = document.getElementById('barChart');
         if (!barCtx) {
-            console.log('Bar chart canvas not found');
+            console.error('❌ Bar chart canvas not found');
             return;
         }
         
+        console.log('📊 Found bar chart canvas, proceeding with initialization');
+        
         // Destroy existing charts if they exist
         if (window.barChart && typeof window.barChart.destroy === 'function') {
+            console.log('🗑️ Destroying existing bar chart');
             window.barChart.destroy();
         }
         if (window.pieChart && typeof window.pieChart.destroy === 'function') {
+            console.log('🗑️ Destroying existing pie chart');
             window.pieChart.destroy();
         }
         
@@ -1383,11 +1425,77 @@ const initializeCharts = () => {
 
         // Store chart references
         window.barChart = barChart;
+        console.log('✅ Bar chart initialized successfully');
         
         // If we already fetched data before charts were ready, apply it now
         if (window.latestChartData) {
+            console.log('📊 Applying cached chart data');
             updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+        } else {
+            console.log('⏳ No cached chart data, will wait for API response');
         }
+    }, 100);
+};
+
+// Debug and utility functions for charts
+window.debugChartStatus = () => {
+    console.log('=== 📊 CHART DEBUG STATUS ===');
+    console.log('Bar Chart exists:', !!window.barChart);
+    console.log('Bar Chart data exists:', !!(window.barChart && window.barChart.data));
+    console.log('Dashboard element active:', $('#dashboard').hasClass('active'));
+    console.log('Chart canvas element:', document.getElementById('barChart'));
+    console.log('Latest Chart Data:', window.latestChartData);
+    console.log('Latest Policy Types:', window.latestPolicyTypes);
+    
+    // Test API endpoint
+    fetch('/api/dashboard/stats')
+        .then(response => response.json())
+        .then(data => {
+            console.log('📡 API Response:', data);
+            console.log('📊 Chart Data from API:', data.chartData);
+            if (data.chartData && data.chartData.length > 0) {
+                console.log('✅ API has chart data');
+            } else {
+                console.log('❌ API has no chart data');
+            }
+        })
+        .catch(error => {
+            console.error('❌ API Error:', error);
+        });
+};
+
+window.forceChartRefresh = () => {
+    console.log('🔄 Forcing chart refresh...');
+    
+    // Destroy existing chart
+    if (window.barChart) {
+        window.barChart.destroy();
+        window.barChart = null;
+    }
+    
+    // Clear cache
+    window.latestChartData = null;
+    window.latestPolicyTypes = null;
+    window.lastChartDataHash = null;
+    
+    // Re-initialize
+    setTimeout(() => {
+        initializeCharts();
+        
+        // Re-fetch data
+        setTimeout(() => {
+            fetch('/api/dashboard/stats')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📊 Fresh data fetched:', data);
+                    if (data.chartData) {
+                        updateDashboardCharts(data.chartData, data.policyTypes);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Failed to fetch fresh data:', error);
+                });
+        }, 500);
     }, 100);
 };
 

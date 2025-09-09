@@ -70,6 +70,14 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
         $period = $request->get('period', 'financial_year');
         $chartData = $this->getChartDataForPeriod($period, $now);
         
+        // Log chart data for debugging
+        \Log::info('Dashboard Chart Data Generated', [
+            'period' => $period,
+            'chartDataCount' => count($chartData),
+            'hasData' => collect($chartData)->sum('premium') > 0 || collect($chartData)->sum('revenue') > 0 || collect($chartData)->sum('policies') > 0,
+            'chartData' => $chartData
+        ]);
+
         return response()->json([
             'stats' => [
                 'totalPolicies' => $totalPolicies,
