@@ -887,33 +887,43 @@ const initializeApplication = async () => {
 // Load dashboard data
 const loadDashboardData = async () => {
     try {
-        // Load dashboard stats (charts might fail, but that's ok)
-        try {
-            const stats = await fetchDashboardStats();
-            if (stats) {
-                updateDashboardStats(stats);
-            }
-        } catch (statsError) {
-            console.warn('Failed to load dashboard stats (charts):', statsError);
+        // Show loading indicators for cards
+        $('.card-value').text('Loading...');
+        
+        // Load all data in parallel for better performance
+        const [stats, recentPolicies, expiringPolicies] = await Promise.allSettled([
+            fetchDashboardStats(),
+            fetchRecentPolicies(),
+            fetchExpiringPolicies()
+        ]);
+
+        // Handle stats
+        if (stats.status === 'fulfilled' && stats.value) {
+            updateDashboardStats(stats.value);
+        } else {
+            console.warn('Failed to load dashboard stats:', stats.reason);
+            // Reset loading indicators
+            $('.card-value').text('0');
+        }
+
+        // Handle recent policies
+        if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
+            updateRecentPoliciesTable(recentPolicies.value);
+        } else {
+            console.warn('Failed to load recent policies:', recentPolicies.reason);
+        }
+
+        // Handle expiring policies
+        if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
+            updateExpiringPoliciesList(expiringPolicies.value);
+        } else {
+            console.warn('Failed to load expiring policies:', expiringPolicies.reason);
         }
         
-        // Load recent policies separately (this should always work)
-        try {
-            const recentPolicies = await fetchRecentPolicies();
-            console.log('Fetched recent policies:', recentPolicies);
-            if (recentPolicies.length > 0) {
-                updateRecentPoliciesTable(recentPolicies);
-            }
-        } catch (policiesError) {
-            console.error('Failed to load recent policies:', policiesError);
-        }
-        
-        const expiringPolicies = await fetchExpiringPolicies();
-        if (expiringPolicies.length > 0) {
-            updateExpiringPoliciesList(expiringPolicies);
-        }
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        // Reset loading indicators
+        $('.card-value').text('Error');
     }
 };
 // Load policies data
@@ -1169,6 +1179,12 @@ const updateExpiringPoliciesList = (policies) => {
 
 // Update dashboard charts
 const updateDashboardCharts = (chartData, policyTypes) => {
+    // Prevent double updates by checking if data has changed
+    if (window.lastChartDataHash === JSON.stringify(chartData)) {
+        return;
+    }
+    window.lastChartDataHash = JSON.stringify(chartData);
+    
     // Update bar chart with real data
     if (window.barChart && window.barChart.data && chartData) {
         const labels = chartData.map(item => item.month);
@@ -1180,7 +1196,19 @@ const updateDashboardCharts = (chartData, policyTypes) => {
         window.barChart.data.datasets[0].data = premiumData;
         window.barChart.data.datasets[1].data = revenueData;
         window.barChart.data.datasets[2].data = policiesData;
-        window.barChart.update();
+        
+        // Update without animation to prevent double animation
+        window.barChart.update('none');
+        
+        // Re-enable animation for future updates
+        setTimeout(() => {
+            if (window.barChart) {
+                window.barChart.options.animation = {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                };
+            }
+        }, 100);
     }
     
     // Update pie chart with real data
@@ -1190,7 +1218,7 @@ const updateDashboardCharts = (chartData, policyTypes) => {
         
         window.pieChart.data.labels = labels;
         window.pieChart.data.datasets[0].data = data;
-        window.pieChart.update();
+        window.pieChart.update('none');
     }
 };
 
@@ -1263,6 +1291,9 @@ const initializeCharts = () => {
             },
             options: {
                 responsive: true,
+                animation: {
+                    duration: 0  // Disable initial animation
+                },
                 maintainAspectRatio: false,
                 interaction: {
                     mode: 'index',
