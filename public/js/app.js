@@ -218,12 +218,14 @@ const fetchDashboardStats = async () => {
 
 const fetchRecentRenewals = async () => {
     try {
+        console.log('🔄 Fetching recent renewals...');
         // Add cache-busting parameter to force fresh data
         const timestamp = new Date().getTime();
         const data = await apiCall(`/api/renewals?t=${timestamp}`);
+        console.log('✅ Renewals data received:', data);
         return data.renewals || [];
     } catch (error) {
-        console.error('Failed to fetch recent renewals:', error);
+        console.error('❌ Failed to fetch recent renewals:', error);
         return [];
     }
 };
@@ -928,9 +930,11 @@ const loadDashboardData = async () => {
 
         // Handle recent renewals
         if (recentRenewals.status === 'fulfilled' && recentRenewals.value?.length > 0) {
+            console.log('✅ Recent renewals loaded successfully:', recentRenewals.value.length, 'renewals');
             updateRecentRenewalsTable(recentRenewals.value);
         } else {
-            console.warn('Failed to load recent renewals:', recentRenewals.reason);
+            console.warn('❌ Failed to load recent renewals:', recentRenewals.reason);
+            console.log('🔍 Renewals data:', recentRenewals.value);
         }
 
         // Handle expiring policies
@@ -1018,8 +1022,12 @@ const updateDashboardStats = (stats) => {
 
 // Update recent renewals table
 const updateRecentRenewalsTable = (renewals) => {
+    console.log('🔄 Updating recent renewals table with data:', renewals);
+    
     // Store the recent renewals data for search and sort functionality
     window.recentRenewalsData = renewals || [];
+    
+    console.log('📊 Stored renewals data:', window.recentRenewalsData.length, 'renewals');
     
     // Apply search filter if there's a search term
     const searchTerm = $('#renewalSearch').val().toLowerCase().trim();

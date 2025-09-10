@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         // Seed policies (depends on agents)
         $this->call(PolicySeeder::class);
         
+        // Seed renewals (depends on policies)
+        $this->call(RenewalSeeder::class);
+        
         // Seed followups (depends on policies and agents)
         $this->call(FollowupSeeder::class);
     }
