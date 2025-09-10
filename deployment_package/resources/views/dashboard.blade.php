@@ -74,11 +74,11 @@
     <!-- Data Table -->
     <div class="data-table-container glass-effect">
         <div class="table-header">
-            <h3>Recent Policies</h3>
+            <h3>Recent Renewals</h3>
             <div class="table-controls">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search policies..." id="policySearch">
+                    <input type="text" placeholder="Search renewals..." id="renewalSearch">
                 </div>
                 <select class="rows-per-page" id="rowsPerPage">
                     <option value="10">10 rows</option>
@@ -89,21 +89,21 @@
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="data-table" id="policiesTable">
+            <table class="data-table" id="renewalsTable">
                 <thead>
                     <tr>
                         <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
-                        <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
-                        <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
+                        <th data-sort="customerName">Customer Name <i class="fas fa-sort"></i></th>
                         <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
-                                                    <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
-                        <th data-sort="startDate">Start Date <i class="fas fa-sort"></i></th>
-                        <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
+                        <th data-sort="policyType">Policy Type <i class="fas fa-sort"></i></th>
+                        <th data-sort="currentPremium">Current Premium <i class="fas fa-sort"></i></th>
+                        <th data-sort="renewalPremium">Renewal Premium <i class="fas fa-sort"></i></th>
+                        <th data-sort="dueDate">Due Date <i class="fas fa-sort"></i></th>
                         <th data-sort="status">Status <i class="fas fa-sort"></i></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="policiesTableBody">
+                <tbody id="renewalsTableBody">
                     <!-- Table data will be populated by JavaScript -->
                 </tbody>
             </table>
