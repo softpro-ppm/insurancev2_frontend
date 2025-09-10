@@ -216,16 +216,14 @@ const fetchDashboardStats = async () => {
     }
 };
 
-const fetchRecentRenewals = async () => {
+const fetchRecentPolicies = async () => {
     try {
-        console.log('🔄 Fetching recent renewals...');
         // Add cache-busting parameter to force fresh data
         const timestamp = new Date().getTime();
-        const data = await apiCall(`/api/renewals?t=${timestamp}`);
-        console.log('✅ Renewals data received:', data);
-        return data.renewals || [];
+        const data = await apiCall(`/api/dashboard/recent-policies?t=${timestamp}`);
+        return data.recentPolicies || [];
     } catch (error) {
-        console.error('❌ Failed to fetch recent renewals:', error);
+        console.error('Failed to fetch recent policies:', error);
         return [];
     }
 };
@@ -899,15 +897,15 @@ const loadDashboardData = async () => {
             console.warn('Failed to load dashboard stats (charts):', statsError);
         }
         
-        // Load recent renewals separately (this should always work)
+        // Load recent policies separately (this should always work)
         try {
-            const recentRenewals = await fetchRecentRenewals();
-            console.log('Fetched recent renewals:', recentRenewals);
-            if (recentRenewals.length > 0) {
-                updateRecentRenewalsTable(recentRenewals);
+            const recentPolicies = await fetchRecentPolicies();
+            console.log('Fetched recent policies:', recentPolicies);
+            if (recentPolicies.length > 0) {
+                updateRecentPoliciesTable(recentPolicies);
             }
-        } catch (renewalsError) {
-            console.error('Failed to load recent renewals:', renewalsError);
+        } catch (policiesError) {
+            console.error('Failed to load recent policies:', policiesError);
         }
         
         const expiringPolicies = await fetchExpiringPolicies();
@@ -985,44 +983,45 @@ const updateDashboardStats = (stats) => {
     }
 };
 
-// Update recent renewals table
-const updateRecentRenewalsTable = (renewals) => {
-    console.log('🔄 Updating recent renewals table with data:', renewals);
-    
-    // Store the recent renewals data for search and sort functionality
-    window.recentRenewalsData = renewals || [];
-    
-    console.log('📊 Stored renewals data:', window.recentRenewalsData.length, 'renewals');
+// Update recent policies table
+const updateRecentPoliciesTable = (policies) => {
+    // Store the recent policies data for search and sort functionality
+    window.recentPoliciesData = policies || [];
     
     // Apply search filter if there's a search term
-    const searchTerm = $('#renewalSearch').val().toLowerCase().trim();
-    let filteredRenewals = [...window.recentRenewalsData];
+    const searchTerm = $('#policySearch').val().toLowerCase().trim();
+    let filteredPolicies = [...window.recentPoliciesData];
     
     if (searchTerm !== '') {
         console.log('Applying search filter:', searchTerm);
-        filteredRenewals = window.recentRenewalsData.filter(renewal => {
-            // Search across ALL possible fields in recent renewals
+        filteredPolicies = window.recentPoliciesData.filter(policy => {
+            // Search across ALL possible fields in recent policies
             const searchableFields = [
                 // Basic info
-                renewal.customerName || '',
-                renewal.phone || '',
-                renewal.email || '',
-                renewal.policyType || '',
+                policy.customerName || '',
+                policy.phone || '',
+                policy.customerEmail || policy.email || '',
+                policy.policyType || '',
+                policy.vehicleNumber || '',
+                
+                // Insurance details
+                policy.insuranceType || policy.planType || '',
+                policy.startDate || '',
+                policy.endDate || '',
+                policy.status || '',
                 
                 // Financial details
-                (renewal.currentPremium || 0).toString(),
-                (renewal.renewalPremium || 0).toString(),
-                
-                // Status and dates
-                renewal.status || '',
-                renewal.dueDate || '',
+                (policy.premium || 0).toString(),
+                (policy.payout || 0).toString(),
+                (policy.customerPaidAmount || 0).toString(),
+                (policy.revenue || 0).toString(),
                 
                 // Business details
-                renewal.agentName || '',
-                renewal.notes || '',
+                policy.businessType || policy.business_type || '',
+                policy.agentName || policy.agent_name || '',
                 
                 // ID
-                (renewal.id || '').toString()
+                (policy.id || '').toString()
             ];
             
             // Check if any field contains the search term
@@ -1030,13 +1029,13 @@ const updateRecentRenewalsTable = (renewals) => {
                 field.toString().toLowerCase().includes(searchTerm)
             );
         });
-        console.log('Filtered renewals count:', filteredRenewals.length);
+        console.log('Filtered policies count:', filteredPolicies.length);
     }
     
     // Apply sorting if there's a current sort
     if (window.currentSort && window.currentSort.column) {
         console.log('Applying sort:', window.currentSort.column, window.currentSort.direction);
-        filteredRenewals.sort((a, b) => {
+        filteredPolicies.sort((a, b) => {
             const property = getColumnProperty(window.currentSort.column);
             let aVal = a[property] || '';
             let bVal = b[property] || '';
@@ -1067,38 +1066,43 @@ const updateRecentRenewalsTable = (renewals) => {
         });
     }
     
-    const tbody = $('#renewalsTable tbody');
+    const tbody = $('#policiesTable tbody');
     tbody.empty();
     
-    // Default sort by due date if no explicit sort chosen
+    // Default sort by most recent start date if no explicit sort chosen
     if (!window.currentSort || !window.currentSort.column) {
-        filteredRenewals.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+        filteredPolicies.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
     }
 
-    filteredRenewals.forEach((renewal, index) => {
-        console.log('Recent Renewals - Renewal data:', renewal); // Debug log
+    filteredPolicies.forEach((policy, index) => {
+        console.log('Recent Policies - Policy data:', policy); // Debug log
+        console.log('Vehicle Number from policy:', policy.vehicleNumber); // Debug vehicle number
         const row = `
             <tr>
                 <td>${index + 1}</td>
-                <td>${renewal.customerName}</td>
-                <td>${renewal.phone}</td>
                 <td>
-                    <span class="policy-type-badge ${(renewal.policyType || '').toLowerCase()}">${renewal.policyType}</span>
+                    <span class="policy-type-badge ${(policy.policyType || '').toLowerCase()}">${policy.policyType}</span>
+                    <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || ''}</div>
                 </td>
-                <td>₹${renewal.currentPremium || 0}</td>
-                <td>₹${renewal.renewalPremium || 0}</td>
-                <td>${renewal.dueDate}</td>
-                <td><span class="status-badge ${(renewal.status || 'Pending').toLowerCase()}">${renewal.status || 'Pending'}</span></td>
+                <td>${policy.customerName}</td>
+                <td>${policy.phone}</td>
+                <td>${policy.companyName || ''}</td>
+                <td>${policy.startDate}</td>
+                <td>₹${policy.premium}</td>
+                <td><span class="status-badge ${(policy.status || 'Active').toLowerCase()}">${policy.status || 'Active'}</span></td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn edit" data-renewal-id="${renewal.id}" title="Edit">
+                        <button class="action-btn edit" data-policy-id="${policy.id}" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" data-renewal-id="${renewal.id}" title="Delete">
+                        <button class="action-btn delete" data-policy-id="${policy.id}" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button class="action-btn view" data-renewal-id="${renewal.id}" title="View Details">
+                        <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
                             <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn history" data-policy-id="${policy.id}" title="View History">
+                            <i class="fas fa-history"></i>
                         </button>
                     </div>
                 </td>
@@ -1107,25 +1111,32 @@ const updateRecentRenewalsTable = (renewals) => {
         tbody.append(row);
     });
 
-    // Bind all action buttons for recent renewals
+    // Bind all action buttons for recent policies
     tbody.find('.action-btn.view').off('click').on('click', function() {
-        const renewalId = parseInt($(this).data('renewal-id'));
-        if (!isNaN(renewalId)) {
-            viewRenewalDetails(renewalId);
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            viewPolicyDetails(policyId);
         }
     });
     
     tbody.find('.action-btn.edit').off('click').on('click', async function() {
-        const renewalId = parseInt($(this).data('renewal-id'));
-        if (!isNaN(renewalId)) {
-            await editRenewal(renewalId);
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            await editPolicy(policyId);
         }
     });
     
     tbody.find('.action-btn.delete').off('click').on('click', function() {
-        const renewalId = parseInt($(this).data('renewal-id'));
-        if (!isNaN(renewalId)) {
-            deleteRenewalHandler(renewalId);
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            deletePolicyHandler(policyId);
+        }
+    });
+    
+    tbody.find('.action-btn.history').off('click').on('click', function() {
+        const policyId = parseInt($(this).data('policy-id'));
+        if (!isNaN(policyId)) {
+            openPolicyHistoryModal(policyId);
         }
     });
 };
@@ -1617,7 +1628,7 @@ const initializeEventListeners = () => {
     });
     
     // Table controls
-    $('#renewalSearch').on('input', handleSearch);
+    $('#policySearch').on('input', handleSearch);
     $('#rowsPerPage').change(handleRowsPerPageChange);
     
     // Pagination
@@ -2678,12 +2689,12 @@ const handleSearch = () => {
     clearTimeout(searchTimeout);
     
     searchTimeout = setTimeout(() => {
-        const searchTerm = $('#renewalSearch').val().toLowerCase().trim();
+        const searchTerm = $('#policySearch').val().toLowerCase().trim();
         
-        // Check if we're on the dashboard page (Recent Renewals table)
-        if (window.recentRenewalsData && window.recentRenewalsData.length > 0) {
-            // We're on dashboard, update the recent renewals table
-            updateRecentRenewalsTable(window.recentRenewalsData);
+        // Check if we're on the dashboard page (Recent Policies table)
+        if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
+            // We're on dashboard, update the recent policies table
+            updateRecentPoliciesTable(window.recentPoliciesData);
             return;
         }
         
@@ -2750,19 +2761,14 @@ const handleRowsPerPageChange = () => {
 const getColumnProperty = (column) => {
     const columnMap = {
         'id': 'id',
-        'customerName': 'customerName',
-        'phone': 'phone',
-        'policyType': 'policyType',
-        'currentPremium': 'currentPremium',
-        'renewalPremium': 'renewalPremium',
-        'dueDate': 'dueDate',
-        'status': 'status',
-        // Legacy policy mappings for backward compatibility
         'type': 'policyType',
         'owner': 'customerName',
+        'phone': 'phone',
         'company': 'companyName',
         'startDate': 'startDate',
         'premium': 'premium',
+        'status': 'status',
+        // Add more mappings as needed
     };
     
     return columnMap[column] || column;
@@ -2770,8 +2776,8 @@ const getColumnProperty = (column) => {
 
 // Enhanced sorting functionality with proper data type handling
 const handleSort = (column) => {
-    // Check if we're on the dashboard page (Recent Renewals table)
-    if (window.recentRenewalsData && window.recentRenewalsData.length > 0) {
+    // Check if we're on the dashboard page (Recent Policies table)
+    if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
         // Initialize currentSort if not exists
         if (!window.currentSort) {
             window.currentSort = { column: '', direction: 'asc' };
@@ -2784,8 +2790,8 @@ const handleSort = (column) => {
             window.currentSort.direction = 'asc';
         }
         
-        // Update the recent renewals table with sorting
-        updateRecentRenewalsTable(window.recentRenewalsData);
+        // Update the recent policies table with sorting
+        updateRecentPoliciesTable(window.recentPoliciesData);
         updateSortIcons();
         return;
     }
