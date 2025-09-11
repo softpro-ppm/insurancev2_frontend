@@ -450,6 +450,9 @@
         const currentYear = today.getFullYear();
         const currentMonth = today.getMonth(); // 0-based month
         
+        console.log('🔍 getTimePeriodRange called with:', timePeriod);
+        console.log('🔍 Current date info:', { today: today.toISOString().split('T')[0], currentYear, currentMonth });
+        
         switch (timePeriod) {
             case 'current_month':
                 // Fix: Use proper date calculation for current month
@@ -497,12 +500,13 @@
         const isInRange = policyDate >= range.start && policyDate <= range.end;
         
         // Debug first few policies
-        if (Math.random() < 0.05) { // Log 5% to avoid spam
+        if (Math.random() < 0.1) { // Log 10% to avoid spam
             console.log('🔍 isPolicyInTimePeriod:', {
                 policyId: policy.id,
                 policyDate,
                 range,
-                isInRange
+                isInRange,
+                comparison: `${policyDate} >= ${range.start} && ${policyDate} <= ${range.end}`
             });
         }
         
@@ -511,7 +515,15 @@
 
     // Check if policy has been renewed (has PolicyVersion records)
     function isPolicyRenewed(policy) {
-        return policy.hasRenewal || false;
+        const result = policy.hasRenewal || false;
+        if (Math.random() < 0.1) { // Log 10% to avoid spam
+            console.log('🔍 isPolicyRenewed:', {
+                policyId: policy.id,
+                hasRenewal: policy.hasRenewal,
+                result
+            });
+        }
+        return result;
     }
 
     function policyTypeBadge(type) {
@@ -615,10 +627,14 @@
     }
 
     function applyFilters() {
+        console.log('🔍 applyFilters called');
+        
         const q = (els.search.value || '').toLowerCase();
         const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
         const statusFilter = els.statusFilter.value; // '', 'Pending','In Progress','Completed','Overdue'
         const priorityFilter = els.priorityFilter.value; // '', 'High','Medium','Low'
+
+        console.log('🔍 Filter values:', { q, timePeriodFilter, statusFilter, priorityFilter });
 
         state.filtered = state.all.filter(row => {
             // First filter by time period
@@ -645,6 +661,8 @@
         // Sort by expiry date ascending
         .sort((a, b) => a.endDate.localeCompare(b.endDate));
 
+        console.log('🔍 Filtered results:', state.filtered.length, 'out of', state.all.length);
+
         state.page = 1;
         updateStats(); // Update stats when filters change
         renderTable();
@@ -654,17 +672,20 @@
         const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
         
         console.log('🔍 updateStats called with filter:', timePeriodFilter);
+        console.log('🔍 Total policies in state.all:', state.all.length);
         
         // Filter policies by time period first
         const timeFilteredPolicies = state.all.filter(row => isPolicyInTimePeriod(row, timePeriodFilter));
         
         console.log('🔍 Time filtered policies:', timeFilteredPolicies.length, 'out of', state.all.length);
+        console.log('🔍 Sample filtered policies:', timeFilteredPolicies.slice(0, 3));
         
         // Calculate stats based on new logic
         let pending = 0, completed = 0;
         
         timeFilteredPolicies.forEach(policy => {
             const isRenewed = isPolicyRenewed(policy);
+            console.log('🔍 Policy', policy.id, 'hasRenewal:', policy.hasRenewal, 'isRenewed:', isRenewed);
             
             if (isRenewed) {
                 completed++;
@@ -675,19 +696,37 @@
         
         const total = timeFilteredPolicies.length;
         
-        console.log('🔍 Calculated counts:', { pending, completed, total });
+        console.log('🔍 Final calculated counts:', { pending, completed, total });
+        console.log('🔍 Updating DOM elements...');
+        
+        // Additional verification log
+        console.log('🔍 VERIFICATION: Current month policies breakdown:', {
+            totalPoliciesInMonth: timeFilteredPolicies.length,
+            renewedPolicies: timeFilteredPolicies.filter(p => p.hasRenewal).length,
+            pendingPolicies: timeFilteredPolicies.filter(p => !p.hasRenewal).length,
+            timePeriod: timePeriodFilter
+        });
         
         state.totals = { pending, completed, total };
 
         els.stats.pending.textContent = String(pending);
         els.stats.completed.textContent = String(completed);
         els.stats.total.textContent = String(total);
+        
+        console.log('🔍 DOM updated. Current values:', {
+            pending: els.stats.pending.textContent,
+            completed: els.stats.completed.textContent,
+            total: els.stats.total.textContent
+        });
     }
 
     async function fetchPolicies() {
         const res = await fetch('/api/policies', { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('Failed to load policies');
         const data = await res.json();
+        
+        console.log('🔍 Raw API data sample:', data.policies.slice(0, 2));
+        
         const items = (data.policies || []).map(p => {
             const endDate = p.endDate;
             const dleft = daysUntil(endDate);
@@ -702,37 +741,24 @@
                 hasRenewal: p.hasRenewal || false // Add the hasRenewal field
             };
         });
+        
+        console.log('🔍 Mapped items sample:', items.slice(0, 2));
+        
         // sort ascending by expiry
         items.sort((a,b) => a.endDate.localeCompare(b.endDate));
         state.all = items;
         state.filtered = items.slice();
+        
+        console.log('🔍 State updated. Total policies:', state.all.length);
+        console.log('🔍 Policies with hasRenewal=true:', state.all.filter(p => p.hasRenewal).length);
+        
         updateStats();
         renderTable();
     }
 
-    async function tryFetchCompletedFromRenewals() {
-        try {
-            const res = await fetch('/api/renewals', { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) return; // ignore
-            const data = await res.json();
-            const list = data.renewals || [];
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = now.getMonth();
-            const completedThisMonth = list.filter(r => {
-                if ((r.status||'') !== 'Completed') return false;
-                const created = r.createdAt ? new Date(r.createdAt + 'T00:00:00') : null;
-                return created && created.getFullYear() === y && created.getMonth() === m;
-            }).length;
-            state.totals.completed = completedThisMonth;
-            els.stats.completed.textContent = String(completedThisMonth);
-            els.stats.completed.dataset.bound = '1';
-        } catch (e) {
-            // ignore
-        }
-    }
-
     function bindEvents() {
+        console.log('🔍 bindEvents called');
+        
         els.rowsPerPage.addEventListener('change', () => {
             state.perPage = parseInt(els.rowsPerPage.value || '10', 10);
             state.page = 1;
@@ -743,23 +769,37 @@
             const totalPages = Math.ceil(state.filtered.length / state.perPage) || 1;
             if (state.page < totalPages) { state.page++; renderTable(); }
         });
-        els.search.addEventListener('input', () => applyFilters());
+        els.search.addEventListener('input', () => {
+            console.log('🔍 Search input changed');
+            applyFilters();
+        });
         els.timePeriodFilter.addEventListener('change', () => {
+            console.log('🔍 Time period filter changed to:', els.timePeriodFilter.value);
             applyFilters();
             updateStats();
         });
-        els.statusFilter.addEventListener('change', () => applyFilters());
-        els.priorityFilter.addEventListener('change', () => applyFilters());
+        els.statusFilter.addEventListener('change', () => {
+            console.log('🔍 Status filter changed to:', els.statusFilter.value);
+            applyFilters();
+        });
+        els.priorityFilter.addEventListener('change', () => {
+            console.log('🔍 Priority filter changed to:', els.priorityFilter.value);
+            applyFilters();
+        });
     }
 
     // init
     document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🔍 DOMContentLoaded - Initializing renewals page');
+        
         bindEvents();
         try {
-            await Promise.all([fetchPolicies(), tryFetchCompletedFromRenewals()]);
+            await fetchPolicies();
+            console.log('🔍 fetchPolicies completed');
             applyFilters();
+            console.log('🔍 applyFilters completed');
         } catch (err) {
-            console.error(err);
+            console.error('🔍 Error in initialization:', err);
             els.tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:12px; color:#EF4444;">Failed to load data</td></tr>`;
         }
     });

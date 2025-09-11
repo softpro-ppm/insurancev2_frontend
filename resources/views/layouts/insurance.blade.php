@@ -209,7 +209,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ microtime(true) }}&history_update={{ time() }}&chart_fix={{ time() }}&renewal_fix={{ time() }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ microtime(true) }}&history_update={{ time() }}&chart_fix={{ time() }}&renewal_fix={{ time() }}&final_fix={{ time() }}&conflict_fix={{ time() }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>
