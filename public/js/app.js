@@ -883,11 +883,14 @@ const initializeApplication = async () => {
         initializePoliciesPage();
         // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
         const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
-        if (currentPath !== '/renewals') {
+        if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
             initializeRenewalsPage();
         }
         initializeFollowupsPage();
-        initializeReportsPage();
+        // Skip legacy reports initializer on the Reports page; Blade v2 script owns it
+        if (currentPath !== '/reports' || !window.REPORTS_V2) {
+            initializeReportsPage();
+        }
         initializeEventListeners();
         initializeModals(); // Initialize modals
         

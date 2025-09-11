@@ -75,16 +75,7 @@
                         <span class="kpi-change positive" id="policiesChange">+5.4%</span>
                     </div>
                 </div>
-                <div class="kpi-card glass-effect">
-                    <div class="kpi-icon conversion">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <div class="kpi-content">
-                        <h4>Conversion Rate</h4>
-                        <p class="kpi-value" id="conversionRateKPI">73.2%</p>
-                        <span class="kpi-change positive" id="conversionChange">+3.1%</span>
-                    </div>
-                </div>
+                
             </div>
         </div>
 
@@ -735,25 +726,30 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Signal v2 reports to global app
+        window.REPORTS_V2 = true;
 
-        // Default date range: last 30 days
+        // Default date range: Apr 1, 2025 to today
         const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - 29);
+        const start = new Date(2025, 3, 1); // month is 0-based
         setDateInput('reportStartDate', start);
         setDateInput('reportEndDate', end);
 
-        // Load all datasets then render
-        loadAll().then(renderAll).catch((e) => {
+        // Show loading, load, render
+        setLoading(true);
+        loadAll().then(() => { renderAll(); }).catch((e) => {
             console.error('Failed initializing reports', e);
             showNotification('Error loading reports data', 'error');
-        });
+        }).finally(() => setLoading(false));
 
         // Wire controls
     const controls = ['reportStartDate', 'reportEndDate', 'reportTypeFilter'];
         controls.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('change', () => renderAll());
+            if (el) el.addEventListener('change', () => {
+                // Re-render strictly from selected dates without altering defaults
+                renderAll();
+            });
         });
 
         // Tabs
@@ -816,6 +812,9 @@
         const folInRange = filterByDate(followups, 'nextFollowupDate', range.start, range.end);
         const agAll = agents; // no date field; show all
 
+        // Cache for export
+        window.currentReportData = { polInRange, renInRange, folInRange, agAll };
+
         // Update KPIs
         updateKPIs(polInRange, renInRange, folInRange);
 
@@ -863,7 +862,7 @@
         // Total Premium & Revenue from policies
         const totalPremium = pol.reduce((s, p) => s + Number(p.premium || 0), 0);
         const totalRevenue = pol.reduce((s, p) => s + Number(p.revenue || 0), 0);
-        const activePolicies = (policies || []).filter(p => p.status === 'Active').length;
+        const activePolicies = (pol || []).filter(p => p.status === 'Active').length;
 
         // Conversion rate from followups: Completed / Total
         const totalFollowups = fol.length;
@@ -875,13 +874,13 @@
         updateText('activePoliciesKPI', String(activePolicies));
         updateText('conversionRateKPI', `${conversionRate.toFixed(1)}%`);
 
-        // Optional trend vs previous period
+        // Previous period deltas
         const { start, end } = getSelectedRange();
         const spanDays = Math.max(1, Math.ceil((end - start) / (1000*60*60*24)) + 1);
         const prevStart = new Date(start); prevStart.setDate(start.getDate() - spanDays);
         const prevEnd = new Date(start); prevEnd.setDate(start.getDate() - 1); prevEnd.setHours(23,59,59,999);
 
-    const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
+        const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
         const totalPremiumPrev = polPrev.reduce((s, p) => s + Number(p.premium || 0), 0);
         const totalRevenuePrev = polPrev.reduce((s, p) => s + Number(p.revenue || 0), 0);
 
@@ -889,7 +888,15 @@
         const revenueDelta = pctDelta(totalRevenuePrev, totalRevenue);
         updateDelta('premiumChange', premiumDelta);
         updateDelta('revenueChange', revenueDelta);
-        // For Active Policies and Conversion, keep static or compute similarly if needed
+        const activePrev = (polPrev || []).filter(p => p.status === 'Active').length;
+        updateDelta('policiesChange', pctDelta(activePrev, activePolicies));
+
+        const folPrev = filterByAnyDate(followups, ['lastFollowupDate','createdAt','nextFollowupDate'], prevStart, prevEnd);
+        const convPrev = (folPrev.length ? (folPrev.filter(f => (f.status||'').toLowerCase()==='completed').length / folPrev.length)*100 : 0);
+        updateDelta('conversionChange', pctDelta(convPrev, conversionRate));
+    }
+    function filterByAnyDate(items, fields, start, end) {
+        return (items||[]).filter(it => fields.some(f => { const v = it && it[f]; if (!v) return false; const d = new Date(v); return d>=start && d<=end; }));
     }
 
     function pctDelta(prev, curr) {
@@ -1101,9 +1108,55 @@
     }
 
     function onExportReport() {
-        showNotification('Exporting current view...', 'info');
-        // Could export the currently visible table to CSV in future
+        try {
+            const activeTabBtn = document.querySelector('.reports-tabs .tab-btn.active');
+            const tab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'policies';
+            const data = window.currentReportData || {};
+            let csv = '';
+            if (tab === 'policies') csv = exportPoliciesCSV(data.polInRange || []);
+            else if (tab === 'renewals') csv = exportRenewalsCSV(data.renInRange || []);
+            else if (tab === 'followups') csv = exportFollowupsCSV(data.folInRange || []);
+            else if (tab === 'agents') csv = exportAgentsCSV(data.agAll || []);
+            if (!csv) { showNotification('Nothing to export', 'error'); return; }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${tab}_report_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Exported current report', 'success');
+        } catch(e) {
+            console.error(e); showNotification('Export failed', 'error');
+        }
     }
+
+    function exportPoliciesCSV(items){
+        const headers=['Policy ID','Customer Name','Policy Type','Company','Premium','Status','Start Date','End Date'];
+        const rows=(items||[]).map(p=>[`#${String(p.id||0).padStart(3,'0')}`,sanitize(p.customerName),sanitize(p.policyType),sanitize(p.companyName),Number(p.premium||0),sanitize(p.status),sanitize(p.startDate),sanitize(p.endDate)]);
+        return toCSV(headers,rows);
+    }
+    function exportRenewalsCSV(items){
+        const headers=['Policy ID','Customer Name','Expiry Date','Days Left','Status','Priority','Assigned To'];
+        const rows=(items||[]).map(r=>{const due=r.dueDate?new Date(r.dueDate):null;const daysLeft=due?Math.ceil((due-new Date())/(1000*60*60*24)):'';const pr=daysLeft===''?'':(daysLeft<=7?'High':daysLeft<=14?'Medium':'Low');return[`#${String(r.id||0).padStart(3,'0')}`,sanitize(r.customerName),sanitize(r.dueDate),String(daysLeft),sanitize(r.status),pr,sanitize(r.agentName)]});
+        return toCSV(headers,rows);
+    }
+    function exportFollowupsCSV(items){
+        const headers=['Customer Name','Phone','Type','Status','Assigned To','Last Follow-up','Next Follow-up'];
+        const rows=(items||[]).map(f=>[sanitize(f.customerName),sanitize(f.phone),sanitize(f.followupType),sanitize(f.status),sanitize(f.assignedTo),sanitize(f.lastFollowupDate),sanitize(f.nextFollowupDate)]);
+        return toCSV(headers,rows);
+    }
+    function exportAgentsCSV(items){
+        const headers=['Agent Name','Policies Sold','Total Premium','Renewals Handled','Follow-ups','Performance'];
+        const rows=(items||[]).map(a=>[sanitize(a.name),String(a.policies||0),Number(a.totalPremium||0),String(a.renewalsHandled||0),String(a.followups||0),sanitize(String(a.performance||'0%'))]);
+        return toCSV(headers,rows);
+    }
+    function toCSV(headers,rows){const esc=v=>('"'+String(v==null?'':v).replace(/"/g,'""')+'"');return [headers.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(','))).join('\n');}
+    function sanitize(v){return String(v||'').replace(/\r|\n|,/g,' ')}
+
+    function setLoading(loading){
+        let overlay=document.getElementById('reportsLoadingOverlay');
+        if(!overlay){overlay=document.createElement('div');overlay.id='reportsLoadingOverlay';overlay.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,0.6);display:none;align-items:center;justify-content:center;z-index:9999;';overlay.innerHTML='<div style="padding:12px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);font-weight:600;">Loading reports…</div>';document.body.appendChild(overlay);}overlay.style.display=loading?'flex':'none';}
 
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
