@@ -139,6 +139,22 @@
 <script>
 // Dashboard page is handled by main app.js
 console.log('Dashboard page loaded - functionality handled by main app.js');
+
+// Debug chart loading
+console.log('Chart.js available:', typeof Chart !== 'undefined');
+console.log('Canvas element:', document.getElementById('barChart'));
+console.log('jQuery available:', typeof $ !== 'undefined');
+
+// Test API call
+fetch('/api/dashboard/stats')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Dashboard API response:', data);
+        console.log('Chart data available:', data.chartData);
+    })
+    .catch(error => {
+        console.error('Dashboard API error:', error);
+    });
 </script>
 @endpush
 

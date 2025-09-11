@@ -1219,7 +1219,7 @@ const updateDashboardCharts = (chartData, policyTypes) => {
     window.lastChartDataHash = dataHash;
     
     // Update bar chart with real data
-    if (window.barChart && window.barChart.data) {
+    if (window.barChart && window.barChart.data && window.barChart.data.datasets) {
         console.log('📈 Updating bar chart with', chartData.length, 'data points');
         
         const labels = chartData.map(item => item.month || 'Unknown');
@@ -1254,8 +1254,13 @@ const updateDashboardCharts = (chartData, policyTypes) => {
     } else {
         console.error('❌ Bar chart not initialized:', {
             hasBarChart: !!window.barChart,
-            hasBarChartData: !!(window.barChart && window.barChart.data)
+            hasBarChartData: !!(window.barChart && window.barChart.data),
+            hasDatasets: !!(window.barChart && window.barChart.data && window.barChart.data.datasets)
         });
+        
+        // Cache the data for later use
+        window.latestChartData = chartData;
+        window.latestPolicyTypes = policyTypes;
         
         // Try to reinitialize chart
         setTimeout(() => {
@@ -1291,10 +1296,16 @@ const hideLoadingState = () => {
 // Initialize charts
 const initializeCharts = () => {
     console.log('🚀 Initializing charts...');
+    console.log('Chart.js available:', typeof Chart !== 'undefined');
+    console.log('Current URL:', window.location.href);
+    console.log('Current pathname:', window.location.pathname);
     
     // Check if we're on dashboard page OR if this is initial load
     const isDashboardActive = $('#dashboard').hasClass('active');
     const isDashboardPage = window.location.pathname === '/dashboard' || window.location.pathname === '/';
+    
+    console.log('Dashboard active:', isDashboardActive);
+    console.log('Dashboard page:', isDashboardPage);
     
     if (!isDashboardActive && !isDashboardPage) {
         console.log('⏭️ Not on dashboard page, skipping chart initialization');
@@ -1308,8 +1319,10 @@ const initializeCharts = () => {
     // Wait for DOM to be ready
     setTimeout(() => {
         const barCtx = document.getElementById('barChart');
+        console.log('Canvas element found:', barCtx);
         if (!barCtx) {
             console.error('❌ Bar chart canvas not found');
+            console.log('Available elements with "chart" in ID:', document.querySelectorAll('[id*="chart"]'));
             return;
         }
         
@@ -1326,6 +1339,10 @@ const initializeCharts = () => {
         }
         
         // Bar Chart
+        console.log('Creating Chart instance...');
+        console.log('Chart constructor available:', typeof Chart);
+        console.log('Canvas context:', barCtx);
+        
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
@@ -1453,30 +1470,36 @@ const initializeCharts = () => {
         // Store chart references
         window.barChart = barChart;
         console.log('✅ Bar chart initialized successfully');
+        console.log('Chart instance:', barChart);
+        console.log('Chart data:', barChart.data);
+        console.log('Chart options:', barChart.options);
         
-        // If we already fetched data before charts were ready, apply it now
-        if (window.latestChartData) {
-            console.log('📊 Applying cached chart data');
-            updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
-        } else {
-            console.log('⏳ No cached chart data, fetching fresh data...');
-            // Fetch data immediately if not cached
-            setTimeout(() => {
-                fetch('/api/dashboard/stats')
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('📊 Fresh chart data fetched for initialization:', data);
-                        if (data.chartData) {
-                            window.latestChartData = data.chartData;
-                            window.latestPolicyTypes = data.policyTypes || {};
-                            updateDashboardCharts(data.chartData, data.policyTypes);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ Failed to fetch initial chart data:', error);
-                    });
-            }, 200);
-        }
+        // Wait a bit more to ensure chart is fully initialized
+        setTimeout(() => {
+            // If we already fetched data before charts were ready, apply it now
+            if (window.latestChartData) {
+                console.log('📊 Applying cached chart data');
+                updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+            } else {
+                console.log('⏳ No cached chart data, fetching fresh data...');
+                // Fetch data immediately if not cached
+                setTimeout(() => {
+                    fetch('/api/dashboard/stats')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('📊 Fresh chart data fetched for initialization:', data);
+                            if (data.chartData) {
+                                window.latestChartData = data.chartData;
+                                window.latestPolicyTypes = data.policyTypes || {};
+                                updateDashboardCharts(data.chartData, data.policyTypes);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('❌ Failed to fetch initial chart data:', error);
+                        });
+                }, 200);
+            }
+        }, 500);
     }, 100);
 };
 

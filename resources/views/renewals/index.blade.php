@@ -18,6 +18,16 @@
             </div>
             <div class="controls-right">
                 <div class="filter-group">
+                    <label for="renewalTimePeriodFilter">Time Period:</label>
+                    <select id="renewalTimePeriodFilter">
+                        <option value="current_month">Current Month</option>
+                        <option value="past_30">Past 30 Days</option>
+                        <option value="past_60">Past 60 Days</option>
+                        <option value="next_30">Next 30 Days</option>
+                        <option value="next_60">Next 60 Days</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label for="renewalStatusFilter">Status:</label>
                     <select id="renewalStatusFilter">
                         <option value="">All Status</option>
@@ -415,6 +425,7 @@
         endRec: document.getElementById('renewalsEndRecord'),
         totalRecs: document.getElementById('renewalsTotalRecords'),
         search: document.getElementById('renewalsSearch'),
+        timePeriodFilter: document.getElementById('renewalTimePeriodFilter'),
         statusFilter: document.getElementById('renewalStatusFilter'),
         priorityFilter: document.getElementById('renewalPriorityFilter'),
         stats: {
@@ -439,19 +450,86 @@
         return diff; // negative means overdue
     }
 
+    function getTimePeriodRange(timePeriod) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-based month
+        
+        switch (timePeriod) {
+            case 'current_month':
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                return {
+                    start: firstDay.toISOString().split('T')[0],
+                    end: lastDay.toISOString().split('T')[0]
+                };
+            case 'past_30':
+                const past30 = new Date(today);
+                past30.setDate(today.getDate() - 30);
+                return {
+                    start: past30.toISOString().split('T')[0],
+                    end: today.toISOString().split('T')[0]
+                };
+            case 'past_60':
+                const past60 = new Date(today);
+                past60.setDate(today.getDate() - 60);
+                return {
+                    start: past60.toISOString().split('T')[0],
+                    end: today.toISOString().split('T')[0]
+                };
+            case 'next_30':
+                const next30 = new Date(today);
+                next30.setDate(today.getDate() + 30);
+                return {
+                    start: today.toISOString().split('T')[0],
+                    end: next30.toISOString().split('T')[0]
+                };
+            case 'next_60':
+                const next60 = new Date(today);
+                next60.setDate(today.getDate() + 60);
+                return {
+                    start: today.toISOString().split('T')[0],
+                    end: next60.toISOString().split('T')[0]
+                };
+            default:
+                return {
+                    start: new Date(currentYear, currentMonth, 1).toISOString().split('T')[0],
+                    end: new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0]
+                };
+        }
+    }
+
+    function isPolicyInTimePeriod(policy, timePeriod) {
+        const range = getTimePeriodRange(timePeriod);
+        const policyDate = policy.endDate;
+        return policyDate >= range.start && policyDate <= range.end;
+    }
+
     function policyTypeBadge(type) {
         const cls = (type||'').toLowerCase();
         return `<span class="policy-type-badge ${cls}">${type||''}</span>`;
     }
 
-    function statusFromDaysLeft(n) {
+    function statusFromDaysLeft(n, timePeriod) {
+        // For past periods, all policies are overdue
+        if (timePeriod === 'past_30' || timePeriod === 'past_60') {
+            return { label: 'Overdue', cls: 'overdue' };
+        }
+        
+        // For current month and future periods, calculate based on days left
         if (n < 0) return { label: 'Overdue', cls: 'overdue' };
         if (n <= 7) return { label: 'Pending', cls: 'pending' };
         if (n <= 30) return { label: 'In Progress', cls: 'inprogress' };
-        return { label: 'Completed', cls: 'completed' }; // aligns with filter label
+        return { label: 'Completed', cls: 'completed' };
     }
 
-    function priorityFromDaysLeft(n) {
+    function priorityFromDaysLeft(n, timePeriod) {
+        // For past periods, all policies are high priority (overdue)
+        if (timePeriod === 'past_30' || timePeriod === 'past_60') {
+            return { label: 'High', cls: 'high' };
+        }
+        
+        // For current month and future periods, calculate based on days left
         if (n <= 7) return { label: 'High', cls: 'high' };
         if (n <= 30) return { label: 'Medium', cls: 'medium' };
         return { label: 'Low', cls: 'low' };
@@ -466,10 +544,11 @@
         if (pageItems.length === 0) {
             els.tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:12px;">No records found</td></tr>`;
         } else {
+            const currentTimePeriod = els.timePeriodFilter.value || 'current_month';
             pageItems.forEach((row, idx) => {
                 const serial = start + idx + 1;
-                const status = statusFromDaysLeft(row.daysLeft);
-                const pr = priorityFromDaysLeft(row.daysLeft);
+                const status = statusFromDaysLeft(row.daysLeft, currentTimePeriod);
+                const pr = priorityFromDaysLeft(row.daysLeft, currentTimePeriod);
                 const daysCls = row.daysLeft < 0 ? 'urgent' : (row.daysLeft <= 7 ? 'urgent' : (row.daysLeft <= 30 ? 'warning' : 'safe'));
                 const daysText = row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`;
                 const assignedTo = row.agentName || '-';
@@ -522,18 +601,25 @@
 
     function applyFilters() {
         const q = (els.search.value || '').toLowerCase();
+        const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
         const statusFilter = els.statusFilter.value; // '', 'Pending','In Progress','Completed','Overdue'
         const priorityFilter = els.priorityFilter.value; // '', 'High','Medium','Low'
 
         state.filtered = state.all.filter(row => {
+            // First filter by time period
+            const matchTimePeriod = isPolicyInTimePeriod(row, timePeriodFilter);
+            if (!matchTimePeriod) return false;
+
+            // Then filter by text search
             const matchText = !q ||
                 (row.id || 0).toString().toLowerCase().includes(q) ||
                 row.customerName.toLowerCase().includes(q) ||
                 (row.agentName||'').toLowerCase().includes(q) ||
                 (row.policyType||'').toLowerCase().includes(q);
 
-            const st = statusFromDaysLeft(row.daysLeft).label;
-            const pr = priorityFromDaysLeft(row.daysLeft).label;
+            // Then filter by status and priority (using time period for calculation)
+            const st = statusFromDaysLeft(row.daysLeft, timePeriodFilter).label;
+            const pr = priorityFromDaysLeft(row.daysLeft, timePeriodFilter).label;
 
             const matchStatus = !statusFilter || st === statusFilter;
             const matchPriority = !priorityFilter || pr === priorityFilter;
@@ -548,18 +634,47 @@
     }
 
     function updateStats() {
-        const today = new Date();
-        const pending = state.all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 30).length;
-        const overdue = state.all.filter(r => r.daysLeft < 0).length;
-        const total = state.all.length;
-        state.totals = { pending, overdue, completed: state.totals.completed || 0, total };
+        const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
+        
+        // Filter policies by time period first
+        const timeFilteredPolicies = state.all.filter(row => isPolicyInTimePeriod(row, timePeriodFilter));
+        
+        // Calculate stats based on time period
+        let pending = 0, overdue = 0, completed = 0;
+        
+        timeFilteredPolicies.forEach(policy => {
+            const status = statusFromDaysLeft(policy.daysLeft, timePeriodFilter);
+            switch (status.label) {
+                case 'Pending':
+                    pending++;
+                    break;
+                case 'Overdue':
+                    overdue++;
+                    break;
+                case 'Completed':
+                    completed++;
+                    break;
+                case 'In Progress':
+                    pending++; // Count in-progress as pending for stats
+                    break;
+            }
+        });
+        
+        const total = timeFilteredPolicies.length;
+        
+        state.totals = { pending, overdue, completed, total };
 
         els.stats.pending.textContent = String(pending);
         els.stats.overdue.textContent = String(overdue);
         els.stats.total.textContent = String(total);
-        // completed will be updated from renewals API if available; fallback to 0
-        if (!els.stats.completed.dataset.bound) {
-            els.stats.completed.textContent = String(state.totals.completed || 0);
+        
+        // For completed count, only show if current month is selected
+        if (timePeriodFilter === 'current_month') {
+            if (!els.stats.completed.dataset.bound) {
+                els.stats.completed.textContent = String(state.totals.completed || 0);
+            }
+        } else {
+            els.stats.completed.textContent = String(completed);
         }
     }
 
@@ -622,6 +737,10 @@
             if (state.page < totalPages) { state.page++; renderTable(); }
         });
         els.search.addEventListener('input', () => applyFilters());
+        els.timePeriodFilter.addEventListener('change', () => {
+            applyFilters();
+            updateStats();
+        });
         els.statusFilter.addEventListener('change', () => applyFilters());
         els.priorityFilter.addEventListener('change', () => applyFilters());
     }
