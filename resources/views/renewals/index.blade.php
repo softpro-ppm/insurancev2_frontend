@@ -27,25 +27,7 @@
                         <option value="next_60">Next 60 Days</option>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <label for="renewalStatusFilter">Status:</label>
-                    <select id="renewalStatusFilter">
-                        <option value="">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Overdue">Overdue</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="renewalPriorityFilter">Priority:</label>
-                    <select id="renewalPriorityFilter">
-                        <option value="">All Priorities</option>
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
-                    </select>
-                </div>
+                
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search renewals..." id="renewalsSearch">
@@ -106,7 +88,6 @@
                     <thead>
                         <tr>
                             <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
-                            <th data-sort="policyId">Policy ID <i class="fas fa-sort"></i></th>
                             <th data-sort="customerName">Customer Name <i class="fas fa-sort"></i></th>
                             <th data-sort="policyType">Policy Type <i class="fas fa-sort"></i></th>
                             <th data-sort="expiryDate">Expiry Date <i class="fas fa-sort"></i></th>
@@ -404,6 +385,10 @@
         filtered: [],
         page: 1,
         perPage: 10,
+        sort: {
+            column: 'expiryDate', // default sort by expiry
+            direction: 'asc'
+        },
         totals: {
             pending: 0,
             completed: 0,
@@ -422,8 +407,9 @@
         totalRecs: document.getElementById('renewalsTotalRecords'),
         search: document.getElementById('renewalsSearch'),
         timePeriodFilter: document.getElementById('renewalTimePeriodFilter'),
-        statusFilter: document.getElementById('renewalStatusFilter'),
-        priorityFilter: document.getElementById('renewalPriorityFilter'),
+        exportBtn: document.getElementById('exportRenewals'),
+        statusFilter: null,
+        priorityFilter: null,
         stats: {
             pending: document.getElementById('pendingRenewalsCount'),
             completed: document.getElementById('completedRenewalsCount'),
@@ -582,9 +568,11 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${serial}</td>
-                    <td>#${(row.id || 0).toString().padStart(3, '0')}</td>
                     <td>${row.customerName}</td>
-                    <td>${policyTypeBadge(row.policyType)}</td>
+                    <td>
+                        ${policyTypeBadge(row.policyType)}
+                        <div style="font-size: 11px; color: #666; margin-top: 2px;">${row.vehicleNumber || ''}</div>
+                    </td>
                     <td>${row.endDate}</td>
                     <td><span class="days-left ${daysCls}">${daysText}</span></td>
                     <td><span class="status-badge ${status.cls}">${status.label}</span></td>
@@ -612,6 +600,88 @@
         renderPagination(total);
     }
 
+    function exportFilteredToCSV() {
+        // Ensure latest filtered data is exposed
+        const rows = state.filtered.slice();
+        if (!rows.length) {
+            alert('No records to export');
+            return;
+        }
+        const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+        const csv = [headers.join(',')];
+        const timePeriod = els.timePeriodFilter.value || 'current_month';
+        rows.forEach((row, idx) => {
+            const isRenewed = isPolicyRenewed(row);
+            const status = statusFromDaysLeft(row.daysLeft, timePeriod, isRenewed).label;
+            const pr = priorityFromDaysLeft(row.daysLeft, timePeriod).label;
+            const daysText = row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`;
+            const line = [
+                idx + 1,
+                (row.customerName||'').replace(/,/g,' '),
+                (row.policyType||'').replace(/,/g,' '),
+                row.endDate || '',
+                daysText,
+                status,
+                pr,
+                (row.agentName||'').replace(/,/g,' ')
+            ];
+            csv.push(line.join(','));
+        });
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `renewals_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function getSortValue(row, column, timePeriod) {
+        switch (column) {
+            case 'id':
+            case 'policyId':
+                return Number(row.id) || 0;
+            case 'customerName':
+                return (row.customerName || '').toLowerCase();
+            case 'policyType':
+                return (row.policyType || '').toLowerCase();
+            case 'expiryDate':
+                return row.endDate || '';
+            case 'daysLeft':
+                return Number(row.daysLeft) || 0;
+            case 'status': {
+                const isRenewed = isPolicyRenewed(row);
+                const st = statusFromDaysLeft(row.daysLeft, timePeriod, isRenewed).label;
+                // order: Overdue < Pending < In Progress < Renewed
+                const order = { 'Overdue': 0, 'Pending': 1, 'In Progress': 2, 'Renewed': 3 };
+                return order[st] ?? 1;
+            }
+            case 'priority': {
+                const pr = priorityFromDaysLeft(row.daysLeft, timePeriod).label;
+                // order: Low < Medium < High
+                const order = { 'Low': 0, 'Medium': 1, 'High': 2 };
+                return order[pr] ?? 0;
+            }
+            case 'assignedTo':
+                return (row.agentName || '').toLowerCase();
+            default:
+                return row.endDate || '';
+        }
+    }
+
+    function sortFiltered() {
+        const col = state.sort.column;
+        const dir = state.sort.direction === 'asc' ? 1 : -1;
+        const timePeriod = els.timePeriodFilter.value || 'current_month';
+        state.filtered.sort((a, b) => {
+            const av = getSortValue(a, col, timePeriod);
+            const bv = getSortValue(b, col, timePeriod);
+            if (av < bv) return -1 * dir;
+            if (av > bv) return 1 * dir;
+            return 0;
+        });
+    }
+
     function renderPagination(total) {
         const totalPages = Math.ceil(total / state.perPage) || 1;
         els.pages.innerHTML = '';
@@ -631,8 +701,8 @@
         
         const q = (els.search.value || '').toLowerCase();
         const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
-        const statusFilter = els.statusFilter.value; // '', 'Pending','In Progress','Completed','Overdue'
-        const priorityFilter = els.priorityFilter.value; // '', 'High','Medium','Low'
+        const statusFilter = ''; // removed
+        const priorityFilter = ''; // removed
 
         console.log('🔍 Filter values:', { q, timePeriodFilter, statusFilter, priorityFilter });
 
@@ -653,13 +723,17 @@
             const st = statusFromDaysLeft(row.daysLeft, timePeriodFilter, isRenewed).label;
             const pr = priorityFromDaysLeft(row.daysLeft, timePeriodFilter).label;
 
-            const matchStatus = !statusFilter || st === statusFilter;
-            const matchPriority = !priorityFilter || pr === priorityFilter;
+            const matchStatus = true; // status filter removed
+            const matchPriority = true; // priority filter removed
 
             return matchText && matchStatus && matchPriority;
-        })
-        // Sort by expiry date ascending
-        .sort((a, b) => a.endDate.localeCompare(b.endDate));
+        });
+
+        // Expose filtered array for export in global scope (used by app.js export)
+        window.renewalsV2Filtered = state.filtered.slice();
+
+        // Apply current sort
+        sortFiltered();
 
         console.log('🔍 Filtered results:', state.filtered.length, 'out of', state.all.length);
 
@@ -734,6 +808,7 @@
                 id: p.id,
                 customerName: p.customerName,
                 policyType: p.policyType,
+                vehicleNumber: p.vehicleNumber || p.vehicle_number || '',
                 endDate: endDate,
                 daysLeft: dleft,
                 status: p.status,
@@ -762,7 +837,8 @@
         els.rowsPerPage.addEventListener('change', () => {
             state.perPage = parseInt(els.rowsPerPage.value || '10', 10);
             state.page = 1;
-            renderTable();
+            // Re-apply current filters to keep dataset constrained to the selected time period
+            applyFilters();
         });
         els.prev.addEventListener('click', () => { if (state.page > 1) { state.page--; renderTable(); } });
         els.next.addEventListener('click', () => {
@@ -773,31 +849,58 @@
             console.log('🔍 Search input changed');
             applyFilters();
         });
+        if (els.exportBtn) {
+            els.exportBtn.addEventListener('click', () => {
+                // Prefer local exporter to avoid legacy global side-effects
+                exportFilteredToCSV();
+            });
+        }
+        // Table sorting (toggle asc/desc)
+        document.querySelectorAll('#renewalsTable thead th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.getAttribute('data-sort');
+                if (!col) return;
+                if (state.sort.column === col) {
+                    state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.sort.column = col;
+                    state.sort.direction = 'asc';
+                }
+                sortFiltered();
+                state.page = 1;
+                renderTable();
+            });
+        });
         els.timePeriodFilter.addEventListener('change', () => {
             console.log('🔍 Time period filter changed to:', els.timePeriodFilter.value);
             applyFilters();
             updateStats();
         });
-        els.statusFilter.addEventListener('change', () => {
-            console.log('🔍 Status filter changed to:', els.statusFilter.value);
-            applyFilters();
-        });
-        els.priorityFilter.addEventListener('change', () => {
-            console.log('🔍 Priority filter changed to:', els.priorityFilter.value);
-            applyFilters();
-        });
+        // Removed status & priority filters
     }
 
     // init
     document.addEventListener('DOMContentLoaded', async () => {
         console.log('🔍 DOMContentLoaded - Initializing renewals page');
-        
+        console.log('🔍 Current path:', window.location.pathname);
+        console.log('🔍 Using new policy-based logic (not old renewals table)');
+        // Signal v2 mode to global scripts to avoid legacy bindings
+        window.RENEWALS_V2 = true;
+
         bindEvents();
         try {
             await fetchPolicies();
             console.log('🔍 fetchPolicies completed');
             applyFilters();
             console.log('🔍 applyFilters completed');
+
+            // Add a small delay to ensure no conflicts from global app.js
+            setTimeout(() => {
+                console.log('🔍 VERIFICATION: Final counts after initialization:');
+                console.log('🔍 Pending:', els.stats.pending.textContent);
+                console.log('🔍 Completed:', els.stats.completed.textContent);
+                console.log('🔍 Total:', els.stats.total.textContent);
+            }, 1000);
         } catch (err) {
             console.error('🔍 Error in initialization:', err);
             els.tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:12px; color:#EF4444;">Failed to load data</td></tr>`;

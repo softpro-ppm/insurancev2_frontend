@@ -854,7 +854,7 @@ const initializeApplication = async () => {
             loadDashboardData(),
             loadPoliciesData(),
             loadAgentsData(),
-            loadRenewalsData(),
+            loadRenewalsData(), // Now safe - skips old API call on renewals page
             loadFollowupsData()
         ]);
         
@@ -881,7 +881,11 @@ const initializeApplication = async () => {
         initializeTable();
         initializeAgents();
         initializePoliciesPage();
-        initializeRenewalsPage();
+        // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
+        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
+        if (currentPath !== '/renewals') {
+            initializeRenewalsPage();
+        }
         initializeFollowupsPage();
         initializeReportsPage();
         initializeEventListeners();
@@ -972,7 +976,15 @@ const loadAgentsData = async () => {
 // Load renewals data
 const loadRenewalsData = async () => {
     try {
-    // Keep API call for backward compatibility but we'll derive the visible list from policies
+        // Skip loading old renewals data if we're on the renewals page to prevent conflicts
+        const currentPath = window.location.pathname;
+        if (currentPath === '/renewals') {
+            console.log('🔄 Skipping old renewals data load on renewals page - using policy-based logic instead');
+            allRenewals = []; // Keep empty to prevent conflicts
+            return;
+        }
+
+        // Keep API call for backward compatibility but we'll derive the visible list from policies
         allRenewals = await fetchRenewals();
     } catch (error) {
         console.error('Failed to load renewals data:', error);
@@ -1726,9 +1738,10 @@ const initializeRenewalsPage = () => {
     updateRenewalsPagination();
     updateRenewalsStats();
     
-    // Initialize search and filter functionality
+    // Initialize search functionality
     $('#renewalsSearch').off('input').on('input', debounce(handleRenewalsSearch, 300));
-    $('#renewalStatusFilter, #renewalPriorityFilter').off('change').on('change', handleRenewalsFilter);
+    // Status/Priority filters removed in v2; ensure no legacy bindings
+    $('#renewalStatusFilter, #renewalPriorityFilter').off('change');
     $('#renewalsRowsPerPage').off('change').on('change', handleRenewalsRowsPerPageChange);
     
     // Initialize sort functionality
@@ -1854,7 +1867,9 @@ const initializeEventListeners = () => {
     $('#policyTypeFilter').change(handlePoliciesFilter);
     $('#statusFilter').change(handlePoliciesFilter);
     $('#policiesRowsPerPage').change(handlePoliciesRowsPerPageChange);
-    $('#exportPoliciesBtn').click(exportPoliciesData);
+    // Policies export (support both header and table controls buttons)
+    $('#exportPoliciesBtn').off('click').on('click', exportPoliciesData);
+    $('#exportPolicies').off('click').on('click', exportPoliciesData);
     
     // Policies pagination
     $('#policiesPrevPage').click(() => goToPoliciesPage(policiesCurrentPage - 1));
@@ -1884,22 +1899,24 @@ const initializeEventListeners = () => {
         setupRevenueAutoCalcForPolicyType(policyType);
     });
     
-    // Renewals page controls
-    $('#renewalsSearch').on('input', handleRenewalsSearch);
-    $('#renewalStatusFilter').change(handleRenewalsFilter);
-    $('#renewalPriorityFilter').change(handleRenewalsFilter);
-    $('#renewalsRowsPerPage').change(handleRenewalsRowsPerPageChange);
-    $('#exportRenewals').click(exportRenewalsData);
-    
-    // Renewals pagination
-    $('#renewalsPrevPage').click(() => goToRenewalsPage(renewalsCurrentPage - 1));
-    $('#renewalsNextPage').click(() => goToRenewalsPage(renewalsCurrentPage + 1));
-    
-    // Renewals table sorting
-    $('#renewalsTable th[data-sort]').click(function() {
-        const column = $(this).data('sort');
-        handleRenewalsSort(column);
-    });
+    // Renewals page controls (skip when Renewals v2 owns the page)
+    const onRenewalsV2 = (window.location && window.location.pathname === '/renewals') && (window.RENEWALS_V2 === true);
+    if (!onRenewalsV2) {
+        $('#renewalsSearch').on('input', handleRenewalsSearch);
+        // Removed: status/priority filters for renewals v2
+        $('#renewalsRowsPerPage').off('change').on('change', handleRenewalsRowsPerPageChange);
+        $('#exportRenewals').click(exportRenewalsData);
+        
+        // Renewals pagination
+        $('#renewalsPrevPage').click(() => goToRenewalsPage(renewalsCurrentPage - 1));
+        $('#renewalsNextPage').click(() => goToRenewalsPage(renewalsCurrentPage + 1));
+        
+        // Renewals table sorting
+        $('#renewalsTable th[data-sort]').off('click').on('click', function() {
+            const column = $(this).data('sort');
+            handleRenewalsSort(column);
+        });
+    }
     
     // Follow-ups page controls
     $('#followupsSearch').on('input', handleFollowupsSearch);
@@ -3748,6 +3765,11 @@ const goToPoliciesPage = (page) => {
 };
 
 const updatePoliciesStats = () => {
+    // Prevent cross-page override: do not touch renewals counters on Renewals page
+    const currentPathForPolicies = window.location && window.location.pathname ? window.location.pathname : '';
+    if (currentPathForPolicies === '/renewals' || currentPathForPolicies.startsWith('/renewals')) {
+        return; // The Renewals page owns these counters via its own script
+    }
     const activeCount = allPolicies.filter(p => p.status === 'Active').length;
     const expiredCount = allPolicies.filter(p => p.status === 'Expired').length;
     const pendingCount = allPolicies.filter(p => p.status === 'Pending').length;
@@ -5365,6 +5387,11 @@ const goToRenewalsPage = (page) => {
 };
 
 const updateRenewalsStats = () => {
+    // Prevent legacy renewals logic from overriding the dedicated Renewals page logic
+    const currentPathForRenewals = window.location && window.location.pathname ? window.location.pathname : '';
+    if (currentPathForRenewals === '/renewals' || currentPathForRenewals.startsWith('/renewals')) {
+        return; // The Renewals page script computes and renders its own stats
+    }
     const pending = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Pending').length;
     const overdue = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Overdue').length;
     const completed = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Completed').length;
@@ -5402,16 +5429,16 @@ const handleRenewalsFilter = () => {
 };
 
 const applyRenewalsFilters = () => {
-    const statusFilter = $('#renewalStatusFilter').val();
-    const priorityFilter = $('#renewalPriorityFilter').val();
+    // v2: only search affects filtering here; time period handled on the Blade page
+    const searchTerm = ($('#renewalsSearch').val() || '').toLowerCase();
     
     renewalsFilteredData = policiesAsRenewals.filter(renewal => {
-        const status = renewal.status || 'Pending';
-        const priority = renewal.priority || 'Medium';
-        
-        const statusMatch = !statusFilter || status === statusFilter;
-        const priorityMatch = !priorityFilter || priority === priorityFilter;
-        return statusMatch && priorityMatch;
+        if (!searchTerm) return true;
+        const idMatch = (renewal.id || '').toString().includes(searchTerm);
+        const nameMatch = (renewal.customerName || '').toLowerCase().includes(searchTerm);
+        const typeMatch = (renewal.policyType || '').toLowerCase().includes(searchTerm);
+        const agentMatch = (renewal.assignedTo || '').toLowerCase().includes(searchTerm);
+        return idMatch || nameMatch || typeMatch || agentMatch;
     });
     
     renewalsCurrentPage = 1;
@@ -5747,7 +5774,13 @@ const closeViewRenewalModal = () => {
 };
 
 const exportRenewalsData = () => {
-    const csvContent = generateRenewalsCSV();
+    // Prefer the v2 renewals page dataset if present
+    let csvContent = '';
+    if (window.RENEWALS_V2 === true && Array.isArray(window.renewalsV2Filtered)) {
+        csvContent = generateRenewalsCSVFromArray(window.renewalsV2Filtered);
+    } else {
+        csvContent = generateRenewalsCSV();
+    }
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -5762,28 +5795,48 @@ const exportRenewalsData = () => {
 };
 
 const generateRenewalsCSV = () => {
-    const headers = ['Sl. No', 'Policy ID', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To', 'Reminder Date', 'Notes'];
+    const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
     const csvRows = [headers.join(',')];
     
     renewalsFilteredData.forEach(renewal => {
         const row = [
             renewal.id,
-            `#${renewal.policyId.toString().padStart(3, '0')}`,
             renewal.customerName,
             renewal.policyType,
             renewal.expiryDate,
             renewal.daysLeft < 0 ? `${Math.abs(renewal.daysLeft)} days overdue` : `${renewal.daysLeft} days`,
             renewal.status,
             renewal.priority,
-            renewal.assignedTo,
-            renewal.reminderDate,
-            renewal.notes
+            renewal.assignedTo
         ];
         csvRows.push(row.join(','));
     });
     
     return csvRows.join('\n');
 }; 
+
+// CSV from v2 array (policies view model)
+const generateRenewalsCSVFromArray = (arr) => {
+    const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+    const csvRows = [headers.join(',')];
+    arr.forEach((row, idx) => {
+        const isRenewed = !!row.hasRenewal;
+        const status = isRenewed ? 'Renewed' : (row.daysLeft < 0 ? 'Overdue' : (row.daysLeft <= 7 ? 'Pending' : (row.daysLeft <= 30 ? 'In Progress' : 'Pending')));
+        const priority = row.daysLeft <= 7 ? 'High' : (row.daysLeft <= 30 ? 'Medium' : 'Low');
+        const csvRow = [
+            idx + 1,
+            row.customerName || '',
+            row.policyType || '',
+            row.endDate || '',
+            row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`,
+            status,
+            priority,
+            row.agentName || ''
+        ];
+        csvRows.push(csvRow.join(','));
+    });
+    return csvRows.join('\n');
+};
 
 // Reports Functions
 const updateReportDateRange = () => {
