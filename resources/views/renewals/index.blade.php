@@ -65,20 +65,11 @@
                 </div>
             </div>
             <div class="stat-card glass-effect">
-                <div class="stat-icon overdue">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Overdue Renewals</h3>
-                    <p class="stat-value" id="overdueRenewalsCount">0</p>
-                </div>
-            </div>
-            <div class="stat-card glass-effect">
                 <div class="stat-icon completed">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>Completed This Month</h3>
+                    <h3>Completed Renewals</h3>
                     <p class="stat-value" id="completedRenewalsCount">0</p>
                 </div>
             </div>
@@ -185,9 +176,15 @@
 
 .renewals-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+    .renewals-stats {
+        grid-template-columns: 1fr;
+    }
 }
 
 .stat-icon.overdue {
@@ -409,7 +406,6 @@
         perPage: 10,
         totals: {
             pending: 0,
-            overdue: 0,
             completed: 0,
             total: 0
         }
@@ -430,7 +426,6 @@
         priorityFilter: document.getElementById('renewalPriorityFilter'),
         stats: {
             pending: document.getElementById('pendingRenewalsCount'),
-            overdue: document.getElementById('overdueRenewalsCount'),
             completed: document.getElementById('completedRenewalsCount'),
             total: document.getElementById('totalRenewalsCount')
         }
@@ -457,12 +452,14 @@
         
         switch (timePeriod) {
             case 'current_month':
-                const firstDay = new Date(currentYear, currentMonth, 1);
-                const lastDay = new Date(currentYear, currentMonth + 1, 0);
-                return {
-                    start: firstDay.toISOString().split('T')[0],
-                    end: lastDay.toISOString().split('T')[0]
-                };
+                // Fix: Use proper date calculation for current month
+                const year = currentYear;
+                const month = currentMonth + 1; // Convert to 1-based month
+                const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+                const endDate = `${year}-${month.toString().padStart(2, '0')}-${new Date(year, currentMonth + 1, 0).getDate().toString().padStart(2, '0')}`;
+                const range = { start: startDate, end: endDate };
+                console.log('🔍 getTimePeriodRange current_month:', range);
+                return range;
             case 'past_30':
                 const past30 = new Date(today);
                 past30.setDate(today.getDate() - 30);
@@ -491,18 +488,30 @@
                     start: today.toISOString().split('T')[0],
                     end: next60.toISOString().split('T')[0]
                 };
-            default:
-                return {
-                    start: new Date(currentYear, currentMonth, 1).toISOString().split('T')[0],
-                    end: new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0]
-                };
         }
     }
 
     function isPolicyInTimePeriod(policy, timePeriod) {
         const range = getTimePeriodRange(timePeriod);
         const policyDate = policy.endDate;
-        return policyDate >= range.start && policyDate <= range.end;
+        const isInRange = policyDate >= range.start && policyDate <= range.end;
+        
+        // Debug first few policies
+        if (Math.random() < 0.05) { // Log 5% to avoid spam
+            console.log('🔍 isPolicyInTimePeriod:', {
+                policyId: policy.id,
+                policyDate,
+                range,
+                isInRange
+            });
+        }
+        
+        return isInRange;
+    }
+
+    // Check if policy has been renewed (has PolicyVersion records)
+    function isPolicyRenewed(policy) {
+        return policy.hasRenewal || false;
     }
 
     function policyTypeBadge(type) {
@@ -510,8 +519,13 @@
         return `<span class="policy-type-badge ${cls}">${type||''}</span>`;
     }
 
-    function statusFromDaysLeft(n, timePeriod) {
-        // For past periods, all policies are overdue
+    function statusFromDaysLeft(n, timePeriod, isRenewed) {
+        // If policy has been renewed, it's completed
+        if (isRenewed) {
+            return { label: 'Renewed', cls: 'completed' };
+        }
+        
+        // For past periods, all non-renewed policies are overdue
         if (timePeriod === 'past_30' || timePeriod === 'past_60') {
             return { label: 'Overdue', cls: 'overdue' };
         }
@@ -520,7 +534,7 @@
         if (n < 0) return { label: 'Overdue', cls: 'overdue' };
         if (n <= 7) return { label: 'Pending', cls: 'pending' };
         if (n <= 30) return { label: 'In Progress', cls: 'inprogress' };
-        return { label: 'Completed', cls: 'completed' };
+        return { label: 'Pending', cls: 'pending' };
     }
 
     function priorityFromDaysLeft(n, timePeriod) {
@@ -547,7 +561,8 @@
             const currentTimePeriod = els.timePeriodFilter.value || 'current_month';
             pageItems.forEach((row, idx) => {
                 const serial = start + idx + 1;
-                const status = statusFromDaysLeft(row.daysLeft, currentTimePeriod);
+                const isRenewed = isPolicyRenewed(row);
+                const status = statusFromDaysLeft(row.daysLeft, currentTimePeriod, isRenewed);
                 const pr = priorityFromDaysLeft(row.daysLeft, currentTimePeriod);
                 const daysCls = row.daysLeft < 0 ? 'urgent' : (row.daysLeft <= 7 ? 'urgent' : (row.daysLeft <= 30 ? 'warning' : 'safe'));
                 const daysText = row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`;
@@ -618,7 +633,8 @@
                 (row.policyType||'').toLowerCase().includes(q);
 
             // Then filter by status and priority (using time period for calculation)
-            const st = statusFromDaysLeft(row.daysLeft, timePeriodFilter).label;
+            const isRenewed = isPolicyRenewed(row);
+            const st = statusFromDaysLeft(row.daysLeft, timePeriodFilter, isRenewed).label;
             const pr = priorityFromDaysLeft(row.daysLeft, timePeriodFilter).label;
 
             const matchStatus = !statusFilter || st === statusFilter;
@@ -630,52 +646,42 @@
         .sort((a, b) => a.endDate.localeCompare(b.endDate));
 
         state.page = 1;
+        updateStats(); // Update stats when filters change
         renderTable();
     }
 
     function updateStats() {
         const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
         
+        console.log('🔍 updateStats called with filter:', timePeriodFilter);
+        
         // Filter policies by time period first
         const timeFilteredPolicies = state.all.filter(row => isPolicyInTimePeriod(row, timePeriodFilter));
         
-        // Calculate stats based on time period
-        let pending = 0, overdue = 0, completed = 0;
+        console.log('🔍 Time filtered policies:', timeFilteredPolicies.length, 'out of', state.all.length);
+        
+        // Calculate stats based on new logic
+        let pending = 0, completed = 0;
         
         timeFilteredPolicies.forEach(policy => {
-            const status = statusFromDaysLeft(policy.daysLeft, timePeriodFilter);
-            switch (status.label) {
-                case 'Pending':
-                    pending++;
-                    break;
-                case 'Overdue':
-                    overdue++;
-                    break;
-                case 'Completed':
-                    completed++;
-                    break;
-                case 'In Progress':
-                    pending++; // Count in-progress as pending for stats
-                    break;
+            const isRenewed = isPolicyRenewed(policy);
+            
+            if (isRenewed) {
+                completed++;
+            } else {
+                pending++; // All non-renewed policies are pending (overdue or expiring soon)
             }
         });
         
         const total = timeFilteredPolicies.length;
         
-        state.totals = { pending, overdue, completed, total };
+        console.log('🔍 Calculated counts:', { pending, completed, total });
+        
+        state.totals = { pending, completed, total };
 
         els.stats.pending.textContent = String(pending);
-        els.stats.overdue.textContent = String(overdue);
+        els.stats.completed.textContent = String(completed);
         els.stats.total.textContent = String(total);
-        
-        // For completed count, only show if current month is selected
-        if (timePeriodFilter === 'current_month') {
-            if (!els.stats.completed.dataset.bound) {
-                els.stats.completed.textContent = String(state.totals.completed || 0);
-            }
-        } else {
-            els.stats.completed.textContent = String(completed);
-        }
     }
 
     async function fetchPolicies() {
@@ -692,7 +698,8 @@
                 endDate: endDate,
                 daysLeft: dleft,
                 status: p.status,
-                agentName: p.agentName || ''
+                agentName: p.agentName || '',
+                hasRenewal: p.hasRenewal || false // Add the hasRenewal field
             };
         });
         // sort ascending by expiry

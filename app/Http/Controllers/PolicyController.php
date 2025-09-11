@@ -20,7 +20,7 @@ class PolicyController extends Controller
      */
     public function index()
     {
-        $policies = Policy::all()->map(function ($policy) {
+        $policies = Policy::with('versions')->get()->map(function ($policy) {
             return [
                 'id' => $policy->id,
                 'customerName' => $policy->customer_name,
@@ -45,7 +45,7 @@ class PolicyController extends Controller
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-
+                'hasRenewal' => $policy->versions()->count() > 0, // Check if policy has been renewed
             ];
         });
         
