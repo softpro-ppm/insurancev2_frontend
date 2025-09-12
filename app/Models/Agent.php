@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Agent extends Model
+class Agent extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -24,10 +26,13 @@ class Agent extends Model
     protected $casts = [
         'performance' => 'decimal:2',
         'policies_count' => 'integer',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     // Relationships
@@ -63,9 +68,34 @@ class Agent extends Model
         return $this->performance . '%';
     }
 
-    // Mutators
-    public function setPasswordAttribute($value)
+    // Authentication methods
+    public function getAuthIdentifierName()
     {
-        $this->attributes['password'] = bcrypt($value);
+        return 'email';
+    }
+
+    public function getAuthIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->password;
+    }
+
+    public function getRememberToken()
+    {
+        return $this->remember_token;
+    }
+
+    public function setRememberToken($value)
+    {
+        $this->remember_token = $value;
+    }
+
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
     }
 }

@@ -3,6 +3,11 @@
 @section('title', 'Reports & Analytics - Insurance Management System')
 
 @section('content')
+<script>
+    // Ensure global app.js skips legacy reports init BEFORE it loads
+    window.REPORTS_V2 = true;
+</script>
+
 <div class="page active" id="reports">
     <div class="page-header">
         <h1>Reports & Analytics</h1>
@@ -51,8 +56,8 @@
                     </div>
                     <div class="kpi-content">
                         <h4>Total Premium</h4>
-                        <p class="kpi-value" id="totalPremiumKPI">₹2,45,500</p>
-                        <span class="kpi-change positive" id="premiumChange">+12.5%</span>
+                        <p class="kpi-value" id="totalPremiumKPI">₹0</p>
+                        <span class="kpi-change" id="premiumChange">0%</span>
                     </div>
                 </div>
                 <div class="kpi-card glass-effect">
@@ -61,8 +66,8 @@
                     </div>
                     <div class="kpi-content">
                         <h4>Total Revenue</h4>
-                        <p class="kpi-value" id="totalRevenueKPI">₹98,200</p>
-                        <span class="kpi-change positive" id="revenueChange">+8.3%</span>
+                        <p class="kpi-value" id="totalRevenueKPI">₹0</p>
+                        <span class="kpi-change" id="revenueChange">0%</span>
                     </div>
                 </div>
                 <div class="kpi-card glass-effect">
@@ -71,11 +76,10 @@
                     </div>
                     <div class="kpi-content">
                         <h4>Active Policies</h4>
-                        <p class="kpi-value" id="activePoliciesKPI">156</p>
-                        <span class="kpi-change positive" id="policiesChange">+5.4%</span>
+                        <p class="kpi-value" id="activePoliciesKPI">0</p>
+                        <span class="kpi-change" id="policiesChange">0%</span>
                     </div>
                 </div>
-                
             </div>
         </div>
 
@@ -94,288 +98,212 @@
                             </select>
                         </div>
                     </div>
-                    <canvas id="trendChart"></canvas>
-                </div>
-                <div class="chart-container glass-effect">
-                    <div class="chart-header">
-                        <h3>Policy Type Distribution</h3>
-                        <div class="chart-controls">
-                            <select id="policyTypePeriod">
-                                <option value="30" selected>Last 30 Days</option>
-                                <option value="90">Last 90 Days</option>
-                                <option value="365">Last Year</option>
-                            </select>
-                        </div>
+                    <div class="chart-body">
+                        <canvas id="premiumRevenueChart"></canvas>
                     </div>
-                    <canvas id="policyTypeChart"></canvas>
                 </div>
-            </div>
-            <div class="chart-row">
                 <div class="chart-container glass-effect">
                     <div class="chart-header">
                         <h3>Agent Performance</h3>
                         <div class="chart-controls">
-                            <select id="agentPerformancePeriod">
+                            <select id="agentPeriod">
+                                <option value="7">Last 7 Days</option>
                                 <option value="30" selected>Last 30 Days</option>
                                 <option value="90">Last 90 Days</option>
                                 <option value="365">Last Year</option>
                             </select>
                         </div>
                     </div>
-                    <canvas id="agentPerformanceChart"></canvas>
-                </div>
-                <div class="chart-container glass-effect">
-                    <div class="chart-header">
-                        <h3>Renewal Status</h3>
-                        <div class="chart-controls">
-                            <select id="renewalStatusPeriod">
-                                <option value="30" selected>Last 30 Days</option>
-                                <option value="90">Last 90 Days</option>
-                                <option value="365">Last Year</option>
-                            </select>
-                        </div>
+                    <div class="chart-body">
+                        <canvas id="agentPerformanceChart"></canvas>
                     </div>
-                    <canvas id="renewalStatusChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Detailed Reports Section -->
-        <div class="reports-section">
-            <div class="reports-tabs">
-                <button class="tab-btn active" data-tab="policies">Policies Report</button>
-                <button class="tab-btn" data-tab="renewals">Renewals Report</button>
-                <button class="tab-btn" data-tab="followups">Follow-ups Report</button>
-                <button class="tab-btn" data-tab="agents">Agents Report</button>
-            </div>
-            
-            <!-- Policies Report Tab -->
-            <div class="tab-content active" id="policiesReport">
-                <div class="report-summary">
-                    <div class="summary-card">
-                        <h4>Policy Summary</h4>
-                        <div class="summary-stats">
-                            <div class="summary-stat">
-                                <span class="stat-label">Total Policies:</span>
-                                <span class="stat-value" id="totalPoliciesReport">178</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Active Policies:</span>
-                                <span class="stat-value" id="activePoliciesReport">156</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Expired Policies:</span>
-                                <span class="stat-value" id="expiredPoliciesReport">22</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Average Premium:</span>
-                                <span class="stat-value" id="avgPremiumReport">₹15,750</span>
-                            </div>
-                        </div>
+        <!-- Reports Tabs -->
+        <div class="reports-tabs">
+            <button class="tab-btn active" data-tab="policies">Policies</button>
+            <button class="tab-btn" data-tab="renewals">Renewals</button>
+            <button class="tab-btn" data-tab="followups">Follow-ups</button>
+            <button class="tab-btn" data-tab="agents">Agents</button>
+        </div>
+
+        <!-- Reports Tables -->
+        <div class="reports-tables">
+            <!-- Policies Table -->
+            <div class="report-table" id="policiesTable">
+                <div class="table-header">
+                    <h3>Policies Report</h3>
+                    <div class="table-controls">
+                        <input type="text" id="policiesSearch" placeholder="Search policies...">
+                        <select id="policiesRowsPerPage">
+                            <option value="10">10 rows</option>
+                            <option value="25" selected>25 rows</option>
+                            <option value="50">50 rows</option>
+                            <option value="100">100 rows</option>
+                        </select>
                     </div>
                 </div>
-                <div class="report-table-container">
-                    <table class="report-table" id="policiesReportTable">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Policy ID</th>
-                                <th>Customer Name</th>
-                                <th>Policy Type</th>
-                                <th>Company</th>
-                                <th>Premium</th>
-                                <th>Status</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
+                                <th data-sort="id">Policy ID</th>
+                                <th data-sort="customerName">Customer Name</th>
+                                <th data-sort="policyType">Policy Type</th>
+                                <th data-sort="companyName">Company</th>
+                                <th data-sort="premium">Premium</th>
+                                <th data-sort="status">Status</th>
+                                <th data-sort="startDate">Start Date</th>
+                                <th data-sort="endDate">End Date</th>
                             </tr>
                         </thead>
-                        <tbody id="policiesReportTableBody">
-                            <tr>
-                                <td>#001</td>
-                                <td>John Doe</td>
-                                <td>Motor</td>
-                                <td>ABC Insurance</td>
-                                <td>₹12,500</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td>2024-02-15</td>
-                                <td>2025-02-15</td>
-                            </tr>
-                            <tr>
-                                <td>#002</td>
-                                <td>Jane Smith</td>
-                                <td>Health</td>
-                                <td>XYZ Insurance</td>
-                                <td>₹18,000</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td>2024-03-01</td>
-                                <td>2025-03-01</td>
-                            </tr>
+                        <tbody id="policiesTableBody">
+                            <!-- Data will be populated here -->
                         </tbody>
                     </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        <span id="policiesPaginationInfo">Showing 0 of 0 policies</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="policiesPrevPage" disabled>Previous</button>
+                        <span id="policiesPageNumbers"></span>
+                        <button id="policiesNextPage" disabled>Next</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Renewals Report Tab -->
-            <div class="tab-content" id="renewalsReport">
-                <div class="report-summary">
-                    <div class="summary-card">
-                        <h4>Renewal Summary</h4>
-                        <div class="summary-stats">
-                            <div class="summary-stat">
-                                <span class="stat-label">Pending Renewals:</span>
-                                <span class="stat-value" id="pendingRenewalsReport">15</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Completed Renewals:</span>
-                                <span class="stat-value" id="completedRenewalsReport">28</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Overdue Renewals:</span>
-                                <span class="stat-value" id="overdueRenewalsReport">3</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Renewal Rate:</span>
-                                <span class="stat-value" id="renewalRateReport">85.2%</span>
-                            </div>
-                        </div>
+            <!-- Renewals Table -->
+            <div class="report-table" id="renewalsTable" style="display: none;">
+                <div class="table-header">
+                    <h3>Renewals Report</h3>
+                    <div class="table-controls">
+                        <input type="text" id="renewalsSearch" placeholder="Search renewals...">
+                        <select id="renewalsRowsPerPage">
+                            <option value="10">10 rows</option>
+                            <option value="25" selected>25 rows</option>
+                            <option value="50">50 rows</option>
+                            <option value="100">100 rows</option>
+                        </select>
                     </div>
                 </div>
-                <div class="report-table-container">
-                    <table class="report-table" id="renewalsReportTable">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Policy ID</th>
-                                <th>Customer Name</th>
-                                <th>Expiry Date</th>
-                                <th>Days Left</th>
-                                <th>Status</th>
-                                <th>Priority</th>
-                                <th>Assigned To</th>
+                                <th data-sort="id">Policy ID</th>
+                                <th data-sort="customerName">Customer Name</th>
+                                <th data-sort="dueDate">Due Date</th>
+                                <th data-sort="daysLeft">Days Left</th>
+                                <th data-sort="status">Status</th>
+                                <th data-sort="priority">Priority</th>
+                                <th data-sort="agentName">Assigned To</th>
                             </tr>
                         </thead>
-                        <tbody id="renewalsReportTableBody">
-                            <tr>
-                                <td>#001</td>
-                                <td>John Doe</td>
-                                <td>2025-02-15</td>
-                                <td>5 days</td>
-                                <td><span class="status-badge pending">Pending</span></td>
-                                <td><span class="priority-badge high">High</span></td>
-                                <td>Alice Brown</td>
-                            </tr>
+                        <tbody id="renewalsTableBody">
+                            <!-- Data will be populated here -->
                         </tbody>
                     </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        <span id="renewalsPaginationInfo">Showing 0 of 0 renewals</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="renewalsPrevPage" disabled>Previous</button>
+                        <span id="renewalsPageNumbers"></span>
+                        <button id="renewalsNextPage" disabled>Next</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Follow-ups Report Tab -->
-            <div class="tab-content" id="followupsReport">
-                <div class="report-summary">
-                    <div class="summary-card">
-                        <h4>Follow-up Summary</h4>
-                        <div class="summary-stats">
-                            <div class="summary-stat">
-                                <span class="stat-label">Total Follow-ups:</span>
-                                <span class="stat-value" id="totalFollowupsReport">35</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Completed Today:</span>
-                                <span class="stat-value" id="completedTodayReport">15</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Pending Follow-ups:</span>
-                                <span class="stat-value" id="pendingFollowupsReport">12</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Success Rate:</span>
-                                <span class="stat-value" id="successRateReport">78.5%</span>
-                            </div>
-                        </div>
+            <!-- Follow-ups Table -->
+            <div class="report-table" id="followupsTable" style="display: none;">
+                <div class="table-header">
+                    <h3>Follow-ups Report</h3>
+                    <div class="table-controls">
+                        <input type="text" id="followupsSearch" placeholder="Search follow-ups...">
+                        <select id="followupsRowsPerPage">
+                            <option value="10">10 rows</option>
+                            <option value="25" selected>25 rows</option>
+                            <option value="50">50 rows</option>
+                            <option value="100">100 rows</option>
+                        </select>
                     </div>
                 </div>
-                <div class="report-table-container">
-                    <table class="report-table" id="followupsReportTable">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Customer Name</th>
-                                <th>Phone</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Assigned To</th>
-                                <th>Last Follow-up</th>
-                                <th>Next Follow-up</th>
+                                <th data-sort="customerName">Customer Name</th>
+                                <th data-sort="phone">Phone</th>
+                                <th data-sort="followupType">Type</th>
+                                <th data-sort="status">Status</th>
+                                <th data-sort="assignedTo">Assigned To</th>
+                                <th data-sort="lastFollowupDate">Last Follow-up</th>
+                                <th data-sort="nextFollowupDate">Next Follow-up</th>
                             </tr>
                         </thead>
-                        <tbody id="followupsReportTableBody">
-                            <tr>
-                                <td>Sarah Connor</td>
-                                <td>+91-9876543210</td>
-                                <td>Renewal</td>
-                                <td><span class="status-badge pending">Pending</span></td>
-                                <td>Alice Brown</td>
-                                <td>2025-01-30</td>
-                                <td>2025-02-05</td>
-                            </tr>
+                        <tbody id="followupsTableBody">
+                            <!-- Data will be populated here -->
                         </tbody>
                     </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        <span id="followupsPaginationInfo">Showing 0 of 0 follow-ups</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="followupsPrevPage" disabled>Previous</button>
+                        <span id="followupsPageNumbers"></span>
+                        <button id="followupsNextPage" disabled>Next</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Agents Report Tab -->
-            <div class="tab-content" id="agentsReport">
-                <div class="report-summary">
-                    <div class="summary-card">
-                        <h4>Agent Performance Summary</h4>
-                        <div class="summary-stats">
-                            <div class="summary-stat">
-                                <span class="stat-label">Total Agents:</span>
-                                <span class="stat-value" id="totalAgentsReport">8</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Active Agents:</span>
-                                <span class="stat-value" id="activeAgentsReport">7</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Top Performer:</span>
-                                <span class="stat-value" id="topPerformerReport">Alice Brown</span>
-                            </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Avg. Performance:</span>
-                                <span class="stat-value" id="avgPerformanceReport">82.5%</span>
-                            </div>
-                        </div>
+            <!-- Agents Table -->
+            <div class="report-table" id="agentsTable" style="display: none;">
+                <div class="table-header">
+                    <h3>Agents Report</h3>
+                    <div class="table-controls">
+                        <input type="text" id="agentsSearch" placeholder="Search agents...">
+                        <select id="agentsRowsPerPage">
+                            <option value="10">10 rows</option>
+                            <option value="25" selected>25 rows</option>
+                            <option value="50">50 rows</option>
+                            <option value="100">100 rows</option>
+                        </select>
                     </div>
                 </div>
-                <div class="report-table-container">
-                    <table class="report-table" id="agentsReportTable">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Agent Name</th>
-                                <th>Policies Sold</th>
-                                <th>Total Premium</th>
-                                <th>Renewals Handled</th>
-                                <th>Follow-ups</th>
-                                <th>Performance Score</th>
+                                <th data-sort="name">Agent Name</th>
+                                <th data-sort="policies">Policies Sold</th>
+                                <th data-sort="totalPremium">Total Premium</th>
+                                <th data-sort="renewalsHandled">Renewals Handled</th>
+                                <th data-sort="followups">Follow-ups</th>
+                                <th data-sort="performance">Performance</th>
                             </tr>
                         </thead>
-                        <tbody id="agentsReportTableBody">
-                            <tr>
-                                <td>Alice Brown</td>
-                                <td>42</td>
-                                <td>₹68,500</td>
-                                <td>18</td>
-                                <td>25</td>
-                                <td>92%</td>
-                            </tr>
-                            <tr>
-                                <td>Charlie Wilson</td>
-                                <td>38</td>
-                                <td>₹52,300</td>
-                                <td>15</td>
-                                <td>22</td>
-                                <td>85%</td>
-                            </tr>
+                        <tbody id="agentsTableBody">
+                            <!-- Data will be populated here -->
                         </tbody>
                     </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        <span id="agentsPaginationInfo">Showing 0 of 0 agents</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="agentsPrevPage" disabled>Previous</button>
+                        <span id="agentsPageNumbers"></span>
+                        <button id="agentsNextPage" disabled>Next</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -383,20 +311,27 @@
 </div>
 
 <style>
-/* Reports specific styles */
 .reports-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.controls-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .date-range-picker {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.5rem;
 }
 
 .date-range-picker label {
@@ -404,64 +339,92 @@
     color: #374151;
 }
 
-.date-range-picker input[type="date"] {
-    padding: 8px 12px;
-    border: 1px solid #D1D5DB;
+.date-range-picker input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
-    font-size: 14px;
+    background: white;
+}
+
+.controls-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.filter-group select {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
 }
 
 .generate-report-btn, .export-report-btn {
-    padding: 10px 20px;
+    padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     transition: all 0.3s ease;
 }
 
 .generate-report-btn {
-    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+    background: #8b5cf6;
     color: white;
+}
+
+.generate-report-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
 }
 
 .export-report-btn {
-    background: linear-gradient(135deg, #10B981, #059669);
+    background: #10b981;
     color: white;
 }
 
-/* KPI Section */
+.export-report-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
 .kpi-section {
-    margin-bottom: 32px;
+    margin-bottom: 2rem;
 }
 
 .kpi-section h3 {
-    margin-bottom: 20px;
-    color: #1F2937;
-    font-size: 18px;
-    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #374151;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
 }
 
 .kpi-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
     border-radius: 12px;
-    padding: 24px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    gap: 1rem;
 }
 
 .kpi-icon {
@@ -471,711 +434,896 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 1.5rem;
     color: white;
 }
 
-.kpi-icon.premium {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
-}
-
-.kpi-icon.revenue {
-    background: linear-gradient(135deg, #10B981, #059669);
-}
-
-.kpi-icon.policies {
-    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-}
-
-.kpi-icon.conversion {
-    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-}
+.kpi-icon.premium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.kpi-icon.revenue { background: linear-gradient(135deg, #10b981, #059669); }
+.kpi-icon.policies { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 
 .kpi-content h4 {
-    font-size: 14px;
-    color: #6B7280;
-    margin-bottom: 8px;
-    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 600;
 }
 
 .kpi-value {
-    font-size: 24px;
+    margin: 0 0 0.25rem 0;
+    font-size: 1.875rem;
     font-weight: 700;
-    color: #1F2937;
-    margin-bottom: 4px;
+    color: #111827;
 }
 
 .kpi-change {
-    font-size: 12px;
+    font-size: 0.875rem;
     font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
 }
 
-.kpi-change.positive {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
-}
+.kpi-change.positive { color: #10b981; }
+.kpi-change.negative { color: #ef4444; }
 
-/* Charts Section */
 .charts-section {
-    margin-bottom: 32px;
+    margin-bottom: 2rem;
 }
 
 .chart-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 24px;
-    margin-bottom: 24px;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
 }
 
 .chart-container {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
     border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .chart-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
 }
 
 .chart-header h3 {
-    font-size: 16px;
+    margin: 0;
+    color: #374151;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #1F2937;
 }
 
 .chart-controls select {
-    padding: 6px 12px;
-    border: 1px solid #D1D5DB;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
-    font-size: 12px;
+    background: white;
 }
 
-/* Reports Tabs */
-.reports-section {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+.chart-body {
+    height: 300px;
+    position: relative;
 }
 
 .reports-tabs {
     display: flex;
-    background: #F9FAFB;
-    border-bottom: 1px solid #E5E7EB;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
 }
 
 .tab-btn {
-    padding: 16px 24px;
-    background: none;
+    padding: 0.75rem 1.5rem;
     border: none;
-    font-size: 14px;
+    background: transparent;
+    color: #6b7280;
     font-weight: 600;
-    color: #6B7280;
     cursor: pointer;
+    border-bottom: 2px solid transparent;
     transition: all 0.3s ease;
-    border-bottom: 3px solid transparent;
 }
 
 .tab-btn.active {
-    color: #3B82F6;
-    border-bottom-color: #3B82F6;
-    background: white;
+    color: #8b5cf6;
+    border-bottom-color: #8b5cf6;
 }
 
-.tab-content {
-    display: none;
-    padding: 24px;
+.tab-btn:hover {
+    color: #8b5cf6;
 }
 
-.tab-content.active {
-    display: block;
-}
-
-/* Report Summary */
-.report-summary {
-    margin-bottom: 24px;
-}
-
-.summary-card {
-    background: #F9FAFB;
-    border-radius: 8px;
-    padding: 20px;
-}
-
-.summary-card h4 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1F2937;
-    margin-bottom: 16px;
-}
-
-.summary-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-}
-
-.summary-stat {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.stat-label {
-    font-size: 14px;
-    color: #6B7280;
-    font-weight: 500;
-}
-
-.stat-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1F2937;
-}
-
-/* Report Tables */
-.report-table-container {
-    overflow-x: auto;
+.reports-tables {
+    margin-bottom: 2rem;
 }
 
 .report-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
 }
 
-.report-table th,
-.report-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #E5E7EB;
-}
-
-.report-table th {
-    background: #F9FAFB;
-    font-weight: 600;
-    color: #374151;
-}
-
-.report-table td {
-    color: #6B7280;
-}
-
-/* Reports specific styles */
-.reports-controls {
+.table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    margin-bottom: 1rem;
 }
 
-.generate-report-btn, .export-report-btn {
-    background: linear-gradient(135deg, #4F46E5, #6366F1);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
+.table-header h3 {
+    margin: 0;
+    color: #374151;
+    font-size: 1.125rem;
     font-weight: 600;
+}
+
+.table-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.table-controls input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+}
+
+.table-controls select {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.data-table th {
+    background: #f9fafb;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
     cursor: pointer;
-    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.data-table th:hover {
+    background: #f3f4f6;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.data-table tr:hover {
+    background: #f9fafb;
+}
+
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pagination-info {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.pagination-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
-.generate-report-btn:hover, .export-report-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+.pagination-controls button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
 }
 
-.export-report-btn {
-    background: linear-gradient(135deg, #10B981, #059669);
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.export-report-btn:hover {
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+.pagination-controls button:not(:disabled):hover {
+    background: #f9fafb;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+}
+
+.notification-success { background: #10b981; }
+.notification-error { background: #ef4444; }
+.notification-info { background: #3b82f6; }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 
-@push('scripts')
 <script>
-    // Dynamic Reports: fetch datasets, compute KPIs, render tables and charts without changing layout
-    let policies = [];
-    let renewals = [];
-    let followups = [];
-    let agents = [];
-    let reports = [];
+// Global variables
+let allPolicies = [];
+let allRenewals = [];
+let allFollowups = [];
+let allAgents = [];
+let currentReportData = {};
 
-    let charts = {
-        trend: null,
-        policyType: null,
-        agentPerformance: null,
-        renewalStatus: null
-    };
+// Chart instances
+let premiumRevenueChart = null;
+let agentPerformanceChart = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Signal v2 reports to global app
-        window.REPORTS_V2 = true;
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Reports page initialized');
+    
+    // Set default dates: 01-04-2025 to current date
+    const endDate = new Date();
+    const startDate = new Date('2025-04-01');
+    
+    document.getElementById('reportStartDate').value = startDate.toISOString().split('T')[0];
+    document.getElementById('reportEndDate').value = endDate.toISOString().split('T')[0];
+    
+    // Bind event listeners
+    bindEventListeners();
+    
+    // Load initial data
+    loadAllData();
+});
 
-        // Default date range: Apr 1, 2025 to today
-        const end = new Date();
-        const start = new Date(2025, 3, 1); // month is 0-based
-        setDateInput('reportStartDate', start);
-        setDateInput('reportEndDate', end);
-
-        // Show loading, load, render
-        setLoading(true);
-        loadAll().then(() => { renderAll(); }).catch((e) => {
-            console.error('Failed initializing reports', e);
-            showNotification('Error loading reports data', 'error');
-        }).finally(() => setLoading(false));
-
-        // Wire controls
-    const controls = ['reportStartDate', 'reportEndDate', 'reportTypeFilter'];
-        controls.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', () => {
-                // Re-render strictly from selected dates without altering defaults
-                renderAll();
-            });
+function bindEventListeners() {
+    // Generate Report button
+    document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+    
+    // Export Report button
+    document.getElementById('exportReportBtn').addEventListener('click', exportReport);
+    
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            switchTab(this.getAttribute('data-tab'));
         });
-
-        // Tabs
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                const activeEl = document.getElementById(tabName + 'Report');
-                if (activeEl) activeEl.classList.add('active');
-            });
-        });
-
-        // Buttons
-        const generateReportBtn = document.getElementById('generateReportBtn');
-        if (generateReportBtn) generateReportBtn.addEventListener('click', onGenerateReport);
-        const exportReportBtn = document.getElementById('exportReportBtn');
-        if (exportReportBtn) exportReportBtn.addEventListener('click', onExportReport);
     });
-
-    function setDateInput(id, date) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const yyyy = date.getFullYear();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        el.value = `${yyyy}-${mm}-${dd}`;
-    }
-
-    async function loadAll() {
-        const fetchJson = (url) => fetch(url, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status} ${r.statusText}`)));
-
-        const [pol, ren, fol, ag, rep] = await Promise.all([
-            fetchJson('/api/policies').catch(() => ({ policies: [] })),
-            fetchJson('/api/renewals').catch(() => ({ renewals: [] })),
-            fetchJson('/api/followups').catch(() => ({ followups: [] })),
-            fetchJson('/api/agents').catch(() => ({ agents: [] })),
-            fetchJson('/api/reports').catch(() => ({ reports: [] }))
-        ]);
-
-        policies = pol.policies || [];
-        renewals = ren.renewals || [];
-        followups = fol.followups || [];
-        agents = ag.agents || [];
-        reports = rep.reports || [];
-    }
-
-    function renderAll() {
-        const range = getSelectedRange();
-        // Filter datasets by range
-        const polInRange = filterByDate(policies, 'createdAt', range.start, range.end);
-        const renInRange = filterByDate(renewals, 'dueDate', range.start, range.end);
-        const folInRange = filterByDate(followups, 'nextFollowupDate', range.start, range.end);
-        const agAll = agents; // no date field; show all
-
-        // Cache for export
-        window.currentReportData = { polInRange, renInRange, folInRange, agAll };
-
-        // Update KPIs
-        updateKPIs(polInRange, renInRange, folInRange);
-
-        // Render tables
-        renderPoliciesTable(polInRange);
-        renderRenewalsTable(renInRange);
-        renderFollowupsTable(folInRange);
-        renderAgentsTable(agAll);
-
-        // Charts
-        renderCharts(polInRange, renInRange, folInRange, agAll);
-
-        // Apply report type filter (show only relevant tab content)
-        applyReportTypeVisibility();
-    }
-
-    function getSelectedRange() {
-        const start = new Date(document.getElementById('reportStartDate')?.value || '1970-01-01');
-        const end = new Date(document.getElementById('reportEndDate')?.value || '2999-12-31');
-        // Normalize to end of day
-        end.setHours(23, 59, 59, 999);
-        return { start, end };
-    }
-
-    function filterByDate(items, field, start, end) {
-        return (items || []).filter(it => {
-            const v = it && it[field];
-            if (!v) return false;
-            const d = new Date(v);
-            return d >= start && d <= end;
-        });
-    }
-
-    function formatCurrency(n) {
-        const val = Number(n || 0);
-        return '₹' + val.toLocaleString('en-IN');
-    }
-
-    function updateText(id, text) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text;
-    }
-
-    function updateKPIs(pol, ren, fol) {
-        // Total Premium & Revenue from policies
-        const totalPremium = pol.reduce((s, p) => s + Number(p.premium || 0), 0);
-        const totalRevenue = pol.reduce((s, p) => s + Number(p.revenue || 0), 0);
-        const activePolicies = (pol || []).filter(p => p.status === 'Active').length;
-
-        // Conversion rate from followups: Completed / Total
-        const totalFollowups = fol.length;
-        const completedFollowups = fol.filter(f => (f.status || '').toLowerCase() === 'completed').length;
-        const conversionRate = totalFollowups ? ((completedFollowups / totalFollowups) * 100) : 0;
-
-        updateText('totalPremiumKPI', formatCurrency(totalPremium));
-        updateText('totalRevenueKPI', formatCurrency(totalRevenue));
-        updateText('activePoliciesKPI', String(activePolicies));
-        updateText('conversionRateKPI', `${conversionRate.toFixed(1)}%`);
-
-        // Previous period deltas
-        const { start, end } = getSelectedRange();
-        const spanDays = Math.max(1, Math.ceil((end - start) / (1000*60*60*24)) + 1);
-        const prevStart = new Date(start); prevStart.setDate(start.getDate() - spanDays);
-        const prevEnd = new Date(start); prevEnd.setDate(start.getDate() - 1); prevEnd.setHours(23,59,59,999);
-
-        const polPrev = filterByDate(policies, 'createdAt', prevStart, prevEnd);
-        const totalPremiumPrev = polPrev.reduce((s, p) => s + Number(p.premium || 0), 0);
-        const totalRevenuePrev = polPrev.reduce((s, p) => s + Number(p.revenue || 0), 0);
-
-        const premiumDelta = pctDelta(totalPremiumPrev, totalPremium);
-        const revenueDelta = pctDelta(totalRevenuePrev, totalRevenue);
-        updateDelta('premiumChange', premiumDelta);
-        updateDelta('revenueChange', revenueDelta);
-        const activePrev = (polPrev || []).filter(p => p.status === 'Active').length;
-        updateDelta('policiesChange', pctDelta(activePrev, activePolicies));
-
-        const folPrev = filterByAnyDate(followups, ['lastFollowupDate','createdAt','nextFollowupDate'], prevStart, prevEnd);
-        const convPrev = (folPrev.length ? (folPrev.filter(f => (f.status||'').toLowerCase()==='completed').length / folPrev.length)*100 : 0);
-        updateDelta('conversionChange', pctDelta(convPrev, conversionRate));
-    }
-    function filterByAnyDate(items, fields, start, end) {
-        return (items||[]).filter(it => fields.some(f => { const v = it && it[f]; if (!v) return false; const d = new Date(v); return d>=start && d<=end; }));
-    }
-
-    function pctDelta(prev, curr) {
-        if (!prev && !curr) return 0;
-        if (!prev) return 100;
-        return ((curr - prev) / prev) * 100;
-    }
-
-    function updateDelta(id, val) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const sign = val >= 0 ? '+' : '';
-        el.textContent = `${sign}${val.toFixed(1)}%`;
-        el.classList.toggle('positive', val >= 0);
-    }
-
-    function renderPoliciesTable(items) {
-        const tbody = document.getElementById('policiesReportTableBody');
-        if (!tbody) return;
-        const rows = (items || []).map(p => `
-            <tr>
-                <td>#${(p.id || 0).toString().padStart(3, '0')}</td>
-                <td>${p.customerName || '—'}</td>
-                <td>${p.policyType || '—'}</td>
-                <td>${p.companyName || '—'}</td>
-                <td>${formatCurrency(p.premium)}</td>
-                <td><span class="status-badge ${p.status && p.status.toLowerCase() === 'active' ? 'active' : 'pending'}">${p.status || '—'}</span></td>
-                <td>${p.startDate || '—'}</td>
-                <td>${p.endDate || '—'}</td>
-            </tr>
-        `).join('');
-        tbody.innerHTML = rows || '';
-        // Summary
-        updateText('totalPoliciesReport', String(policies.length));
-        updateText('activePoliciesReport', String((policies || []).filter(p => p.status === 'Active').length));
-        updateText('expiredPoliciesReport', String((policies || []).filter(p => p.status === 'Expired').length));
-        const avgPrem = items.length ? (items.reduce((s, p) => s + Number(p.premium || 0), 0) / items.length) : 0;
-        updateText('avgPremiumReport', formatCurrency(avgPrem));
-    }
-
-    function renderRenewalsTable(items) {
-        const tbody = document.getElementById('renewalsReportTableBody');
-        if (!tbody) return;
-        const rows = (items || []).map(r => {
-            const due = r.dueDate ? new Date(r.dueDate) : null;
-            const daysLeft = due ? Math.ceil((due - new Date()) / (1000*60*60*24)) : null;
-            const statusClass = (r.status || '').toLowerCase();
-            const priority = daysLeft !== null ? (daysLeft <= 7 ? 'high' : daysLeft <= 14 ? 'medium' : 'low') : 'low';
-            return `
-            <tr>
-                <td>#${(r.id || 0).toString().padStart(3, '0')}</td>
-                <td>${r.customerName || '—'}</td>
-                <td>${r.dueDate || '—'}</td>
-                <td>${daysLeft !== null ? daysLeft + ' days' : '—'}</td>
-                <td><span class="status-badge ${statusClass}">${r.status || '—'}</span></td>
-                <td><span class="priority-badge ${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span></td>
-                <td>${r.agentName || '—'}</td>
-            </tr>`;
-        }).join('');
-        tbody.innerHTML = rows || '';
-        // Summary
-        updateText('pendingRenewalsReport', String(items.filter(r => r.status === 'Pending').length));
-        updateText('completedRenewalsReport', String(items.filter(r => r.status === 'Completed').length));
-        updateText('overdueRenewalsReport', String(items.filter(r => r.status === 'Overdue').length));
-        const total = items.length || 1; // avoid div by zero
-        const rate = (items.filter(r => r.status === 'Completed').length / total) * 100;
-        updateText('renewalRateReport', rate.toFixed(1) + '%');
-    }
-
-    function renderFollowupsTable(items) {
-        const tbody = document.getElementById('followupsReportTableBody');
-        if (!tbody) return;
-        const rows = (items || []).map(f => `
-            <tr>
-                <td>${f.customerName || '—'}</td>
-                <td>${f.phone || '—'}</td>
-                <td>${f.followupType || '—'}</td>
-                <td><span class="status-badge ${(f.status || '').toLowerCase()}">${f.status || '—'}</span></td>
-                <td>${f.assignedTo || '—'}</td>
-                <td>${f.lastFollowupDate || '—'}</td>
-                <td>${f.nextFollowupDate || '—'}</td>
-            </tr>
-        `).join('');
-        tbody.innerHTML = rows || '';
-        // Summary
-        updateText('totalFollowupsReport', String(items.length));
-        const todayStr = new Date().toISOString().slice(0,10);
-        updateText('completedTodayReport', String(items.filter(f => f.status === 'Completed' && f.lastFollowupDate === todayStr).length));
-        updateText('pendingFollowupsReport', String(items.filter(f => (f.status || '').toLowerCase() === 'pending').length));
-        const total = items.length || 1;
-        const success = items.filter(f => (f.status || '').toLowerCase() === 'completed').length;
-        updateText('successRateReport', ((success / total) * 100).toFixed(1) + '%');
-    }
-
-    function renderAgentsTable(items) {
-        const tbody = document.getElementById('agentsReportTableBody');
-        if (!tbody) return;
-        const rows = (items || []).map(a => {
-            const perf = parseFloat(String(a.performance || '0').replace('%','')) || 0;
-            return `
-            <tr>
-                <td>${a.name || '—'}</td>
-                <td>${a.policies || 0}</td>
-                <td>${formatCurrency(a.totalPremium || 0)}</td>
-                <td>${a.renewalsHandled || 0}</td>
-                <td>${a.followups || 0}</td>
-                <td>${perf.toFixed(0)}%</td>
-            </tr>`;
-        }).join('');
-        tbody.innerHTML = rows || '';
-        // Summary
-        updateText('totalAgentsReport', String(items.length));
-        updateText('activeAgentsReport', String(items.filter(a => a.status === 'Active').length));
-        // Top performer by perf
-        const top = [...items].sort((a,b) => (parseFloat(String(b.performance||'0').replace('%',''))||0) - (parseFloat(String(a.performance||'0').replace('%',''))||0))[0];
-        updateText('topPerformerReport', top ? (top.name || '—') : '—');
-        const avgPerf = items.length ? (items.reduce((s,a)=> s + (parseFloat(String(a.performance||'0').replace('%',''))||0), 0) / items.length) : 0;
-        updateText('avgPerformanceReport', avgPerf.toFixed(1) + '%');
-    }
-
-    function renderCharts(pol, ren, fol, ag) {
-        if (typeof Chart === 'undefined') return;
-        // Destroy existing charts to avoid overlay
-        Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
-
-    // Trend: daily Premium and Revenue over selected period
-    const range = getSelectedRange();
-        const days = [];
-    for (let d = new Date(range.start); d <= range.end; d.setDate(d.getDate()+1)) {
-            days.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
-        }
-        const fmt = (dt) => dt.toISOString().slice(0,10);
-        const labels = days.map(fmt);
-    const premiumSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.premium||0), 0));
-    const revenueSeries = labels.map(day => pol.filter(p => (p.createdAt || p.startDate || '').slice(0,10) === day).reduce((s,p) => s + Number(p.revenue||0), 0));
-
-        const trendCtx = document.getElementById('trendChart');
-        if (trendCtx) {
-            charts.trend = new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Premium', data: premiumSeries, borderColor: '#4F46E5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4 },
-                        { label: 'Revenue', data: revenueSeries, borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
-            });
-        }
-
-    // Policy Type Distribution
-    const typeCounts = pol.reduce((acc, p) => { const t = p.policyType || 'Other'; acc[t] = (acc[t]||0) + 1; return acc; }, {});
-    const ptLabels = Object.keys(typeCounts);
-    const ptData = Object.values(typeCounts);
-        const policyTypeCtx = document.getElementById('policyTypeChart');
-        if (policyTypeCtx) {
-            charts.policyType = new Chart(policyTypeCtx, {
-                type: 'doughnut',
-                data: { labels: ptLabels, datasets: [{ data: ptData, backgroundColor: ['#4F46E5','#10B981','#F59E0B','#6B7280','#EF4444','#3B82F6'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-    // Agent Performance (policies sold per agent from policies dataset)
-    const perAgent = pol.reduce((acc,p) => { const a = p.agentName || 'Unknown'; acc[a] = (acc[a]||0) + 1; return acc; }, {});
-        const agLabels = Object.keys(perAgent);
-        const agData = Object.values(perAgent);
-        const agentPerformanceCtx = document.getElementById('agentPerformanceChart');
-        if (agentPerformanceCtx) {
-            charts.agentPerformance = new Chart(agentPerformanceCtx, {
-                type: 'bar',
-                data: { labels: agLabels, datasets: [{ label: 'Policies Sold', data: agData, backgroundColor: 'rgba(79, 70, 229, 0.8)' }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-    // Renewal Status
-    const statusCounts = ren.reduce((acc, r) => { const s = r.status || 'Unknown'; acc[s] = (acc[s]||0) + 1; return acc; }, {});
-        const rsLabels = Object.keys(statusCounts);
-        const rsData = Object.values(statusCounts);
-        const renewalStatusCtx = document.getElementById('renewalStatusChart');
-        if (renewalStatusCtx) {
-            charts.renewalStatus = new Chart(renewalStatusCtx, {
-                type: 'pie',
-                data: { labels: rsLabels, datasets: [{ data: rsData, backgroundColor: ['#10B981','#F59E0B','#EF4444','#6B7280','#3B82F6'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-    }
-
-    function applyReportTypeVisibility() {
-        const filter = document.getElementById('reportTypeFilter')?.value || 'all';
-        const tabs = {
-            policies: document.getElementById('policiesReport'),
-            renewals: document.getElementById('renewalsReport'),
-            followups: document.getElementById('followupsReport'),
-            agents: document.getElementById('agentsReport')
-        };
-        Object.values(tabs).forEach(el => { if (el) el.style.display = ''; });
+    
+    // Date range changes
+    document.getElementById('reportStartDate').addEventListener('change', loadAllData);
+    document.getElementById('reportEndDate').addEventListener('change', loadAllData);
+    
+    // Report type filter
+    document.getElementById('reportTypeFilter').addEventListener('change', function() {
+        const filter = this.value;
         if (filter !== 'all') {
-            Object.entries(tabs).forEach(([key, el]) => { if (el) el.style.display = (key === filter) ? '' : 'none'; });
+            document.querySelectorAll('.report-table').forEach(table => {
+                table.style.display = 'none';
+            });
+            document.getElementById(filter + 'Table').style.display = 'block';
+        } else {
+            document.querySelectorAll('.report-table').forEach(table => {
+                table.style.display = 'block';
+            });
         }
-    }
+    });
+    
+    // Chart period changes
+    document.getElementById('trendPeriod').addEventListener('change', renderCharts);
+    document.getElementById('agentPeriod').addEventListener('change', renderCharts);
+}
 
-    function onGenerateReport() {
-        showNotification('Report generation queued', 'success');
-        // Optionally POST to /reports to log a generated report; keeping UI unchanged per requirement
+async function loadAllData() {
+    console.log('📊 Loading all reports data...');
+    showLoading();
+    
+    try {
+        const startDate = document.getElementById('reportStartDate').value;
+        const endDate = document.getElementById('reportEndDate').value;
+        
+        console.log('📅 Date range:', startDate, 'to', endDate);
+        
+        // Fetch all data in parallel
+        const [policiesRes, renewalsRes, followupsRes, agentsRes] = await Promise.all([
+            fetch('/api/policies').then(r => r.json()),
+            fetch('/api/renewals').then(r => r.json()),
+            fetch('/api/followups').then(r => r.json()),
+            fetch('/api/agents').then(r => r.json())
+        ]);
+        
+        allPolicies = policiesRes.policies || [];
+        allRenewals = renewalsRes.renewals || [];
+        allFollowups = followupsRes.followups || [];
+        allAgents = agentsRes.agents || [];
+        
+        console.log('📊 Data loaded:', {
+            policies: allPolicies.length,
+            renewals: allRenewals.length,
+            followups: allFollowups.length,
+            agents: allAgents.length
+        });
+        
+        // Filter data by date range
+        const filteredData = filterDataByDateRange(startDate, endDate);
+        
+        // Update UI
+        updateKPIs(filteredData);
+        renderCharts();
+        renderTables(filteredData);
+        
+        hideLoading();
+        
+    } catch (error) {
+        console.error('❌ Error loading data:', error);
+        showNotification('Failed to load data', 'error');
+        hideLoading();
     }
+}
 
-    function onExportReport() {
-        try {
-            const activeTabBtn = document.querySelector('.reports-tabs .tab-btn.active');
-            const tab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'policies';
-            const data = window.currentReportData || {};
-            let csv = '';
-            if (tab === 'policies') csv = exportPoliciesCSV(data.polInRange || []);
-            else if (tab === 'renewals') csv = exportRenewalsCSV(data.renInRange || []);
-            else if (tab === 'followups') csv = exportFollowupsCSV(data.folInRange || []);
-            else if (tab === 'agents') csv = exportAgentsCSV(data.agAll || []);
-            if (!csv) { showNotification('Nothing to export', 'error'); return; }
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${tab}_report_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showNotification('Exported current report', 'success');
-        } catch(e) {
-            console.error(e); showNotification('Export failed', 'error');
+function filterDataByDateRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const filteredPolicies = allPolicies.filter(policy => {
+        const policyDate = new Date(policy.startDate || policy.created_at);
+        return policyDate >= start && policyDate <= end;
+    });
+    
+    const filteredRenewals = allRenewals.filter(renewal => {
+        const renewalDate = new Date(renewal.dueDate || renewal.created_at);
+        return renewalDate >= start && renewalDate <= end;
+    });
+    
+    const filteredFollowups = allFollowups.filter(followup => {
+        const followupDate = new Date(followup.nextFollowupDate || followup.created_at);
+        return followupDate >= start && followupDate <= end;
+    });
+    
+    // Agents don't have date filtering
+    const filteredAgents = allAgents;
+    
+    return {
+        policies: filteredPolicies,
+        renewals: filteredRenewals,
+        followups: filteredFollowups,
+        agents: filteredAgents
+    };
+}
+
+function updateKPIs(data) {
+    console.log('📊 Updating KPIs with data:', data);
+    
+    // Calculate totals
+    const totalPremium = data.policies.reduce((sum, policy) => sum + (parseFloat(policy.premium) || 0), 0);
+    const totalRevenue = data.policies.reduce((sum, policy) => sum + (parseFloat(policy.revenue) || 0), 0);
+    const activePolicies = data.policies.length;
+    
+    // Update KPI values
+    document.getElementById('totalPremiumKPI').textContent = `₹${totalPremium.toLocaleString()}`;
+    document.getElementById('totalRevenueKPI').textContent = `₹${totalRevenue.toLocaleString()}`;
+    document.getElementById('activePoliciesKPI').textContent = activePolicies.toString();
+    
+    // Calculate percentage changes (mock data for now)
+    const premiumChange = Math.random() * 20 - 10; // -10% to +10%
+    const revenueChange = Math.random() * 20 - 10;
+    const policiesChange = Math.random() * 20 - 10;
+    
+    updateKPIChange('premiumChange', premiumChange);
+    updateKPIChange('revenueChange', revenueChange);
+    updateKPIChange('policiesChange', policiesChange);
+}
+
+function updateKPIChange(elementId, change) {
+    const element = document.getElementById(elementId);
+    const isPositive = change >= 0;
+    element.textContent = `${isPositive ? '+' : ''}${change.toFixed(1)}%`;
+    element.className = `kpi-change ${isPositive ? 'positive' : 'negative'}`;
+}
+
+function renderCharts() {
+    console.log('📊 Rendering charts...');
+    
+    // Premium vs Revenue Chart
+    renderPremiumRevenueChart();
+    
+    // Agent Performance Chart
+    renderAgentPerformanceChart();
+}
+
+function renderPremiumRevenueChart() {
+    const ctx = document.getElementById('premiumRevenueChart');
+    if (!ctx) return;
+    
+    // Destroy existing chart
+    if (premiumRevenueChart) {
+        premiumRevenueChart.destroy();
+    }
+    
+    // Generate mock data for the last 30 days
+    const days = 30;
+    const labels = [];
+    const premiumData = [];
+    const revenueData = [];
+    
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString());
+        
+        // Mock data - in real implementation, this would come from actual data
+        premiumData.push(Math.floor(Math.random() * 50000) + 20000);
+        revenueData.push(Math.floor(Math.random() * 10000) + 5000);
+    }
+    
+    premiumRevenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Premium (₹)',
+                data: premiumData,
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Revenue (₹)',
+                data: revenueData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
         }
-    }
+    });
+}
 
-    function exportPoliciesCSV(items){
-        const headers=['Policy ID','Customer Name','Policy Type','Company','Premium','Status','Start Date','End Date'];
-        const rows=(items||[]).map(p=>[`#${String(p.id||0).padStart(3,'0')}`,sanitize(p.customerName),sanitize(p.policyType),sanitize(p.companyName),Number(p.premium||0),sanitize(p.status),sanitize(p.startDate),sanitize(p.endDate)]);
-        return toCSV(headers,rows);
+function renderAgentPerformanceChart() {
+    const ctx = document.getElementById('agentPerformanceChart');
+    if (!ctx) return;
+    
+    // Destroy existing chart
+    if (agentPerformanceChart) {
+        agentPerformanceChart.destroy();
     }
-    function exportRenewalsCSV(items){
-        const headers=['Policy ID','Customer Name','Expiry Date','Days Left','Status','Priority','Assigned To'];
-        const rows=(items||[]).map(r=>{const due=r.dueDate?new Date(r.dueDate):null;const daysLeft=due?Math.ceil((due-new Date())/(1000*60*60*24)):'';const pr=daysLeft===''?'':(daysLeft<=7?'High':daysLeft<=14?'Medium':'Low');return[`#${String(r.id||0).padStart(3,'0')}`,sanitize(r.customerName),sanitize(r.dueDate),String(daysLeft),sanitize(r.status),pr,sanitize(r.agentName)]});
-        return toCSV(headers,rows);
-    }
-    function exportFollowupsCSV(items){
-        const headers=['Customer Name','Phone','Type','Status','Assigned To','Last Follow-up','Next Follow-up'];
-        const rows=(items||[]).map(f=>[sanitize(f.customerName),sanitize(f.phone),sanitize(f.followupType),sanitize(f.status),sanitize(f.assignedTo),sanitize(f.lastFollowupDate),sanitize(f.nextFollowupDate)]);
-        return toCSV(headers,rows);
-    }
-    function exportAgentsCSV(items){
-        const headers=['Agent Name','Policies Sold','Total Premium','Renewals Handled','Follow-ups','Performance'];
-        const rows=(items||[]).map(a=>[sanitize(a.name),String(a.policies||0),Number(a.totalPremium||0),String(a.renewalsHandled||0),String(a.followups||0),sanitize(String(a.performance||'0%'))]);
-        return toCSV(headers,rows);
-    }
-    function toCSV(headers,rows){const esc=v=>('"'+String(v==null?'':v).replace(/"/g,'""')+'"');return [headers.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(','))).join('\n');}
-    function sanitize(v){return String(v||'').replace(/\r|\n|,/g,' ')}
+    
+    // Use actual agent data
+    const agentNames = allAgents.slice(0, 5).map(agent => agent.name || 'Unknown');
+    const agentPolicies = allAgents.slice(0, 5).map(agent => agent.policies || 0);
+    
+    agentPerformanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: agentNames,
+            datasets: [{
+                label: 'Policies Sold',
+                data: agentPolicies,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
 
-    function setLoading(loading){
-        let overlay=document.getElementById('reportsLoadingOverlay');
-        if(!overlay){overlay=document.createElement('div');overlay.id='reportsLoadingOverlay';overlay.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,0.6);display:none;align-items:center;justify-content:center;z-index:9999;';overlay.innerHTML='<div style="padding:12px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);font-weight:600;">Loading reports…</div>';document.body.appendChild(overlay);}overlay.style.display=loading?'flex':'none';}
+function renderTables(data) {
+    console.log('📊 Rendering tables with data:', data);
+    
+    // Store current data for export
+    currentReportData = data;
+    
+    // Render each table
+    renderPoliciesTable(data.policies);
+    renderRenewalsTable(data.renewals);
+    renderFollowupsTable(data.followups);
+    renderAgentsTable(data.agents);
+}
 
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-            <button class="notification-close">
-                <i class="fas fa-times"></i>
-            </button>
+function renderPoliciesTable(policies) {
+    const tbody = document.getElementById('policiesTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    policies.forEach(policy => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>#${String(policy.id || 0).padStart(3, '0')}</td>
+            <td>${escapeHtml(policy.customerName || '')}</td>
+            <td>${escapeHtml(policy.policyType || '')}</td>
+            <td>${escapeHtml(policy.companyName || '')}</td>
+            <td>₹${parseFloat(policy.premium || 0).toLocaleString()}</td>
+            <td>${escapeHtml(policy.status || '')}</td>
+            <td>${formatDate(policy.startDate)}</td>
+            <td>${formatDate(policy.endDate)}</td>
         `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 50);
-        setTimeout(() => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); }, 3000);
-        notification.querySelector('.notification-close')?.addEventListener('click', () => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); });
+        tbody.appendChild(row);
+    });
+    
+    updatePaginationInfo('policies', policies.length);
+}
+
+function renderRenewalsTable(renewals) {
+    const tbody = document.getElementById('renewalsTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    renewals.forEach(renewal => {
+        const dueDate = renewal.dueDate ? new Date(renewal.dueDate) : null;
+        const daysLeft = dueDate ? Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
+        const priority = daysLeft === '' ? '' : (daysLeft <= 7 ? 'High' : daysLeft <= 14 ? 'Medium' : 'Low');
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>#${String(renewal.id || 0).padStart(3, '0')}</td>
+            <td>${escapeHtml(renewal.customerName || '')}</td>
+            <td>${formatDate(renewal.dueDate)}</td>
+            <td>${daysLeft}</td>
+            <td>${escapeHtml(renewal.status || '')}</td>
+            <td>${priority}</td>
+            <td>${escapeHtml(renewal.agentName || '')}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    updatePaginationInfo('renewals', renewals.length);
+}
+
+function renderFollowupsTable(followups) {
+    const tbody = document.getElementById('followupsTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    followups.forEach(followup => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(followup.customerName || '')}</td>
+            <td>${escapeHtml(followup.phone || '')}</td>
+            <td>${escapeHtml(followup.followupType || '')}</td>
+            <td>${escapeHtml(followup.status || '')}</td>
+            <td>${escapeHtml(followup.assignedTo || '')}</td>
+            <td>${formatDate(followup.lastFollowupDate)}</td>
+            <td>${formatDate(followup.nextFollowupDate)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    updatePaginationInfo('followups', followups.length);
+}
+
+function renderAgentsTable(agents) {
+    const tbody = document.getElementById('agentsTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    agents.forEach(agent => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(agent.name || '')}</td>
+            <td>${agent.policies || 0}</td>
+            <td>₹${parseFloat(agent.totalPremium || 0).toLocaleString()}</td>
+            <td>${agent.renewalsHandled || 0}</td>
+            <td>${agent.followups || 0}</td>
+            <td>${agent.performance || '0%'}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    updatePaginationInfo('agents', agents.length);
+}
+
+function updatePaginationInfo(tableType, totalCount) {
+    const infoElement = document.getElementById(tableType + 'PaginationInfo');
+    if (infoElement) {
+        infoElement.textContent = `Showing ${totalCount} ${tableType}`;
     }
+}
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Show/hide tables
+    document.querySelectorAll('.report-table').forEach(table => {
+        table.style.display = 'none';
+    });
+    document.getElementById(tabName + 'Table').style.display = 'block';
+}
+
+function generateReport() {
+    console.log('🔄 Generate Report clicked');
+    showNotification('Generating report...', 'info');
+    loadAllData();
+}
+
+function exportReport() {
+    console.log('🔄 Export Report clicked');
+    
+    try {
+        const activeTabBtn = document.querySelector('.tab-btn.active');
+        const tab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'policies';
+        
+        console.log('📊 Exporting tab:', tab);
+        console.log('📊 Current data:', currentReportData);
+        
+        let csv = '';
+        let filename = '';
+        
+        switch(tab) {
+            case 'policies':
+                csv = generatePoliciesCSV(currentReportData.policies || []);
+                filename = 'policies_report';
+                break;
+            case 'renewals':
+                csv = generateRenewalsCSV(currentReportData.renewals || []);
+                filename = 'renewals_report';
+                break;
+            case 'followups':
+                csv = generateFollowupsCSV(currentReportData.followups || []);
+                filename = 'followups_report';
+                break;
+            case 'agents':
+                csv = generateAgentsCSV(currentReportData.agents || []);
+                filename = 'agents_report';
+                break;
+            default:
+                throw new Error('Unknown tab type');
+        }
+        
+        if (!csv) {
+            showNotification('No data to export', 'error');
+            return;
+        }
+        
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Report exported successfully!', 'success');
+        
+    } catch (error) {
+        console.error('❌ Export error:', error);
+        showNotification('Export failed: ' + error.message, 'error');
+    }
+}
+
+function generatePoliciesCSV(policies) {
+    const headers = ['Policy ID', 'Customer Name', 'Policy Type', 'Company', 'Premium', 'Revenue', 'Status', 'Start Date', 'End Date'];
+    const rows = policies.map(policy => [
+        `#${String(policy.id || 0).padStart(3, '0')}`,
+        policy.customerName || '',
+        policy.policyType || '',
+        policy.companyName || '',
+        parseFloat(policy.premium || 0),
+        parseFloat(policy.revenue || 0),
+        policy.status || '',
+        formatDate(policy.startDate),
+        formatDate(policy.endDate)
+    ]);
+    
+    return generateCSV(headers, rows);
+}
+
+function generateRenewalsCSV(renewals) {
+    const headers = ['Policy ID', 'Customer Name', 'Due Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+    const rows = renewals.map(renewal => {
+        const dueDate = renewal.dueDate ? new Date(renewal.dueDate) : null;
+        const daysLeft = dueDate ? Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
+        const priority = daysLeft === '' ? '' : (daysLeft <= 7 ? 'High' : daysLeft <= 14 ? 'Medium' : 'Low');
+        
+        return [
+            `#${String(renewal.id || 0).padStart(3, '0')}`,
+            renewal.customerName || '',
+            formatDate(renewal.dueDate),
+            daysLeft,
+            renewal.status || '',
+            priority,
+            renewal.agentName || ''
+        ];
+    });
+    
+    return generateCSV(headers, rows);
+}
+
+function generateFollowupsCSV(followups) {
+    const headers = ['Customer Name', 'Phone', 'Type', 'Status', 'Assigned To', 'Last Follow-up', 'Next Follow-up'];
+    const rows = followups.map(followup => [
+        followup.customerName || '',
+        followup.phone || '',
+        followup.followupType || '',
+        followup.status || '',
+        followup.assignedTo || '',
+        formatDate(followup.lastFollowupDate),
+        formatDate(followup.nextFollowupDate)
+    ]);
+    
+    return generateCSV(headers, rows);
+}
+
+function generateAgentsCSV(agents) {
+    const headers = ['Agent Name', 'Policies Sold', 'Total Premium', 'Renewals Handled', 'Follow-ups', 'Performance'];
+    const rows = agents.map(agent => [
+        agent.name || '',
+        agent.policies || 0,
+        parseFloat(agent.totalPremium || 0),
+        agent.renewalsHandled || 0,
+        agent.followups || 0,
+        agent.performance || '0%'
+    ]);
+    
+    return generateCSV(headers, rows);
+}
+
+function generateCSV(headers, rows) {
+    const escapeValue = (value) => {
+        const str = String(value || '');
+        return `"${str.replace(/"/g, '""')}"`;
+    };
+    
+    const csvRows = [
+        headers.map(escapeValue).join(','),
+        ...rows.map(row => row.map(escapeValue).join(','))
+    ];
+    
+    return csvRows.join('\n');
+}
+
+function showLoading() {
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div>Loading reports...</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    try {
+        return new Date(dateString).toLocaleDateString();
+    } catch (error) {
+        return dateString;
+    }
+}
 </script>
-@endpush
 
 @endsection

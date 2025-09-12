@@ -190,4 +190,59 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Agent routes
+Route::prefix('agent')->group(function () {
+    Route::get('/login', [App\Http\Controllers\Auth\AgentAuthenticatedSessionController::class, 'create'])->name('agent.login');
+    Route::post('/login', [App\Http\Controllers\Auth\AgentAuthenticatedSessionController::class, 'store'])->name('agent.login.store');
+    Route::post('/logout', [App\Http\Controllers\Auth\AgentAuthenticatedSessionController::class, 'destroy'])->name('agent.logout');
+    
+    Route::get('/test-login', function() {
+        $agent = App\Models\Agent::where('email', 'chbalaram321@gmail.com')->first();
+        if ($agent) {
+            Auth::guard('agent')->login($agent);
+            return response()->json([
+                'message' => 'Agent logged in manually',
+                'authenticated' => Auth::guard('agent')->check(),
+                'user' => Auth::guard('agent')->user(),
+                'session_id' => session()->getId()
+            ]);
+        }
+        return response()->json(['error' => 'Agent not found']);
+    });
+    
+    Route::get('/test-auth', function() {
+        return response()->json([
+            'agent_authenticated' => Auth::guard('agent')->check(),
+            'agent_user' => Auth::guard('agent')->user(),
+            'web_authenticated' => Auth::guard('web')->check(),
+            'web_user' => Auth::guard('web')->user(),
+            'session_id' => session()->getId(),
+            'manual_session' => [
+                'agent_authenticated' => session()->get('agent_authenticated'),
+                'agent_id' => session()->get('agent_id'),
+            ],
+            'all_guards' => [
+                'agent' => Auth::guard('agent')->check(),
+                'web' => Auth::guard('web')->check(),
+            ]
+        ]);
+    });
+    
+    Route::middleware(['agent.auth'])->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\AgentDashboardController::class, 'index'])->name('agent.dashboard');
+        Route::get('/policies', [App\Http\Controllers\AgentDashboardController::class, 'policies'])->name('agent.policies');
+        Route::get('/renewals', [App\Http\Controllers\AgentDashboardController::class, 'renewals'])->name('agent.renewals');
+        Route::get('/followups', [App\Http\Controllers\AgentDashboardController::class, 'followups'])->name('agent.followups');
+        
+        // Test route to check agent authentication
+        Route::get('/test', function() {
+            return response()->json([
+                'authenticated' => Auth::guard('agent')->check(),
+                'user' => Auth::guard('agent')->user(),
+                'guard' => 'agent'
+            ]);
+        });
+    });
+});
+
 require __DIR__.'/auth.php';
