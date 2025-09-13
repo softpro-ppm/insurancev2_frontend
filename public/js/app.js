@@ -3232,6 +3232,15 @@ const editPolicy = async (id) => {
             status, agentName
         });
         
+        console.log('EditPolicy: Original policy dates:', {
+            startDate: policy.startDate,
+            endDate: policy.endDate,
+            start_date: policy.start_date,
+            end_date: policy.end_date,
+            extractedStartDate: startDate,
+            extractedEndDate: endDate
+        });
+        
         // Set global variables for the modal
         selectedPolicyType = policyType;
         selectedBusinessType = businessType;
@@ -3312,6 +3321,13 @@ const editPolicy = async (id) => {
             // Temporarily disable auto-calculation during edit mode
             $('#startDate').off('change');
             
+            console.log('EditPolicy: About to set dates:', {
+                startDate: startDate,
+                endDate: endDate,
+                startDateType: typeof startDate,
+                endDateType: typeof endDate
+            });
+            
             // Populate motor-specific fields
             $('#vehicleNumber').val(vehicleNumber);
             $('#vehicleType').val(vehicleType);
@@ -3322,6 +3338,11 @@ const editPolicy = async (id) => {
             $('#insuranceType').val(insuranceType);
             $('#startDate').val(startDate);
             $('#endDate').val(endDate);
+            
+            console.log('EditPolicy: After setting dates:', {
+                startDateValue: $('#startDate').val(),
+                endDateValue: $('#endDate').val()
+            });
             $('#premium').val(premium);
             $('#payout').val(payout);
             $('#customerPaidAmount').val(customerPaidAmount);
