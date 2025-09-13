@@ -1,0 +1,499 @@
+policy_type,business_type,customer_name,phone,email,vehicle_number,vehicle_type,company_name,insurance_type,start_date,end_date,premium,customer_paid_amount,payout,agent_name
+Motor,Agent,TANNA THIRUPATHIRAO,9160271272,chbalaram321@gmail.com,AP39VA0833,Auto (Passenger),SBI General,Comprehensive,03-09-2025,02-09-2026,7754.00,7754.00,200.00,Chinta Balaram Naidu
+Motor,Self,KORADA SIRISHA,9866310850,softpro.ppm@gmail.com,AP39HC6288,Two-Wheeler,Go Digit,Comprehensive,03-09-2025,02-09-2026,1177.00,1177.00,500.00,Self
+Motor,Self,BANKAPALLI VIJAYA LAKSHMI,6301870281,softpro.ppm@gmail.com,AP39UW7849,Tractor,SBI General,Comprehensive,02-09-2025,01-09-2026,13890.00,13890.00,3208.00,Self
+Motor,Self,VIJAYALAKSHMI BANKAPALLI,6301870281,softpro.ppm@gmail.com,AP35AG5911,Two-Wheeler,SBI General,Third Party,02-09-2025,01-09-2026,842.00,842.00,250.00,Self
+Motor,Self,KORADA CHANDRASEKHAR,9866310850,softpro.ppm@gmail.com,AP35W9012,Auto (Passenger),SBI General,Comprehensive,02-09-2025,01-09-2026,7465.00,7465.00,835.00,Self
+Motor,Agent,MR MARRI KAMBU,9160271272,chbalaram321@gmail.com,AP35TB0250,Auto (Passenger),SBI General,Comprehensive,31-08-2025,30-08-2026,7606.00,7606.00,200.00,Chinta Balaram Naidu
+Motor,Self,MUGADA KESAVARAO,9704533223,softpro.ppm@gmail.com,AP40DM3939,Car (Private),Go Digit,Comprehensive,30-08-2025,29-08-2026,14640.00,14640.00,3000.00,Self
+Motor,Agent,MARISHARLA THIRUPATHIRAO,9160271272,chbalaram321@gmail.com,AP35X6975,Auto (Passenger),SBI General,Third Party,30-08-2025,29-08-2026,7255.00,7255.00,200.00,Chinta Balaram Naidu
+Motor,Agent,JAGANA SANKARARAO,9160271272,chbalaram321@gmail.com,AP39TN9616,Auto (Passenger),SBI General,Comprehensive,30-08-2025,29-08-2026,7580.00,7580.00,300.00,Chinta Balaram Naidu
+Motor,Agent,REDDI RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP39UM3019,Auto (Passenger),SBI General,Comprehensive,30-08-2025,29-08-2026,7857.00,7857.00,300.00,Chinta Balaram Naidu
+Motor,Agent,GUNTA DEVARAJU,9160271272,chbalaram321@gmail.com,AP39UA3532,Auto (Passenger),SBI General,Comprehensive,27-08-2025,26-08-2026,7656.00,7656.00,200.00,Chinta Balaram Naidu
+Motor,Self,VADDI JYOTHSNA,9490051001,softpro.ppm@gmail.com,AP35AK3871,Car (Private),Tata AIG,Comprehensive,25-08-2025,24-08-2026,7425.00,7425.00,386.00,Self
+Motor,Self,AADHAAR SAKINANA SRIDHAR,9441159277,softpro.ppm@gmail.com,AP39CE1045,Two-Wheeler,Go Digit,Third Party,23-08-2025,22-08-2026,842.00,842.00,0.00,Self
+Motor,Self,SESHAPU SAIKUMAR,9052306091,softpro.ppm@gmail.com,AP39NP2155,Two-Wheeler,Go Digit,Comprehensive,22-08-2025,21-08-2026,1721.00,1721.00,600.00,Self
+Motor,Self,BONGU DURGAPRASAD,9100965924,softpro.ppm@gmail.com,AP35TA0950,Auto (Passenger),SBI General,Comprehensive,20-08-2025,19-08-2026,7405.00,7405.00,695.00,Self
+Motor,Agent,KONDAGORRI RAJARAO,9160271272,chbalaram321@gmail.com,AP39V6291,Auto (Passenger),SBI General,Comprehensive,19-08-2025,18-08-2026,7598.00,7598.00,200.00,Chinta Balaram Naidu
+Motor,Self,MUDADLA THIRUPATIRAO,8919285635,softpro.ppm@gmail.com,AP35X0877,Auto (Passenger),SBI General,Comprehensive,19-08-2025,18-08-2026,7405.00,7405.00,695.00,Self
+Motor,Self,YANAPARTHI SANKARA RAO,9440399030,softpro.ppm@gmail.com,AP39KX2210,Car (Private),Go Digit,Comprehensive,18-08-2025,17-08-2026,11449.00,11449.00,1250.00,Self
+Motor,Self,SIDDA VENKATA RAO,9848571893,softpro.ppm@gmail.com,AP39W0665,Auto (Passenger),Tata AIG,Comprehensive,18-08-2025,17-08-2026,10264.00,10264.00,1115.00,Self
+Motor,Self,REDDI VENKATARATNAM,9505441120,softpro.ppm@gmail.com,AP33A3849,Two-Wheeler,Bajaj Allianz,Third Party,16-08-2025,15-08-2026,843.00,843.00,0.00,Self
+Motor,Self,DAILY NEEDDS,9492543215,softpro.ppm@gmail.com,AP39TP7464,LCV (Goods),Future Generali,Comprehensive,16-08-2025,15-08-2026,19542.00,19542.00,2680.00,Self
+Motor,Agent,BABBADI SRI RAMULU,9160271272,chbalaram321@gmail.com,AP35X4013,Auto (Passenger),SBI General,Comprehensive,15-08-2025,14-08-2026,7361.00,7361.00,200.00,Chinta Balaram Naidu
+Motor,Self,POTNURU BHASKARA RAO,9441950103,softpro.ppm@gmail.com,AP35U2208,Trailer,IFFCO-Tokio,Third Party,14-08-2025,13-08-2026,2932.00,2932.00,568.00,Self
+Motor,Self,POTNURU BHASKARARAO,9441950103,softpro.ppm@gmail.com,AP39UF5012,Tractor,SBI General,Comprehensive,14-08-2025,13-08-2026,13932.00,13932.00,4628.00,Self
+Motor,Self,DISTRICT MEDICAL & HEALTH OFFICER ,9490971892,softpro.ppm@gmail.com,MP7207A,Car (Private),National Insurance,Comprehensive,13-08-2025,12-08-2026,17486.00,17486.00,1030.00,Self
+Motor,Agent,SINGANAPURI ISSAKU,9160271272,chbalaram321@gmail.com,AP39TT9788,Auto (Passenger),SBI General,Comprehensive,13-08-2025,12-08-2026,7656.00,7656.00,200.00,Chinta Balaram Naidu
+Motor,Self,SRIRAMAVALASA UDAYA BALACHANDRA,7306180551,softpro.ppm@gmail.com,AP39MJ4519,Car (Private),National Insurance,Comprehensive,13-08-2025,12-08-2026,10275.00,10275.00,1083.00,Self
+Motor,Self,THERLI APPALANAIDU,9666518458,softpro.ppm@gmail.com,AP39UF8848,LCV (Goods),Future Generali,Comprehensive,13-08-2025,12-08-2026,21159.00,21159.00,4636.00,Self
+Motor,Self,MUDADLA PRADEEP KUMAR,8317639728,softpro.ppm@gmail.com,AP39TZ6427,Trailer,IFFCO-Tokio,Third Party,12-08-2025,11-08-2026,2933.00,2933.00,600.00,Self
+Motor,Self,CHINTHADA VENKATA RAMANA,9948197346,softpro.ppm@gmail.com,AP35X3105,Auto (Passenger),SBI General,Comprehensive,12-08-2025,11-08-2026,7489.00,7489.00,811.00,Self
+Motor,Self,PENTA SATYANARAYANA,9440381390,softpro.ppm@gmail.com,AP16CS3299,Car (Private),United India,Comprehensive,09-08-2025,08-08-2026,11009.00,11009.00,1160.00,Self
+Motor,Self,DASARI RAMADEVI,9494974923,softpro.ppm@gmail.com,AP35AD4505,Two-Wheeler,Go Digit,Comprehensive,08-08-2025,07-08-2026,1366.00,1366.00,530.00,Self
+Motor,Self,BANKAPALLI SURYANARAYANA,8985157344,softpro.ppm@gmail.com,AP35W9826 ,Auto (Passenger),SBI General,Comprehensive,08-08-2025,07-08-2026,7477.00,7477.00,623.00,Self
+Motor,Agent,NEELABONU VENKATA RAMANA,9160271272,chbalaram321@gmail.com,AP39VB4087,Auto (Passenger),SBI General,Comprehensive,07-08-2025,06-08-2026,7879.00,7879.00,200.00,Chinta Balaram Naidu
+Motor,Agent,SEERA DHANUNJAYA NAIDU,9160271272,chbalaram321@gmail.com,AP39UP6825,Auto (Passenger),SBI General,Comprehensive,07-08-2025,06-08-2026,7726.00,7726.00,200.00,Chinta Balaram Naidu
+Motor,Agent,UDDOLU CHINNA RAO,9160271272,chbalaram321@gmail.com,AP35W8814,Auto (Passenger),SBI General,Comprehensive,07-08-2025,06-08-2026,7419.00,7419.00,200.00,Chinta Balaram Naidu
+Motor,Agent,GARBHAPU RAKESH,9160271272,chbalaram321@gmail.com,AP39UV2272,Auto (Passenger),SBI General,Comprehensive,06-08-2025,05-08-2026,7901.00,7901.00,200.00,Chinta Balaram Naidu
+Motor,Self,ARISARLA NAGABHUSHANA RAO,9553232230,softpro.ppm@gmail.com,AP39UX2148,Auto (Passenger),SBI General,Comprehensive,06-08-2025,05-08-2026,7701.00,7701.00,599.00,Self
+Motor,Self,JALUMURI SURESH,6302121315,softpro.ppm@gmail.com,AP35TB1748,Auto (Passenger),SBI General,Comprehensive,06-08-2025,05-08-2026,7489.00,7489.00,711.00,Self
+Motor,Self,CHAKKURU VASANTHA KUMARI,9550755039,softpro.ppm@gmail.com,AP35AF2772,Car (Private),The Oriental,Comprehensive,06-08-2025,05-08-2026,3575.00,3575.00,341.00,Self
+Motor,Self,BANGARU MAHESH,9705874973,softpro.ppm@gmail.com,AP05TC3491,LCV (Goods),SBI General,Comprehensive,06-08-2025,05-08-2026,18993.00,18993.00,2878.00,Self
+Motor,Self,NALLA LAKSHMI,7386244445,softpro.ppm@gmail.com,AP05TF1640,LCV (Goods),Future Generali,Comprehensive,06-08-2025,05-08-2026,19426.00,19426.00,5853.00,Self
+Motor,Agent,MEESALA SUNIL,9160271272,chbalaram321@gmail.com,AP35TB2630,Auto (Passenger),SBI General,Comprehensive,05-08-2025,04-08-2026,7598.00,7598.00,200.00,Chinta Balaram Naidu
+Motor,Agent,KUNDALEESWARA KALI,9160271272,chbalaram321@gmail.com,AP39TC3534,Auto (Passenger),SBI General,Comprehensive,04-08-2025,03-08-2026,7418.00,7418.00,200.00,Chinta Balaram Naidu
+Motor,Agent,ROUTU LAKSHMI,9160271272,chbalaram321@gmail.com,AP39UQ7129,Auto (Passenger),SBI General,Comprehensive,03-08-2025,02-08-2026,7745.00,7745.00,200.00,Chinta Balaram Naidu
+Motor,Agent,JALUMURI GOWRISANKARARAO,9160271272,chbalaram321@gmail.com,AP35Y4541,Auto (Passenger),SBI General,Comprehensive,03-08-2025,02-08-2026,7442.00,7442.00,200.00,Chinta Balaram Naidu
+Motor,Agent,GORJI TRIVENI,9160271272,chbalaram321@gmail.com,AP39TH5705,Auto (Passenger),SBI General,Comprehensive,03-08-2025,02-08-2026,7555.00,7555.00,200.00,Chinta Balaram Naidu
+Motor,Self,GUTHAVILLI RAJESH,9381061059,softpro.ppm@gmail.com,AP35Y0097,Auto (Passenger),SBI General,Comprehensive,02-08-2025,01-08-2026,7406.00,7406.00,794.00,Self
+Motor,Self,BONELA DELEEP,9963616086,softpro.ppm@gmail.com,AP35X2568,Auto (Passenger),SBI General,Comprehensive,02-08-2025,01-08-2026,7356.00,7356.00,844.00,Self
+Motor,Self,VELAMALA RAMAKRISHNA,7286933639,softpro.ppm@gmail.com,AP39UC8356,Auto (Passenger),SBI General,Comprehensive,02-08-2025,01-08-2026,7745.00,7745.00,555.00,Self
+Motor,Self,PILLAMUDI CHANDRARAO,8008479846,softpro.ppm@gmail.com,AP39TF1671,Auto (Passenger),SBI General,Comprehensive,01-08-2025,31-07-2026,7450.00,7450.00,750.00,Self
+Motor,Self,MR ADHIKARI SANTIKUMAR,7993993609,softpro.ppm@gmail.com,AP35TB1455,Auto (Passenger),SBI General,Comprehensive,01-08-2025,31-07-2026,7479.00,7479.00,621.00,Self
+Motor,Self,SAMBANGI LAKSHMU NAIDU,9502148149,softpro.ppm@gmail.com,AP35Y0236,Auto (Passenger),SBI General,Third Party,31-07-2025,30-07-2026,7255.00,7255.00,645.00,Self
+Motor,Self, BENKILI RAMINAIDU,7095001377,softpro.ppm@gmail.com,AP35Y2394,Auto (Passenger),SBI General,Comprehensive,31-07-2025,30-07-2026,7479.00,7479.00,300.00,Self
+Motor,Self,ARASADA CHANTI BABU,9849439061,softpro.ppm@gmail.com,AP39TU2100,Auto (Passenger),SBI General,Comprehensive,31-07-2025,30-07-2026,7516.00,7516.00,584.00,Self
+Motor,Agent,MAMIDI DURGAPRASAD,9160271272,chbalaram321@gmail.com,AP35TB2574,Auto (Passenger),SBI General,Comprehensive,31-07-2025,30-07-2026,7452.00,7452.00,300.00,Chinta Balaram Naidu
+Motor,Agent,JOGARAO MUDADLA,9160271272,chbalaram321@gmail.com,AP35TB0474,Auto (Passenger),SBI General,Comprehensive,31-07-2025,30-07-2026,7512.00,7512.00,300.00,Chinta Balaram Naidu
+Motor,Self,SUNDER LAL,9491762070,softpro.ppm@gmail.com,PB10EQ5121,Two-Wheeler,Go Digit,Third Party,30-07-2025,29-07-2026,842.00,842.00,100.00,Self
+Motor,Self,DEVI POTTELU,8096569969,softpro.ppm@gmail.com,AP35V7027,Auto (Passenger),SBI General,Comprehensive,30-07-2025,29-07-2026,18968.00,18968.00,1769.00,Self
+Motor,Agent,KONDAGORRI BHUSHANA RAO,9160271272,chbalaram321@gmail.com,AP39UX0259,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,7776.00,7776.00,300.00,Chinta Balaram Naidu
+Motor,Agent,SAGINALA JANARDHAN,9160271272,chbalaram321@gmail.com,AP35TB2529,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,7395.00,7395.00,300.00,Chinta Balaram Naidu
+Motor,Self,SARIKI GUNNABABU,8106805919,softpro.ppm@gmail.com,AP39FL1122,Car (Private),SBI General,Comprehensive,29-07-2025,28-07-2026,15706.00,15706.00,2210.00,Self
+Motor,Self,VOLETI SRINUVASARAO,8106496739,softpro.ppm@gmail.com,AP35Y1187,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,7582.00,7582.00,718.00,Self
+Motor,Agent,ADDANKI MOHANARAO,9160271272,chbalaram321@gmail.com,AP39TB7412,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,7460.00,7460.00,300.00,Chinta Balaram Naidu
+Motor,Self,BANKAPALLI SATYANARAYANA ,8142128844,softpro.ppm@gmail.com,AP39X2404,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,8097.00,8097.00,300.00,Self
+Motor,Agent,GANTA NARAYANA RAO,9160271272,chbalaram321@gmail.com,AP39TE9158,Auto (Passenger),SBI General,Comprehensive,29-07-2025,28-07-2026,7566.00,7566.00,300.00,Chinta Balaram Naidu
+Motor,Self,M CHINNA BABU,9666637819,softpro.ppm@gmail.com,OD18A0624,Two-Wheeler,Go Digit,Comprehensive,29-07-2025,28-07-2026,842.00,842.00,400.00,Self
+Motor,Self,DOGGA JAYALAKSHMI,9666631819,softpro.ppm@gmail.com,AP35AD1058,Two-Wheeler,Go Digit,Comprehensive,29-07-2025,28-07-2026,842.00,842.00,300.00,Self
+Motor,Self,BURADA CHIRANJEEVI,8096569969,softpro.ppm@gmail.com,AP37TE5324,Tractor,Future Generali,Comprehensive,28-07-2025,27-07-2026,19598.00,19598.00,1782.00,Self
+Motor,Self,LATCHIREDDI UMA MAHESWARI,9490459324,softpro.ppm@gmail.com,AP39AK1598,Two-Wheeler,Go Digit,Third Party,26-07-2025,25-07-2026,1097.00,1097.00,420.00,Self
+Motor,Agent,THATRAJU GOVIND,9160271272,chbalaram321@gmail.com,AP39TJ0289,Auto (Passenger),SBI General,Comprehensive,26-07-2025,25-07-2026,7675.00,7675.00,300.00,Chinta Balaram Naidu
+Motor,Self,ROMPALLI PRASADA RAO,9010618523,softpro.ppm@gmail.com,AP39UJ9838,Trailer,IFFCO-Tokio,Third Party,24-07-2025,23-07-2026,2932.00,2932.00,568.00,Self
+Motor,Self,VENKATA NAIDU PUDI,7075755513,softpro.ppm@gmail.com,AP35U3580,Tractor,SBI General,Comprehensive,24-07-2025,23-07-2026,11950.00,11950.00,3069.00,Self
+Motor,Self,RAMARAO MITTIREDDI,8096569969,softpro.ppm@gmail.com,AP35X4274,Auto (Passenger),SBI General,Comprehensive,20-07-2025,19-07-2026,7578.00,7578.00,310.00,Self
+Motor,Agent,MARADA RAMMURTHI,9160271272,chbalaram321@gmail.com,AP39UH0834,Auto (Passenger),SBI General,Comprehensive,19-07-2025,18-07-2026,6583.00,6583.00,619.00,Chinta Balaram Naidu
+Motor,Self,Jalagadugula Eswararao,9177250113,softpro.ppm@gmail.com,AP35TA0639,Auto (Passenger),Future Generali,Comprehensive,19-07-2025,18-07-2026,7451.00,7451.00,601.00,Self
+Motor,Agent,NEELAPU SURYANARAYANA,9160271272,chbalaram321@gmail.com,AP39UW2370,Auto (Passenger),SBI General,Comprehensive,16-07-2025,15-07-2026,7829.00,7829.00,300.00,Chinta Balaram Naidu
+Motor,Self,ESWARA RAO MUVVALA,7799773656,softpro.ppm@gmail.com,AP35TB0776,Auto (Passenger),Tata AIG,Comprehensive,12-07-2025,11-07-2026,7536.00,7536.00,300.00,Self
+Motor,Agent,BARLA RAJASHEKHAR,9160271272,chbalaram321@gmail.com,AP35TB1054,Auto (Passenger),SBI General,Comprehensive,10-07-2025,09-07-2026,7536.00,7536.00,300.00,Chinta Balaram Naidu
+Motor,Agent,VASIREDDY NARAYANA RAO,9160271272,chbalaram321@gmail.com,AP39UT0635,Auto (Passenger),SBI General,Comprehensive,08-07-2025,07-07-2026,7924.00,7924.00,300.00,Chinta Balaram Naidu
+Motor,Self,BATSALI SIMHACHALAM,8074454758,softpro.ppm@gmail.com,AP39TF8471,Auto (Passenger),SBI General,Comprehensive,08-07-2025,07-07-2026,7443.00,7443.00,300.00,Self
+Motor,Self,G TIRUPATHI RAO,7799773656,softpro.ppm@gmail.com,AP31AP2728,Auto (Passenger),Go Digit,Third Party,05-07-2025,04-07-2026,842.00,842.00,250.00,Self
+Motor,Agent, MUDADLA YARUKUNAIDU,9160271272,chbalaram321@gmail.com,AP35TB1776,Auto (Passenger),SBI General,Comprehensive,05-07-2025,04-07-2026,7501.00,7501.00,300.00,Chinta Balaram Naidu
+Motor,Agent,MAVUDI SYAMA SUNDARA RAO,9160271272,chbalaram321@gmail.com,AP39TT9651,Auto (Passenger),SBI General,Comprehensive,05-07-2025,04-07-2026,7678.00,7678.00,300.00,Chinta Balaram Naidu
+Motor,Self,BONGU GIRI,9963498857,softpro.ppm@gmail.com,AP39Y4739,Auto (Passenger),SBI General,Comprehensive,04-07-2025,03-07-2026,7443.00,7443.00,757.00,Self
+Motor,Agent,CHODIGINJAJA NAGARAJU,9160271272,chbalaram321@gmail.com,AP39UT4091,Auto (Passenger),SBI General,Comprehensive,03-07-2025,02-07-2026,7820.00,7820.00,300.00,Chinta Balaram Naidu
+Motor,Self,TOYAKA RAMESH,9347682334,softpro.ppm@gmail.com,AP39TJ7580,Auto (Passenger),SBI General,Comprehensive,02-07-2025,01-07-2026,7455.00,7455.00,200.00,Self
+Motor,Self,BEESIKA DHANUNJAYA,8096356349,softpro.ppm@gmail.com,AP35TB4824,Auto (Passenger),SBI General,Comprehensive,02-07-2025,01-07-2026,7511.00,7511.00,300.00,Self
+Motor,Self,GANDI SIMHACHALAM,9908680942,softpro.ppm@gmail.com,AP39TC7688,Auto (Passenger),SBI General,Comprehensive,02-07-2025,01-07-2026,7502.00,7502.00,698.00,Self
+Motor,Self,SANAPATHI POLINAIDU,9574227272,softpro.ppm@gmail.com,AP35AG4679,Two-Wheeler,National Insurance,Comprehensive,29-06-2025,28-06-2026,1225.00,1225.00,120.00,Self
+Motor,Self,KOYYANA SIMHACHALAM,9963326917,softpro.ppm@gmail.com,AP39UW6171,Auto (Passenger),SBI General,Comprehensive,29-06-2025,28-06-2026,6310.00,6310.00,840.00,Self
+Motor,Self,KOTA CHINA RAYUDU,8096569969,softpro.ppm@gmail.com,AP31TF4602,Auto (Passenger),SBI General,Comprehensive,28-06-2025,27-06-2026,7536.00,7536.00,200.00,Self
+Motor,Self,CHAPPA SRINIVASA RAO,9542272725,softpro.ppm@gmail.com,AP35X0915,Trailer,IFFCO-Tokio,Third Party,26-06-2025,25-06-2026,2932.00,2932.00,400.00,Self
+Motor,Self,BOTTA VENKATARAMANA,9398539887,softpro.ppm@gmail.com,AP35TB1086,Tractor,SBI General,Comprehensive,26-06-2025,25-06-2026,9655.00,9655.00,0.00,Self
+Motor,Self, DUVVANA POLINAIDU,9908680942,softpro.ppm@gmail.com,AP39X0041,Auto (Passenger),SBI General,Comprehensive,25-06-2025,24-06-2026,7443.00,7443.00,500.00,Self
+Motor,Self,GADI RAJESH,9652266728,softpro.ppm@gmail.com,AP39UA8012,Car (Private),SBI General,Comprehensive,24-06-2025,23-06-2026,19882.00,19882.00,4809.00,Self
+Motor,Self,SATHISH TIRUMAREDDY,9502148149,softpro.ppm@gmail.com,AP35Y3562,Auto (Passenger),SBI General,Comprehensive,24-06-2025,23-06-2026,7498.00,7498.00,400.00,Self
+Motor,Self,ALLAM KISHORE,9985483945,softpro.ppm@gmail.com,AP35Y4051,Auto (Passenger),SBI General,Comprehensive,24-06-2025,23-06-2026,7489.00,7489.00,711.00,Self
+Motor,Agent,GANTA SIMHACHALAM,9160271272,chbalaram321@gmail.com,AP35X4566,Auto (Passenger),SBI General,Comprehensive,23-06-2025,22-06-2026,7430.00,7430.00,300.00,Chinta Balaram Naidu
+Motor,Self,SALAPU CHANDRA SEKHAR,9494447447,softpro.ppm@gmail.com,AP04BY7777,Car (Private),SBI General,Comprehensive,22-06-2025,21-06-2026,51.00,51.00,6200.00,Self
+Motor,Agent,TENTU RAMA RAO,9160271272,chbalaram321@gmail.com,AP39T5982,Auto (Passenger),SBI General,Comprehensive,21-06-2025,20-06-2026,7612.00,7612.00,300.00,Chinta Balaram Naidu
+Motor,Self,RAMESH MANTHINI,9603231366,softpro.ppm@gmail.com,AP30Y0930,Tractor,SBI General,Comprehensive,21-06-2025,20-06-2026,12561.00,12561.00,3300.00,Self
+Motor,Agent,ADDANKI SURESH,9160271272,chbalaram321@gmail.com,AP39W8808,Auto (Passenger),SBI General,Comprehensive,21-06-2025,20-06-2026,7474.00,7474.00,300.00,Chinta Balaram Naidu
+Motor,Agent,PALLA SAIKIRAN,9160271272,chbalaram321@gmail.com,AP39UM2294,Auto (Passenger),SBI General,Comprehensive,18-06-2025,17-06-2026,7745.00,7745.00,300.00,Chinta Balaram Naidu
+Motor,Self,YANAPARTI SANKARARAO,9440399030,softpro.ppm@gmail.com,AP39NH6870,Tractor,SBI General,Comprehensive,17-06-2025,16-06-2026,12933.00,12933.00,4205.00,Self
+Motor,Self,GUTHAAVILLI SUDHABABU,9705535049,softpro.ppm@gmail.com,AP39TU7990,Auto (Passenger),SBI General,Comprehensive,17-06-2025,16-06-2026,5793.00,5793.00,1193.00,Self
+Motor,Self,VENKATA RAMANA YENNI,9441851969,softpro.ppm@gmail.com,AP35U6593,Trailer,SBI General,Third Party,16-06-2025,15-06-2026,2932.00,2932.00,500.00,Self
+Motor,Self,V SATYA PRASAD,9010618523,softpro.ppm@gmail.com,AP31AS7055,Car (Private),Go Digit,Comprehensive,12-06-2025,11-06-2026,9707.00,9707.00,3000.00,Self
+Motor,Agent,KOMATAPALLI RAMA KRISHNA,9160271272,chbalaram321@gmail.com,AP39VA3905,Auto (Passenger),SBI General,Comprehensive,12-06-2025,11-06-2026,7842.00,7842.00,400.00,Chinta Balaram Naidu
+Motor,Agent,YENUGULA SHANKARRAO,9160271272,chbalaram321@gmail.com,AP39UG6611,Auto (Passenger),SBI General,Comprehensive,12-06-2025,11-06-2026,7812.00,7812.00,300.00,Chinta Balaram Naidu
+Motor,Self,BANKAPALLI JAGADEESWARA RAO,9949315006,softpro.ppm@gmail.com,AP39TG2528,Auto (Passenger),SBI General,Comprehensive,12-06-2025,11-06-2026,7552.00,7552.00,300.00,Self
+Motor,Self,KUKKA SUDHIR,9703624246,softpro.ppm@gmail.com,AP39VF1815,Tractor,IFFCO-Tokio,Third Party,11-06-2025,10-06-2026,2932.00,2932.00,600.00,Self
+Motor,Agent,CHITIKELA DHANUJAYA,9160271272,chbalaram321@gmail.com,AP35TB1277,Auto (Passenger),SBI General,Comprehensive,06-06-2025,05-06-2026,7606.00,7606.00,300.00,Chinta Balaram Naidu
+Motor,Self,YANDRAPU SIVUNNAIDU,8142409944,softpro.ppm@gmail.com,AP35X0656,Auto (Passenger),SBI General,Comprehensive,04-06-2025,03-06-2026,7442.00,7442.00,758.00,Self
+Motor,Self,SARIPALLI MADHU BABU,9989518708,softpro.ppm@gmail.com,AP39TL0863,Auto (Passenger),SBI General,Comprehensive,01-06-2025,31-05-2026,7426.00,7426.00,674.00,Self
+Motor,Self,SEERA SHANKARA RAO,9966526352,softpro.ppm@gmail.com,AP35Y2239,Auto (Passenger),SBI General,Comprehensive,01-06-2025,31-05-2026,7501.00,7501.00,300.00,Self
+Motor,Agent,GANTA SOBHAN BABU,9160271272,chbalaram321@gmail.com,AP39UV8935,Auto (Passenger),SBI General,Comprehensive,29-05-2025,28-05-2026,7772.00,7772.00,300.00,Chinta Balaram Naidu
+Motor,Self,RAMBARIKI SARASWATHI,9010542527,softpro.ppm@gmail.com,AP35AF6713,Tractor,SBI General,Comprehensive,29-05-2025,28-05-2026,9571.00,9571.00,1600.00,Self
+Motor,Agent,PUDI SIMHACHALAM,9160271272,chbalaram321@gmail.com,AP35X7693,Auto (Passenger),SBI General,Comprehensive,29-05-2025,28-05-2026,7489.00,7489.00,300.00,Chinta Balaram Naidu
+Motor,Self,SANKARA RAO RAMOLU,9618663838,softpro.ppm@gmail.com,AP35Y3165,Auto (Passenger),SBI General,Comprehensive,27-05-2025,26-05-2026,7442.00,7442.00,858.00,Self
+Motor,Self,MANTHINI DURGA PRASAD,9676620711,softpro.ppm@gmail.com,AP35W9481,Auto (Passenger),SBI General,Comprehensive,25-05-2025,24-05-2026,7372.00,7372.00,828.00,Self
+Motor,Agent,MR LABBA SIVA PRASAD,9160271272,chbalaram321@gmail.com,AP39UE1794,Auto (Passenger),SBI General,Comprehensive,24-05-2025,23-05-2026,7588.00,7588.00,300.00,Chinta Balaram Naidu
+Motor,Self,ARASADA THAVITAYYA,9666521520,softpro.ppm@gmail.com,AP39JJ5523,Car (Private),Tata AIG,Comprehensive,24-05-2025,23-05-2026,16424.00,16424.00,1900.00,Self
+Motor,Agent,PUVVALA CHINNARAO,9160271272,chbalaram321@gmail.com,AP39V8260,Auto (Passenger),SBI General,Comprehensive,22-05-2025,21-05-2026,7575.00,7575.00,300.00,Chinta Balaram Naidu
+Motor,Self, BADE PRABHAKARA RAO,9849741410,softpro.ppm@gmail.com,AP39TJ5649,Auto (Passenger),SBI General,Comprehensive,20-05-2025,19-05-2026,7511.00,7511.00,689.00,Self
+Motor,Agent,BALAGA RAMINAIDU,9160271272,chbalaram321@gmail.com,AP39X0266,Auto (Passenger),SBI General,Comprehensive,17-05-2025,16-05-2026,7415.00,7415.00,300.00,Chinta Balaram Naidu
+Motor,Self,SIDAGALA SRINIVASARAO,9494974923,softpro.ppm@gmail.com,AP39UD1360,Tractor,SBI General,Comprehensive,15-05-2025,14-05-2026,12718.00,12718.00,2354.00,Self
+Motor,Self,MUDADLA JANARDANA RAO ,7660974275,softpro.ppm@gmail.com,AP39UM6075,Trailer,IFFCO-Tokio,Third Party,12-05-2025,11-05-2026,3034.00,3034.00,400.00,Self
+Motor,Self,SINGIREDDY GANGU BABU,9441112197,softpro.ppm@gmail.com,AP39TT9400,Trailer,IFFCO-Tokio,Third Party,12-05-2025,11-05-2026,3035.00,3035.00,400.00,Self
+Motor,Self,CHERUKUBILLI RAMESH,9949257801,softpro.ppm@gmail.com,AP39TB1775,Auto (Passenger),SBI General,Comprehensive,11-05-2025,10-05-2026,7443.00,7443.00,857.00,Self
+Motor,Self,VELAMALA BALA KRISHNA,7396026963,softpro.ppm@gmail.com,AP39TB7076,Auto (Passenger),SBI General,Comprehensive,10-05-2025,09-05-2026,7598.00,7598.00,502.00,Self
+Motor,Agent,PUVVALA YARRAPPA,9160271272,chbalaram321@gmail.com,AP35X6476,Auto (Passenger),SBI General,Comprehensive,09-05-2025,08-05-2026,7489.00,7489.00,300.00,Chinta Balaram Naidu
+Motor,Self,NIDADAVOLU GOPALAM,9666980459,softpro.ppm@gmail.com,AP39UT4699,Tractor,SBI General,Comprehensive,08-05-2025,07-05-2026,13270.00,13270.00,2735.00,Self
+Motor,Agent,NERADA BILLI MALLESWARA RAO,9160271272,chbalaram321@gmail.com,AP39UV2607,Auto (Passenger),SBI General,Comprehensive,06-05-2025,05-05-2026,7879.00,7879.00,300.00,Chinta Balaram Naidu
+Motor,Agent,JAGADEESH MARADANA,9160271272,chbalaram321@gmail.com,AP35W8174,Auto (Passenger),SBI General,Third Party,06-05-2025,05-05-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Self,GEDELA ANUSHA,9491799483,softpro.ppm@gmail.com,AP35AN6164,Two-Wheeler,Go Digit,Comprehensive,04-05-2025,03-05-2026,1589.00,1589.00,650.00,Self
+Motor,Self,NAAMALA SWAMYNAIDU,8096569969,softpro.ppm@gmail.com,AP35X8982,Auto (Passenger),SBI General,Comprehensive,03-05-2025,02-05-2026,7592.00,7592.00,300.00,Self
+Motor,Self,GULLU ANNAPURNAMMA,6301450344,softpro.ppm@gmail.com,AP39UV4187,Tractor,SBI General,Comprehensive,29-04-2025,28-04-2026,13745.00,13745.00,2876.00,Self
+Motor,Agent,GANTA RAJASEKHAR,9160271272,chbalaram321@gmail.com,AP39TX5722,Auto (Passenger),SBI General,Comprehensive,29-04-2025,28-04-2026,7517.00,7517.00,300.00,Chinta Balaram Naidu
+Motor,Self,PALAVALASA PYDITHALLI,7989058358,softpro.ppm@gmail.com,AP35AE3486,Car (Private),SBI General,Comprehensive,29-04-2025,28-04-2026,3473.00,3473.00,95.00,Self
+Motor,Self,NAIDU SANKARARAO,9010698239,softpro.ppm@gmail.com,AP39UV2270,Auto (Passenger),SBI General,Comprehensive,27-04-2025,26-04-2026,7723.00,7723.00,827.00,Self
+Motor,Agent,SANTU RAIPALLI,9160271272,chbalaram321@gmail.com,AP39TC9282,Auto (Passenger),SBI General,Comprehensive,27-04-2025,26-04-2026,7529.00,7529.00,300.00,Chinta Balaram Naidu
+Motor,Agent,KONDAGORRE NAGESWARARAO,9160271272,chbalaram321@gmail.com,AP39UD2551,Auto (Passenger),SBI General,Comprehensive,27-04-2025,26-04-2026,7701.00,7701.00,300.00,Chinta Balaram Naidu
+Motor,Self,MANDANGI VIKRAM,9381481052,softpro.ppm@gmail.com,AP39AR1375,Two-Wheeler,Go Digit,Comprehensive,26-04-2025,25-04-2026,1665.00,1665.00,600.00,Self
+Motor,Self,MORSA SITA,8328403223,softpro.ppm@gmail.com,AP39JS6048,Car (Private),HDFC ERGO,Comprehensive,26-04-2025,25-04-2026,15034.00,15034.00,1688.00,Self
+Motor,Self, PUVVALA VINOD,8639206538,softpro.ppm@gmail.com,AP27UB5280,Trailer,IFFCO-Tokio,Comprehensive,25-04-2025,24-04-2026,3240.00,3240.00,500.00,Self
+Motor,Self, SAVARA THOTAYYA,8639206538,softpro.ppm@gmail.com,AP39TN8107,Tractor,SBI General,Comprehensive,25-04-2025,24-04-2026,9775.00,9775.00,1165.00,Self
+Motor,Self,DASARI SANDEEP,7993679380,softpro.ppm@gmail.com,AP39UD1138,Tractor,SBI General,Comprehensive,22-04-2025,21-04-2026,9775.00,9775.00,1406.00,Self
+Motor,Self,CHANDRASEKHAR SALAPU,9494447447,softpro.ppm@gmail.com,AP35TB2212,LCV (Goods),United India,Comprehensive,22-04-2025,21-04-2026,19091.00,19091.00,2719.00,Self
+Motor,Self,SAMALA THIRUPATHIRAO,9949908463,softpro.ppm@gmail.com,AP30X6175,Auto (Passenger),SBI General,Comprehensive,20-04-2025,19-04-2026,7489.00,7489.00,611.00,Self
+Motor,Agent,KURAKULA KANAKA RAJU,9160271272,chbalaram321@gmail.com,AP35Y1662,Auto (Passenger),SBI General,Comprehensive,18-04-2025,17-04-2026,7512.00,7512.00,300.00,Chinta Balaram Naidu
+Motor,Self,RAKESH KUMAR,9949315263,softpro.ppm@gmail.com,AP40BG9091,Two-Wheeler,Shriram General,Comprehensive,18-04-2025,17-04-2026,1470.00,1470.00,170.00,Self
+Motor,Agent,CHIPURUPALLI SIVUDU,9160271272,chbalaram321@gmail.com,AP35X2975,Auto (Passenger),SBI General,Third Party,18-04-2025,17-04-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Agent,DARRU SRINIVASA RAO,9160271272,chbalaram321@gmail.com,AP39TH9370,Auto (Passenger),SBI General,Comprehensive,18-04-2025,17-04-2026,7529.00,7529.00,300.00,Chinta Balaram Naidu
+Motor,Self,VEERAIAH GUNDA,8096569969,softpro.ppm@gmail.com,TS08UE9183,LCV (Goods),United India,Comprehensive,17-04-2025,16-04-2026,19469.00,19469.00,1305.00,Self
+Motor,Agent,BUGATHA SRINIVASA RAO ,9160271272,chbalaram321@gmail.com,AP35TB0196,Auto (Passenger),SBI General,Comprehensive,17-04-2025,16-04-2026,7606.00,7606.00,300.00,Chinta Balaram Naidu
+Motor,Agent, THADANGI ASWINI,9160271272,chbalaram321@gmail.com,AP39TS2440,Auto (Passenger),SBI General,Comprehensive,17-04-2025,16-04-2026,7500.00,7500.00,300.00,Chinta Balaram Naidu
+Motor,Agent,JAGANNADHAM JAMPA,9160271272,chbalaram321@gmail.com,AP39TP9863,Auto (Passenger),SBI General,Comprehensive,15-04-2025,14-04-2026,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,BEJJIPURAM VINOD KUMAR,6304908483,softpro.ppm@gmail.com,AP30AQ8000,Two-Wheeler,Go Digit,Comprehensive,13-04-2025,12-04-2026,2316.00,2316.00,646.00,Self
+Motor,Self,SINGIPURAM TRINADHA RAO,9381161153,softpro.ppm@gmail.com,AP39UW9603,HGV (Goods),Magma HDI,Comprehensive,12-04-2025,11-04-2026,65051.00,65051.00,6293.00,Self
+Motor,Self,PENTAPATI SAIKIRAN,9494447447,softpro.ppm@gmail.com,AP35AF4323,Car (Private),SBI General,Comprehensive,11-04-2025,11-04-2026,9159.00,9159.00,794.00,Self
+Motor,Agent,KONDETI VENKATARAMANA,9160271272,chbalaram321@gmail.com,AP39TT1658,Auto (Passenger),SBI General,Comprehensive,10-04-2025,09-04-2026,7576.00,7576.00,300.00,Chinta Balaram Naidu
+Motor,Self,YENUGUTALA KARTHIK,8897594626,softpro.ppm@gmail.com,AP30AS5000,Car (Private),SBI General,Third Party,06-04-2025,05-04-2026,4768.00,4768.00,300.00,Self
+Motor,Self,BUDANKAYALA KANYAKUMARI,9550289845,softpro.ppm@gmail.com,AP39SN1903,Car (Private),Tata AIG,Third Party,06-04-2025,05-04-2026,6123.00,6123.00,300.00,Self
+Motor,Self,KOLAKA NARAPPA,9666606023,softpro.ppm@gmail.com,AP39UU2982,Auto (Passenger),SBI General,Comprehensive,05-04-2025,04-04-2026,7924.00,7924.00,676.00,Self
+Motor,Self,SANAPATHI SAMBAYYA,9948053411,softpro.ppm@gmail.com,AP35X3840,Auto (Passenger),SBI General,Third Party,05-04-2025,04-04-2026,7255.00,7255.00,300.00,Self
+Motor,Self,PUDI RAMAKRISHNA,9014584512,softpro.ppm@gmail.com,AP37TK0610,HGV (Goods),SBI General,Comprehensive,04-04-2025,03-04-2026,43039.00,43039.00,5000.00,Self
+Motor,Self,ARIKA RAVIKUMAR,7382033390,softpro.ppm@gmail.com,AP35X7968,Auto (Passenger),SBI General,Comprehensive,04-04-2025,03-04-2026,7489.00,7489.00,811.00,Self
+Motor,Self,VIRODHI SUNEEL,7036528082,softpro.ppm@gmail.com,AP39UC6608,LCV (Goods),United India,Comprehensive,03-04-2025,02-04-2026,20701.00,20701.00,4679.00,Self
+Motor,Agent,THUDUMU GANESH,9160271272,chbalaram321@gmail.com,AP30Y2683,Auto (Passenger),SBI General,Comprehensive,02-04-2025,01-04-2026,7559.00,7559.00,300.00,Chinta Balaram Naidu
+Motor,Self,ALLU GANGULU,9705076071,softpro.ppm@gmail.com,AP39UM1280,Trailer,IFFCO-Tokio,Comprehensive,01-04-2025,31-03-2026,2939.00,2939.00,600.00,Self
+Motor,Self,ARASADA MANOHARA RAO .,7702630634,softpro.ppm@gmail.com,AP35Y2744,Auto (Passenger),SBI General,Comprehensive,30-03-2025,29-03-2026,7419.00,7419.00,681.00,Self
+Motor,Agent,MUDILA TIRUPATIRAO,9160271272,chbalaram321@gmail.com,AP39TQ3241,Auto (Passenger),SBI General,Comprehensive,28-03-2025,27-03-2026,7451.00,7451.00,300.00,Chinta Balaram Naidu
+Motor,Agent,POLISETTI GANGARAJU,9160271272,chbalaram321@gmail.com,AP39TP3572,Auto (Passenger),SBI General,Comprehensive,28-03-2025,27-03-2026,7611.00,7611.00,300.00,Chinta Balaram Naidu
+Motor,Self,SATTI LAXMANA RAO,8978144856,softpro.ppm@gmail.com,AP39TJ3092,Auto (Passenger),SBI General,Comprehensive,25-03-2025,24-03-2026,7478.00,7478.00,622.00,Self
+Motor,Self,PALAKA SANKARARAO,9701170475,softpro.ppm@gmail.com,AP39UG0656,Auto (Passenger),SBI General,Comprehensive,24-03-2025,23-03-2026,7686.00,7686.00,614.00,Self
+Motor,Self,SIMHACHALAM BOTHSA,9490971098,softpro.ppm@gmail.com,AP35Y4116,Tractor,SBI General,Comprehensive,23-03-2025,22-03-2026,12902.00,12902.00,4154.00,Self
+Motor,Agent,GUTTHAVILLI BABURAO,9160271272,chbalaram321@gmail.com,AP35X7567,Auto (Passenger),SBI General,Comprehensive,22-03-2025,21-03-2026,7420.00,7420.00,300.00,Chinta Balaram Naidu
+Motor,Self,SANKARA RAO SAPPA,9618641301,softpro.ppm@gmail.com,AP03TL0193,Tractor,SBI General,Comprehensive,22-03-2025,21-03-2026,12.00,12.00,2766.00,Self
+Motor,Agent,KONDAGORRI SUNNAMMA,9160271272,chbalaram321@gmail.com,AP39TR5674,Auto (Passenger),SBI General,Comprehensive,22-03-2025,21-03-2026,7463.00,7463.00,300.00,Chinta Balaram Naidu
+Motor,Self,PARDASARADHI DASARI,9440934858,softpro.ppm@gmail.com,AP35W2300,Trailer,United India,Third Party,21-03-2025,20-03-2026,2932.00,2932.00,500.00,Self
+Motor,Self,POLA KIRAN KUMAR,9652889719,softpro.ppm@gmail.com,AP39UM9271,Auto (Passenger),SBI General,Comprehensive,20-03-2025,19-03-2026,6248.00,6248.00,1851.00,Self
+Motor,Agent,CHEEKATI BABURAO,9160271272,chbalaram321@gmail.com,AP39TB1837,Auto (Passenger),SBI General,Third Party,19-03-2025,18-03-2026,7598.00,7598.00,300.00,Chinta Balaram Naidu
+Motor,Self,KILLAKA MAHESH,9381634521,softpro.ppm@gmail.com,AP39TU8826,Auto (Passenger),SBI General,Comprehensive,18-03-2025,17-03-2026,7589.00,7589.00,711.00,Self
+Motor,Self,KAGANA RAMESH,9398685814,softpro.ppm@gmail.com,AP39TP8185,Auto (Passenger),SBI General,Comprehensive,18-03-2025,17-03-2026,7478.00,7478.00,722.00,Self
+Motor,Agent,KRISHNAMURTHY KANDISA,9160271272,chbalaram321@gmail.com,AP31TQ0299,Auto (Passenger),SBI General,Comprehensive,17-03-2025,16-03-2026,7575.00,7575.00,300.00,Chinta Balaram Naidu
+Motor,Self,THOTA THARAKESWARA RAO,8297400545,softpro.ppm@gmail.com,AP39UT8178,Auto (Passenger),SBI General,Comprehensive,16-03-2025,15-03-2026,7790.00,7790.00,1110.00,Self
+Motor,Agent,PATHINA RAMESH,9160271272,chbalaram321@gmail.com,AP39UU5261,Auto (Passenger),SBI General,Comprehensive,16-03-2025,15-03-2026,5284.00,5284.00,300.00,Chinta Balaram Naidu
+Motor,Self,CHERUKUBILLI RAMBABU,8096569969,softpro.ppm@gmail.com,AP35Y0390,Auto (Passenger),SBI General,Comprehensive,15-03-2025,14-03-2026,7512.00,7512.00,200.00,Self
+Motor,Self,PINNINTI SATYARAD,9492620252,softpro.ppm@gmail.com,AP39HF4477,Car (Private),SBI General,Third Party,14-03-2025,13-03-2026,10056.00,10056.00,2900.00,Self
+Motor,Agent,SOBAN BABU PENKI,9160271272,chbalaram321@gmail.com,AP35X1769,Auto (Passenger),SBI General,Third Party,14-03-2025,13-03-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Self, SIMHACHALAM BALAGA,6300298787,softpro.ppm@gmail.com,AP35AF6308,Tractor,SBI General,Comprehensive,14-03-2025,13-03-2026,12724.00,12724.00,2597.00,Self
+Motor,Self,MARADANA SIMHACHALAM NAIDU,8074057101,softpro.ppm@gmail.com,AP39SP6114,Tractor,SBI General,Comprehensive,12-03-2025,11-03-2026,10350.00,10350.00,3320.00,Self
+Motor,Self,PUDI LAXMANA RAO,9492024379,softpro.ppm@gmail.com,AP35T9781,Trailer,IFFCO-Tokio,Third Party,11-03-2025,10-03-2026,2932.00,2932.00,300.00,Self
+Motor,Agent,SURAPATI KRISHNA PRASADA RAO,9160271272,chbalaram321@gmail.com,AP39UT0624,Auto (Passenger),SBI General,Comprehensive,11-03-2025,10-03-2026,7879.00,7879.00,300.00,Chinta Balaram Naidu
+Motor,Self,DONKADA KIRAN,9542910870,softpro.ppm@gmail.com,AP39TS9514,Auto (Passenger),SBI General,Comprehensive,11-03-2025,10-03-2026,7552.00,7552.00,998.00,Self
+Motor,Self,MUVVALA CHINNABABU,7799773656,softpro.ppm@gmail.com,AP31AS2785,Car (Private),Royal Sundaram,Third Party,09-03-2025,08-03-2026,2842.00,2842.00,600.00,Self
+Motor,Self,MUDADLA JOGI NAIDU,9494593362,softpro.ppm@gmail.com,AP35AP2298,Two-Wheeler,National Insurance,Third Party,09-03-2025,08-03-2026,1191.00,1191.00,200.00,Self
+Motor,Self,KELLA NAGARAJU,9866052838,softpro.ppm@gmail.com,AP39Y6698,Auto (Passenger),SBI General,Comprehensive,09-03-2025,08-03-2026,7575.00,7575.00,825.00,Self
+Motor,Self,ROMPALLI PRASADA RAO,9010618523,softpro.ppm@gmail.com,AP31CK4739,Two-Wheeler,Bajaj Allianz,Third Party,08-03-2025,07-03-2026,1233.00,1233.00,437.00,Self
+Motor,Agent,POLA SRINUVASARAO,9160271272,chbalaram321@gmail.com,AP39Y8981,Auto (Passenger),SBI General,Comprehensive,08-03-2025,07-03-2026,7529.00,7529.00,300.00,Chinta Balaram Naidu
+Motor,Self,GURU PRASAD LATCHIREDD,9490459324,softpro.ppm@gmail.com,AP35Y6257,Tractor,SBI General,Comprehensive,08-03-2025,07-03-2026,12731.00,12731.00,2599.00,Self
+Motor,Self,DEVABATTLU ANANDAM,8142258652,softpro.ppm@gmail.com,AP35TB3183,Auto (Passenger),SBI General,Comprehensive,06-03-2025,05-03-2026,7453.00,7453.00,1200.00,Self
+Motor,Agent,BONDAPALLI POLARAO,9160271272,chbalaram321@gmail.com,AP39TC7671,Auto (Passenger),SBI General,Comprehensive,06-03-2025,05-03-2026,7529.00,7529.00,300.00,Chinta Balaram Naidu
+Motor,Agent,VELAGADA CHINNARAO,9160271272,chbalaram321@gmail.com,AP39UT6056,Auto (Passenger),SBI General,Comprehensive,06-03-2025,05-03-2026,7779.00,7779.00,300.00,Chinta Balaram Naidu
+Motor,Agent,ADDANKI GOWRI SHANKARA RAO,9160271272,chbalaram321@gmail.com,AP35Y6068,Auto (Passenger),SBI General,Comprehensive,06-03-2025,05-03-2026,7430.00,7430.00,300.00,Chinta Balaram Naidu
+Motor,Agent,MUDILA SURESH KUMAR,9160271272,chbalaram321@gmail.com,AP39T5721,Auto (Passenger),SBI General,Comprehensive,06-03-2025,05-03-2026,7474.00,7474.00,300.00,Chinta Balaram Naidu
+Motor,Self,POLISU AMARAPU,7702716381,softpro.ppm@gmail.com,AP35X4117,Auto (Passenger),SBI General,Third Party,06-03-2025,05-03-2026,7255.00,7255.00,745.00,Self
+Motor,Self,RAPAKA SRIRAMULU,8096569969,softpro.ppm@gmail.com,AP35Y4487,Auto (Passenger),SBI General,Comprehensive,05-03-2025,04-03-2026,7489.00,7489.00,300.00,Self
+Motor,Agent,ARASADA RAMESH POWL,9160271272,chbalaram321@gmail.com,AP39TS7617,Auto (Passenger),SBI General,Comprehensive,05-03-2025,04-03-2026,7611.00,7611.00,300.00,Chinta Balaram Naidu
+Motor,Self,SURESH BONKURU,7989426337,softpro.ppm@gmail.com,AP35M2588,Two-Wheeler,National Insurance,Third Party,04-03-2025,03-03-2026,1009.00,1009.00,130.00,Self
+Motor,Self,BANGARU SURESH,8096569969,softpro.ppm@gmail.com,AP35TV0741,LCV (Goods),SBI General,Third Party,01-03-2025,28-02-2026,15797.00,15797.00,1200.00,Self
+Motor,Self,PADALA PRASAD RAO,8096569969,softpro.ppm@gmail.com,AP39X9078,LCV (Goods),SBI General,Comprehensive,01-03-2025,28-02-2026,18113.00,18113.00,1200.00,Self
+Motor,Self,KUNTA RAMBABU,9573653175,softpro.ppm@gmail.com,AP35X9728 ,Auto (Passenger),SBI General,Comprehensive,01-03-2025,28-02-2026,7489.00,7489.00,811.00,Self
+Motor,Self,CHANDAKA LOKESH,9573415771,softpro.ppm@gmail.com,AP39UU2981,Auto (Passenger),SBI General,Comprehensive,28-02-2025,27-02-2026,7701.00,7701.00,1149.00,Self
+Motor,Agent,SARIKI VENKATA RAMANA,9160271272,chbalaram321@gmail.com,AP39TN6317,Auto (Passenger),SBI General,Comprehensive,28-02-2025,27-02-2026,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,PATRA PRADEEP,9110371437,softpro.ppm@gmail.com,AP30X8732 ,Auto (Passenger),SBI General,Comprehensive,28-02-2025,27-02-2026,7367.00,7367.00,1033.00,Self
+Motor,Self,MARADA RAMMUTHI,8096569969,softpro.ppm@gmail.com,AP39UB9150,LCV (Goods),United India,Third Party,27-02-2025,26-02-2026,20966.00,20966.00,1200.00,Self
+Motor,Self,URITI DHARMA RAO,8096569969,softpro.ppm@gmail.com,AP39T6258,LCV (Goods),United India,Third Party,27-02-2025,26-02-2026,19186.00,19186.00,1200.00,Self
+Motor,Self,YANAPARTHI SANKARA RAO,9440399030,softpro.ppm@gmail.com,AP35S2910 ,Two-Wheeler,Bajaj Allianz,Comprehensive,27-02-2025,26-02-2026,1233.00,1233.00,450.00,Self
+Motor,Self,CHITLU KIRAN ,8074574406,softpro.ppm@gmail.com,AP35Y6756,Tractor,SBI General,Comprehensive,25-02-2025,24-02-2026,9665.00,9665.00,1784.00,Self
+Motor,Agent,NAGAMURALI YALAGADA,9160271272,chbalaram321@gmail.com,AP35Y5841,Auto (Passenger),SBI General,Comprehensive,25-02-2025,24-02-2026,7459.00,7459.00,300.00,Chinta Balaram Naidu
+Motor,Self,ARASADA SWAPNA,9949940286,softpro.ppm@gmail.com,AP35X2369,Auto (Passenger),SBI General,Comprehensive,25-02-2025,24-02-2026,7337.00,7337.00,1063.00,Self
+Motor,Agent,KARRI NARAYANA RAO,9160271272,chbalaram321@gmail.com,AP39TH8849,Auto (Passenger),SBI General,Comprehensive,25-02-2025,24-02-2026,7418.00,7418.00,300.00,Chinta Balaram Naidu
+Motor,Self,BOTSA SIMHACHALAM ,9491796340,softpro.ppm@gmail.com,AP35Y5178,Trailer,IFFCO-Tokio,Third Party,25-02-2025,24-02-2026,2932.00,2932.00,300.00,Self
+Motor,Agent,ALAMANDA VENU,9160271272,chbalaram321@gmail.com,AP39UK0997,Auto (Passenger),SBI General,Comprehensive,23-02-2025,22-02-2026,7673.00,7673.00,300.00,Chinta Balaram Naidu
+Motor,Agent,SURYANARAYANA NAGALLA,9160271272,chbalaram321@gmail.com,AP39UT6783,Auto (Passenger),SBI General,Comprehensive,22-02-2025,21-02-2026,7736.00,7736.00,300.00,Chinta Balaram Naidu
+Motor,Self,GUDIMETAL SRINIVASA RAO,8096569969,softpro.ppm@gmail.com,AP39TS4766,LCV (Goods),United India,Comprehensive,20-02-2025,19-02-2026,20244.00,20244.00,1500.00,Self
+Motor,Agent,SETTI APPALANAIDU,9160271272,chbalaram321@gmail.com,AP35Y2002,Auto (Passenger),SBI General,Comprehensive,18-02-2025,17-02-2026,7489.00,7489.00,300.00,Chinta Balaram Naidu
+Motor,Agent,GANTA LAKSHMANRAO,9160271272,chbalaram321@gmail.com,AP35X2802,Auto (Passenger),SBI General,Third Party,18-02-2025,17-02-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Agent,RAVI KUMARNANDIVADA,9160271272,chbalaram321@gmail.com,AP35X6469,Auto (Passenger),Future Generali,Third Party,18-02-2025,17-02-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Self,GULLA RAJESH,9550755039,softpro.ppm@gmail.com,AP35AE1162,Two-Wheeler,Bajaj Allianz,Comprehensive,14-02-2025,13-02-2026,1612.00,1612.00,650.00,Self
+Motor,Self,ANIPILLI AYYAPPA,9133161788,softpro.ppm@gmail.com,AP39UM6091,Trailer,The New India,Third Party,14-02-2025,13-02-2026,2485.00,2485.00,0.00,Self
+Motor,Self,KOTIPALLI GOWRISANKAR RAO,9502127570,softpro.ppm@gmail.com,AP39TR5681,Auto (Passenger),SBI General,Comprehensive,13-02-2025,12-02-2026,7522.00,7522.00,878.00,Self
+Motor,Agent,VARRI GANAPATHI,9160271272,chbalaram321@gmail.com,AP39TC7673,Auto (Passenger),SBI General,Comprehensive,13-02-2025,12-02-2026,7415.00,7415.00,300.00,Chinta Balaram Naidu
+Motor,Self,MARISARLA KRISHNAVENI,9966171504,softpro.ppm@gmail.com,AP35P3669,Car (Private),SBI General,Third Party,12-02-2025,11-02-2026,4090.00,4090.00,200.00,Self
+Motor,Self,GULIPILLI PRASAD,9052800626,softpro.ppm@gmail.com,AP35X7216,Auto (Passenger),SBI General,Third Party,11-02-2025,10-02-2026,7255.00,7255.00,645.00,Self
+Motor,Agent,BOTCHA GANGARAJU,9160271272,chbalaram321@gmail.com,AP35X0660,Auto (Passenger),SBI General,Third Party,10-02-2025,09-02-2026,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Self,JOGI PRASANT KUMAR,7396054051,softpro.ppm@gmail.com,AP39V0180,Tractor,SBI General,Comprehensive,08-02-2025,07-02-2026,13185.00,13185.00,2299.00,Self
+Motor,Agent,MUVVALA JAGADEESWARARAO RAO,9160271272,chbalaram321@gmail.com,AP39UL8408,Auto (Passenger),SBI General,Comprehensive,08-02-2025,07-02-2026,7576.00,7576.00,300.00,Chinta Balaram Naidu
+Motor,Self,AMARAPU SIVASANKAR,8978230876,softpro.ppm@gmail.com,AP39Y4092,Auto (Passenger),SBI General,Third Party,07-02-2025,06-02-2026,7196.00,7196.00,704.00,Self
+Motor,Self,DONKADA MAHESWARA RAO,9603808110,softpro.ppm@gmail.com,AP39QD6932,Two-Wheeler,ICICI Lombard,Third Party,07-02-2025,06-02-2026,786.00,786.00,300.00,Self
+Motor,Agent,ROUTHU NARAYANA RAO,9160271272,chbalaram321@gmail.com,AP35TB0890,Auto (Passenger),Future Generali,Comprehensive,07-02-2025,06-02-2026,7497.00,7497.00,300.00,Chinta Balaram Naidu
+Motor,Self,SABHANA CHINNA,9885562290,softpro.ppm@gmail.com,AP35W7968,Auto (Passenger),SBI General,Comprehensive,07-02-2025,06-02-2026,7311.00,7311.00,500.00,Self
+Motor,Self,GANEDA JAGADEESWARARAO,9110580757,softpro.ppm@gmail.com,AP35AA4162,Two-Wheeler,Bajaj Allianz,Comprehensive,05-02-2025,04-02-2026,843.00,843.00,300.00,Self
+Motor,Agent,NAGIREDDI RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP35TA1146,Auto (Passenger),SBI General,Comprehensive,04-02-2025,03-02-2026,5864.00,5864.00,300.00,Chinta Balaram Naidu
+Motor,Self,NAKIRAPU SANTOSH,8074217133,softpro.ppm@gmail.com,AP39TH7053,Auto (Passenger),SBI General,Comprehensive,04-02-2025,03-02-2026,7598.00,7598.00,652.00,Self
+Motor,Self,GOTTAPU APPALANAIDU,8096569969,softpro.ppm@gmail.com,AP39X2961,Auto (Passenger),SBI General,Comprehensive,02-02-2025,01-02-2026,7586.00,7586.00,200.00,Self
+Motor,Self,CHALLA MUTHYALANAIDU,9491841180,softpro.ppm@gmail.com,AP35X2615,Trailer,IFFCO-Tokio,Third Party,01-02-2025,31-01-2026,2932.00,2932.00,500.00,Self
+Motor,Self,BUTHALA DHANANJAYA,8096569969,softpro.ppm@gmail.com,AP39TD3385,Auto (Passenger),SBI General,Comprehensive,01-02-2025,31-01-2026,7621.00,7621.00,200.00,Self
+Motor,Self,DUVVANA DHANUNJAYA NAIDU,9985137590,softpro.ppm@gmail.com,AP35X1351 ,Auto (Passenger),SBI General,Third Party,01-02-2025,31-01-2026,7255.00,7255.00,547.00,Self
+Motor,Self,UTTHARAVALLI SANYASIRAO,8897350985,softpro.ppm@gmail.com,AP39TH6732,Auto (Passenger),SBI General,Comprehensive,31-01-2025,30-01-2026,7439.00,7439.00,861.00,Self
+Motor,Self,ARIKA SUJATHA,9381074127,softpro.ppm@gmail.com,AP39UG3281,Auto (Passenger),SBI General,Comprehensive,30-01-2025,29-01-2026,6248.00,6248.00,1316.00,Self
+Motor,Self,PATTIGULA SATYA NARAYAN,9533666021,softpro.ppm@gmail.com,AP35TB1684,LCV (Goods),SBI General,Comprehensive,30-01-2025,29-01-2026,19749.00,19749.00,4563.00,Self
+Motor,Agent,THADIMGI RELL,9160271272,chbalaram321@gmail.com,AP39UJ3289,Auto (Passenger),SBI General,Comprehensive,29-01-2025,28-01-2026,7711.00,7711.00,300.00,Chinta Balaram Naidu
+Motor,Agent,BANKAPALLI VENKATARAMANA,9160271272,chbalaram321@gmail.com,AP39TN4628,Auto (Passenger),SBI General,Comprehensive,29-01-2025,28-01-2026,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,GUMPA RAMU,9963430853,softpro.ppm@gmail.com,AP35TA1466,Auto (Passenger),SBI General,Comprehensive,29-01-2025,28-01-2026,7478.00,7478.00,300.00,Self
+Motor,Self,RAMU ITRAJULA,9849672240,softpro.ppm@gmail.com,AP35Y1597,Auto (Passenger),SBI General,Comprehensive,29-01-2025,28-01-2026,7562.00,7562.00,838.00,Self
+Motor,Agent,ALLU SATYAMNAIDU,9160271272,chbalaram321@gmail.com,AP35X0142,Trailer,IFFCO-Tokio,Comprehensive,28-01-2025,27-01-2026,2932.00,2932.00,300.00,Chinta Balaram Naidu
+Motor,Self,EEDIBILLI ATCHYUTHA RAO,8978956906,softpro.ppm@gmail.com,AP39UT0628,Auto (Passenger),SBI General,Comprehensive,28-01-2025,27-01-2026,7736.00,7736.00,764.00,Self
+Motor,Agent,KUSUMURU SURESH,9160271272,chbalaram321@gmail.com,AP35TA0822,Auto (Passenger),SBI General,Comprehensive,28-01-2025,27-01-2026,7582.00,7582.00,300.00,Chinta Balaram Naidu
+Motor,Self,SHESHAGIRI REDDI,9603775952,softpro.ppm@gmail.com,AP39T6826,Auto (Passenger),SBI General,Comprehensive,28-01-2025,27-01-2026,7643.00,7643.00,300.00,Self
+Motor,Agent,CHINTADA NAVEEN KUMAR,9160271272,chbalaram321@gmail.com,AP35X7264,Auto (Passenger),SBI General,Comprehensive,28-01-2025,27-01-2026,7423.00,7423.00,300.00,Chinta Balaram Naidu
+Motor,Self,GOTTAPU JAYAMMA,9010633145,softpro.ppm@gmail.com,AP31DM7615,Tractor,SBI General,Comprehensive,28-01-2025,27-01-2026,12519.00,12519.00,2407.00,Self
+Motor,Self,GEDDA ESWARARAO,8096569969,softpro.ppm@gmail.com,AP35TA1209,Auto (Passenger),SBI General,Comprehensive,26-01-2025,25-01-2026,7582.00,7582.00,200.00,Self
+Motor,Self,SANCHANA SUNIL SUNIL,6301521466,softpro.ppm@gmail.com,AP39UA2613,Auto (Passenger),SBI General,Comprehensive,25-01-2025,24-01-2026,7545.00,7545.00,300.00,Self
+Motor,Self,GURIVINDALA RAMAMDORA,6305647301,softpro.ppm@gmail.com,AP39TT8257,LCV (Goods),Future Generali,Comprehensive,25-01-2025,24-01-2026,20590.00,20590.00,3500.00,Self
+Motor,Self,PAKIRU NAIDU THADDI,7702158017,softpro.ppm@gmail.com,AP39FD9031,Tractor,SBI General,Comprehensive,25-01-2025,24-01-2026,13084.00,13084.00,2269.00,Self
+Motor,Self,MARRI SRINIVAS,9010542527,softpro.ppm@gmail.com,AP24S8610,Tractor,SBI General,Third Party,24-01-2025,23-01-2026,9018.00,9018.00,1898.00,Self
+Motor,Self,SURAPATI ANANDRAO,8096569969,softpro.ppm@gmail.com,AP35X6206,Auto (Passenger),SBI General,Comprehensive,23-01-2025,22-01-2026,7442.00,7442.00,200.00,Self
+Motor,Self,MARADAPU GANAPATHI,8096569969,softpro.ppm@gmail.com,AP39TD1703,Auto (Passenger),SBI General,Comprehensive,23-01-2025,22-01-2026,7643.00,7643.00,200.00,Self
+Motor,Agent,SEEMALA CHINNARAO,9160271272,chbalaram321@gmail.com,AP35TB3351,Auto (Passenger),SBI General,Comprehensive,23-01-2025,22-01-2026,7598.00,7598.00,300.00,Chinta Balaram Naidu
+Motor,Self,AMARAPU SIVASANKAR,9398456058,softpro.ppm@gmail.com,AP39UT5817,Auto (Passenger),SBI General,Comprehensive,21-01-2025,20-01-2026,6248.00,6248.00,700.00,Self
+Motor,Self,NAGARAPU GANAPATHI,7093693093,softpro.ppm@gmail.com,AP39TD6537,Auto (Passenger),SBI General,Comprehensive,21-01-2025,20-01-2026,7443.00,7443.00,757.00,Self
+Motor,Agent,MOGIDI THRINADHA,9160271272,chbalaram321@gmail.com,AP39TE0152,Auto (Passenger),SBI General,Comprehensive,19-01-2025,18-01-2026,7449.00,7449.00,300.00,Chinta Balaram Naidu
+Motor,Agent,MOGIDI RAMESH,9160271272,chbalaram321@gmail.com,AP39UL1745,Auto (Passenger),SBI General,Comprehensive,13-01-2025,12-01-2026,7665.00,7665.00,300.00,Chinta Balaram Naidu
+Motor,Self,KAMBAVALASA RAMESH,9441621735,softpro.ppm@gmail.com,AP39CG9483,Two-Wheeler,ICICI Lombard,Comprehensive,12-01-2025,11-01-2026,1051.00,1051.00,400.00,Self
+Motor,Agent,MARADANA RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP39TQ2558,Auto (Passenger),SBI General,Comprehensive,12-01-2025,11-01-2026,7589.00,7589.00,300.00,Chinta Balaram Naidu
+Motor,Self,KODIBONU RAMAKRISHNA,9553660822,softpro.ppm@gmail.com,AP35TB3690,Car (Private),Shriram General,Comprehensive,11-01-2025,10-01-2026,26607.00,26607.00,1000.00,Self
+Motor,Self,MARIPI RAMU,8499887730,softpro.ppm@gmail.com,AP39TY7213,Auto (Passenger),SBI General,Comprehensive,11-01-2025,10-01-2026,7556.00,7556.00,844.00,Self
+Motor,Self,MANDALA DHANUNJAYA NAIDU,7799662501,softpro.ppm@gmail.com,AP39UR6601,Tractor,SBI General,Comprehensive,10-01-2025,09-01-2026,13039.00,13039.00,2257.00,Self
+Motor,Self,ANDRASI SURESH KUMAR,8985370391,softpro.ppm@gmail.com,AP31CH9765,Two-Wheeler,Bajaj Allianz,Comprehensive,10-01-2025,09-01-2026,1133.00,1133.00,300.00,Self
+Motor,Self,SIVUNNAIDU BANTU,9676729399,softpro.ppm@gmail.com,AP35W8453,Tractor,SBI General,Comprehensive,09-01-2025,08-01-2026,9571.00,9571.00,1757.00,Self
+Motor,Self,TENTU BASKER RAO,8985195636,softpro.ppm@gmail.com,AP39T3664,Auto (Passenger),SBI General,Comprehensive,09-01-2025,08-01-2026,7598.00,7598.00,802.00,Self
+Motor,Self,VANGAPANDU RAMESH,9010542527,softpro.ppm@gmail.com,AP35Y6570,Tractor,SBI General,Comprehensive,07-01-2025,06-01-2026,12953.00,12953.00,0.00,Self
+Motor,Self,PONDURU SANTHOSH KUMAR,8074454758,softpro.ppm@gmail.com,AP35Y4115,Auto (Passenger),SBI General,Comprehensive,07-01-2025,06-01-2026,7500.00,7500.00,800.00,Self
+Motor,Agent,KALAVASETTI RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP39Y9404,Auto (Passenger),SBI General,Comprehensive,07-01-2025,06-01-2026,7562.00,7562.00,3000.00,Chinta Balaram Naidu
+Motor,Self,SINGDEV MOHAN KUMAR,8106305322,softpro.ppm@gmail.com,AP39X3315,Trailer,IFFCO-Tokio,Third Party,06-01-2025,05-01-2026,2932.00,2932.00,300.00,Self
+Motor,Agent,GORIPARTHI NAGARAJU,9160271272,chbalaram321@gmail.com,AP39UK3880,Trailer,IFFCO-Tokio,Third Party,06-01-2025,05-01-2026,2932.00,2932.00,300.00,Chinta Balaram Naidu
+Motor,Self,GULLA RAJESH,9550755039,softpro.ppm@gmail.com,AP39HG0020,Two-Wheeler,Bajaj Allianz,Comprehensive,06-01-2025,05-01-2026,306.00,306.00,0.00,Self
+Motor,Self,NEERASA BHARATH KUMAR,9100461997,softpro.ppm@gmail.com,AP35TB1686,Tractor,SBI General,Comprehensive,05-01-2025,04-01-2026,9881.00,9881.00,1847.00,Self
+Motor,Self, BURADA VENKATARAO,9959689759,softpro.ppm@gmail.com,AP39UT5818,Auto (Passenger),SBI General,Comprehensive,05-01-2025,04-01-2026,7754.00,7754.00,746.00,Self
+Motor,Self,SRI LAXMI ENTERPRISES,9494447447,softpro.ppm@gmail.com,AP39UM0620,HGV (Goods),SBI General,Comprehensive,05-01-2025,04-01-2026,44173.00,44173.00,4119.00,Self
+Motor,Self,SRI LAXMI ENTERPRISES,9494447447,softpro.ppm@gmail.com,AP39UM0621,HGV (Goods),SBI General,Comprehensive,05-01-2025,04-01-2026,44173.00,44173.00,4119.00,Self
+Motor,Self,SRI SAI ENTERPRISES,9494447447,softpro.ppm@gmail.com,AP39UM3030,HGV (Goods),SBI General,Comprehensive,05-01-2025,04-01-2026,44173.00,44173.00,4119.00,Self
+Motor,Self,VANGAPANDU RAMESH,9010542527,softpro.ppm@gmail.com,AP39UR1869,Tractor,SBI General,Comprehensive,05-01-2025,04-01-2026,13306.00,13306.00,2333.00,Self
+Motor,Self,RAMESH VANGAPANDU,9010542527,softpro.ppm@gmail.com,AP35Y4470,Tractor,SBI General,Comprehensive,05-01-2025,04-01-2026,12683.00,12683.00,2153.00,Self
+Motor,Self,RAMA RAO VELAGADA,9010542527,softpro.ppm@gmail.com,AP39TP7339,Tractor,SBI General,Comprehensive,05-01-2025,04-01-2026,12558.00,12558.00,2118.00,Self
+Motor,Agent,KADRAKA SANKARA RAO ,9160271272,chbalaram321@gmail.com,AP39TF6463,Auto (Passenger),SBI General,Comprehensive,05-01-2025,04-01-2026,7426.00,7426.00,300.00,Chinta Balaram Naidu
+Motor,Agent,GANTA GOVINDHARAO,9160271272,chbalaram321@gmail.com,AP35X1243,Auto (Passenger),SBI General,Comprehensive,04-01-2025,03-01-2026,7371.00,7371.00,300.00,Chinta Balaram Naidu
+Motor,Self,BODDANA KARUNA,9704284230,softpro.ppm@gmail.com,AP35AF7190,Two-Wheeler,The New India,Third Party,31-12-2024,30-12-2025,2400.00,2400.00,500.00,Self
+Motor,Self,GODABA CHINNAMMUDU,7386244445,softpro.ppm@gmail.com,AP39DS0613,Car (Private),SBI General,Third Party,31-12-2024,30-12-2025,10377.00,10377.00,1000.00,Self
+Motor,Agent, ALLU POLINAIDU,9160271272,chbalaram321@gmail.com,AP39TQ1507,Auto (Passenger),SBI General,Comprehensive,30-12-2024,29-12-2025,7561.00,7561.00,300.00,Chinta Balaram Naidu
+Motor,Self,SRI LAXMI ENTERPRISES,9494447447,softpro.ppm@gmail.com,AP39UM0250,HGV (Goods),SBI General,Comprehensive,27-12-2024,26-12-2025,49930.00,49930.00,5440.00,Self
+Motor,Self,MAJJI ANIL,9347175258,softpro.ppm@gmail.com,AP31TP5384,Auto (Passenger),SBI General,Comprehensive,27-12-2024,26-12-2025,7566.00,7566.00,734.00,Self
+Motor,Self, SRI SAI ENTERPRISES,9494447447,softpro.ppm@gmail.com,AP39UM0248,HGV (Goods),SBI General,Comprehensive,27-12-2024,26-12-2025,56281.00,56281.00,5440.00,Self
+Motor,Agent,PEDIREDLA PRASAD,9160271272,chbalaram321@gmail.com,AP35X1622,Auto (Passenger),SBI General,Third Party,25-12-2024,24-12-2025,7255.00,7255.00,300.00,Chinta Balaram Naidu
+Motor,Agent,EDUBILLI SOBHANA,9160271272,chbalaram321@gmail.com,AP35U4361,LCV (Goods),Tata AIG,Third Party,25-12-2024,24-12-2025,18497.00,18497.00,1795.00,Chinta Balaram Naidu
+Motor,Agent,SANTOSHKUMAR MANTRABUDD,9160271272,chbalaram321@gmail.com,AP30TC5426,Auto (Passenger),SBI General,Comprehensive,25-12-2024,24-12-2025,7443.00,7443.00,300.00,Chinta Balaram Naidu
+Motor,Self,TRINADHA BOTCHA,9032601928,softpro.ppm@gmail.com,AP35Y5673,Auto (Passenger),SBI General,Comprehensive,24-12-2024,23-12-2025,7371.00,7371.00,729.00,Self
+Motor,Self,DARAPUREDDI CHENCHU NAIDU,9550755039,softpro.ppm@gmail.com,AP07TW4849,LCV (Goods),Tata AIG,Comprehensive,23-12-2024,22-12-2025,49785.00,49785.00,4000.00,Self
+Motor,Agent,MARADANA SRINIVASA RAO,9160271272,chbalaram321@gmail.com,AP35X2446,Auto (Passenger),SBI General,Comprehensive,22-12-2024,21-12-2025,7440.00,7440.00,300.00,Chinta Balaram Naidu
+Motor,Self,PADMAVATHI MUDADLA,9912588261,softpro.ppm@gmail.com,AP39TV2673,Tractor,SBI General,Comprehensive,20-12-2024,19-12-2025,9986.00,9986.00,1792.00,Self
+Motor,Self,SALLA JAGADEESWARARAO,7095919866,softpro.ppm@gmail.com,AP39W4502,Auto (Passenger),SBI General,Comprehensive,20-12-2024,19-12-2025,7598.00,7598.00,802.00,Self
+Motor,Agent,GARBAPU BABURAO,9160271272,chbalaram321@gmail.com,AP39UT0702,Auto (Passenger),SBI General,Comprehensive,19-12-2024,18-12-2025,7632.00,7632.00,300.00,Chinta Balaram Naidu
+Motor,Self,PATOJU SURESH KUMAR,9490752126,softpro.ppm@gmail.com,AP35AL2332,Two-Wheeler,Go Digit,Comprehensive,19-12-2024,18-12-2025,1312.00,1312.00,450.00,Self
+Motor,Agent,BOTTA VENKATARAMANA,9160271272,chbalaram321@gmail.com,AP30X5400,Trailer,IFFCO-Tokio,Comprehensive,18-12-2024,17-12-2025,2932.00,2932.00,300.00,Chinta Balaram Naidu
+Motor,Agent,VENKATANAIDU MARISHARLA,9160271272,chbalaram321@gmail.com,AP35TB0894,Auto (Passenger),SBI General,Comprehensive,18-12-2024,17-12-2025,7426.00,7426.00,300.00,Chinta Balaram Naidu
+Motor,Self,MAJHI GOPAL,9439181667,softpro.ppm@gmail.com,OD02Q5597,LCV (Goods),IFFCO-Tokio,Third Party,18-12-2024,17-12-2025,11463.00,11463.00,2000.00,Self
+Motor,Self,YANAPARTHI SANKARA RAO,9440399030,softpro.ppm@gmail.com,AP35X6495,Car (Private),Tata AIG,Comprehensive,17-12-2024,16-12-2025,41739.00,41739.00,6000.00,Self
+Motor,Self,VANJARAPU VASU NAIDU,8985385010,softpro.ppm@gmail.com,AP39TB7239,Auto (Passenger),SBI General,Comprehensive,16-12-2024,15-12-2025,7392.00,7392.00,1108.00,Self
+Motor,Self,GUDUPURU GANGULU,7730991661,softpro.ppm@gmail.com,AP39UL8331,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7727.00,7727.00,673.00,Self
+Motor,Agent,GORJI SRINIVASARAO,9160271272,chbalaram321@gmail.com,AP39UK1053,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,BATHA RAMESH,9182505107,softpro.ppm@gmail.com,AP35Y0684,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7328.00,7328.00,1172.00,Self
+Motor,Agent,TERLAPU SURYANARAYANA DORA,9160271272,chbalaram321@gmail.com,AP39TP9674,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,APPALANAIDU BURA,9494237406,softpro.ppm@gmail.com,AP35X2248,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7328.00,7328.00,872.00,Self
+Motor,Agent,TADANGI KRISHNA,9160271272,chbalaram321@gmail.com,AP35TB3769,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7575.00,7575.00,300.00,Chinta Balaram Naidu
+Motor,Self,SATIVADA SRINIVASARAO,9121433501,softpro.ppm@gmail.com,AP39TL3460,Auto (Passenger),SBI General,Comprehensive,14-12-2024,13-12-2025,7328.00,7328.00,1172.00,Self
+Motor,Agent,SURAPATI SUBBARAO,9160271272,chbalaram321@gmail.com,AP35TB2054,Tractor,SBI General,Comprehensive,11-12-2024,10-12-2025,9773.00,9773.00,733.00,Chinta Balaram Naidu
+Motor,Self,MANOHAR BONGU,9160969682,softpro.ppm@gmail.com,AP35X4556,Auto (Passenger),SBI General,Comprehensive,11-12-2024,10-12-2025,7408.00,7408.00,792.00,Self
+Motor,Self,TUMMA VENKATA RAMANA MURTHY,9491799483,softpro.ppm@gmail.com,AP39DZ8265,Car (Private),Tata AIG,Comprehensive,10-12-2024,09-12-2025,11363.00,11363.00,0.00,Self
+Motor,Agent,VASADI DHANUNJAYA NAIDU,9160271272,chbalaram321@gmail.com,AP35Y11962,Trailer,IFFCO-Tokio,Third Party,10-12-2024,09-12-2025,2932.00,2932.00,300.00,Chinta Balaram Naidu
+Motor,Agent,PRAKASH TADAMGI,9160271272,chbalaram321@gmail.com,AP35W8842,Auto (Passenger),SBI General,Third Party,10-12-2024,09-12-2025,7225.00,7225.00,300.00,Chinta Balaram Naidu
+Motor,Self,BOBBILI POLINAIDU,9010111043,softpro.ppm@gmail.com,AP35X4785,Auto (Passenger),SBI General,Comprehensive,10-12-2024,09-12-2025,7376.00,7376.00,724.00,Self
+Motor,Self,ADHIKARI SRINIVASARAO,9440692304,softpro.ppm@gmail.com,AP35TB4150,Auto (Passenger),SBI General,Comprehensive,10-12-2024,09-12-2025,7511.00,7511.00,689.00,Self
+Motor,Agent,APPALA NAIDU THARLADA,9160271272,chbalaram321@gmail.com,AP30V3960,Tractor,SBI General,Comprehensive,08-12-2024,07-12-2025,16474.00,16474.00,900.00,Chinta Balaram Naidu
+Motor,Self,DILEEP KUMAR GANDI,9705914522,softpro.ppm@gmail.com,AP35AN3136,Tractor,SBI General,Comprehensive,08-12-2024,07-12-2025,12837.00,12837.00,1616.00,Self
+Motor,Agent,CHANDAPU JAGANNADHAM,9160271272,chbalaram321@gmail.com,AP35V8724,Trailer,IFFCO-Tokio,Third Party,07-12-2024,06-12-2025,2932.00,2932.00,250.00,Chinta Balaram Naidu
+Motor,Self,PEDEREDDLA PAVANKUMAR,9948496699,softpro.ppm@gmail.com,AP39Y8574,Tractor,Chola MS,Comprehensive,06-12-2024,05-12-2025,10488.00,10488.00,1700.00,Self
+Motor,Self,KETHIREDDI ATCHYUTARAO,9705914522,softpro.ppm@gmail.com,AP39UE9809,Tractor,SBI General,Comprehensive,06-12-2024,05-12-2025,12971.00,12971.00,1627.00,Self
+Motor,Self,ARASADA RAJU,9705699698,softpro.ppm@gmail.com,AP31TB5881,Auto (Passenger),SBI General,Comprehensive,05-12-2024,04-12-2025,7308.00,7308.00,1092.00,Self
+Motor,Agent,CHODRAPU KRISHNA MURTH,9160271272,chbalaram321@gmail.com,AP35TB2904,Auto (Passenger),SBI General,Comprehensive,05-12-2024,04-12-2025,7552.00,7552.00,300.00,Chinta Balaram Naidu
+Motor,Self,HYMAVATHI RAMADHINDI,8608500088,softpro.ppm@gmail.com,AP35AG3368,Two-Wheeler,Go Digit,Third Party,04-12-2024,03-12-2025,842.00,842.00,150.00,Self
+Motor,Self,SRIKAKULAM DURGA PRASAD,8886164635,softpro.ppm@gmail.com,AP39UT2957,Auto (Passenger),SBI General,Comprehensive,30-11-2024,29-11-2025,7736.00,7736.00,500.00,Self
+Motor,Self,GULLA RAJESH,9550755039,softpro.ppm@gmail.com,AP39JU9864,Car (Private),Chola MS,Comprehensive,29-11-2024,28-11-2025,31543.00,31543.00,5300.00,Self
+Motor,Self,BELAGAPU KRISHNAVENI,7670885920,softpro.ppm@gmail.com,AP35TB3340,Auto (Passenger),SBI General,Comprehensive,28-11-2024,27-11-2025,7452.00,7452.00,648.00,Self
+Motor,Self,THADANGI RAMESH,9000889276,softpro.ppm@gmail.com,AP35Y6950,Tractor,Chola MS,Comprehensive,27-11-2024,26-11-2025,13690.00,13690.00,1610.00,Self
+Motor,Agent,KOTLA LAKSHMU NAIDU,9160271272,chbalaram321@gmail.com,AP35TB3775,Auto (Passenger),SBI General,Comprehensive,26-11-2024,25-11-2025,7470.00,7470.00,300.00,Chinta Balaram Naidu
+Motor,Self,BADE SATYAVATHI,9704369131,softpro.ppm@gmail.com,AP35AD4570,Two-Wheeler,Go Digit,Comprehensive,26-11-2024,25-11-2025,842.00,842.00,300.00,Self
+Motor,Self,ELURU RAJESWARARAO,7702063633,softpro.ppm@gmail.com,AP39TN4024,Trailer,IFFCO-Tokio,Third Party,25-11-2024,24-11-2025,2932.00,2932.00,800.00,Self
+Motor,Agent,MAJJI RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP35TB2398,Auto (Passenger),SBI General,Comprehensive,22-11-2024,21-11-2025,7539.00,7539.00,300.00,Chinta Balaram Naidu
+Motor,Agent,MAGUVAPU SANKARARAO,9160271272,chbalaram321@gmail.com,AP39TM6887,Tractor,SBI General,Comprehensive,22-11-2024,21-11-2025,12658.00,12658.00,858.00,Chinta Balaram Naidu
+Motor,Self,RATNALA ROJA,6370699060,softpro.ppm@gmail.com,AP39UD0936,Auto (Passenger),SBI General,Comprehensive,21-11-2024,20-11-2025,7653.00,7653.00,843.00,Self
+Motor,Self,BANTU LOKANDHAM,9182236891,softpro.ppm@gmail.com,AP39UD6311,Tractor,SBI General,Comprehensive,20-11-2024,19-11-2025,13374.00,13374.00,2540.00,Self
+Motor,Self,KORADA BHASKARA RAO,9676963894,softpro.ppm@gmail.com,AP39TD3919,Auto (Passenger),SBI General,Comprehensive,20-11-2024,19-11-2025,7575.00,7575.00,811.00,Self
+Motor,Self,REDDY SURI NAIDU,9951914434,softpro.ppm@gmail.com,AP39TN7670,Auto (Passenger),SBI General,Comprehensive,20-11-2024,19-11-2025,5938.00,5938.00,1525.00,Self
+Motor,Agent,YEGIREDDI RAMESH,9160271272,chbalaram321@gmail.com,AP39UK0356,Auto (Passenger),SBI General,Comprehensive,20-11-2024,19-11-2025,7611.00,7611.00,300.00,Chinta Balaram Naidu
+Motor,Self,SURYANARAYANA KOTA,7661946131,softpro.ppm@gmail.com,AP35Y0180,Tractor,SBI General,Comprehensive,20-11-2024,19-11-2025,12875.00,12875.00,2400.00,Self
+Motor,Self,CHEVITI RAMESH,8978711298,softpro.ppm@gmail.com,AP35TB2101,Auto (Passenger),SBI General,Comprehensive,20-11-2024,19-11-2025,7483.00,7483.00,811.00,Self
+Motor,Self,BADE RAMU,9573557629,softpro.ppm@gmail.com,AP35Y4281,Auto (Passenger),SBI General,Comprehensive,19-11-2024,18-11-2025,7422.00,7422.00,678.00,Self
+Motor,Self,LINGUROTU NAVEEN KUMAR,9505450820,softpro.ppm@gmail.com,AP39UG6913,LCV (Goods),SBI General,Comprehensive,17-11-2024,16-11-2025,21755.00,21755.00,3100.00,Self
+Motor,Self,BADE LAKSHUMNAIDU,9701302384,softpro.ppm@gmail.com,AP39UH5692,Auto (Passenger),SBI General,Comprehensive,17-11-2024,16-11-2025,7255.00,7255.00,745.00,Self
+Motor,Self, SURESH DAMBALA,9866453784,softpro.ppm@gmail.com,AP35X1639,Auto (Passenger),SBI General,Third Party,17-11-2024,16-11-2025,7255.00,7255.00,745.00,Self
+Motor,Self,KALYANA NARAYANARAO,8328403223,softpro.ppm@gmail.com,AP35N5571,Two-Wheeler,Go Digit,Comprehensive,17-11-2024,16-11-2025,1366.00,1366.00,400.00,Self
+Motor,Agent,THOTA SRINUVASA RAO,9160271272,chbalaram321@gmail.com,AP39UR6186,Tractor,Chola MS,Comprehensive,16-11-2024,15-11-2025,14336.00,14336.00,1562.00,Chinta Balaram Naidu
+Motor,Self,SINGIDI GOPALARAO,9703600649,softpro.ppm@gmail.com,AP39UJ7702,Auto (Passenger),SBI General,Comprehensive,16-11-2024,15-11-2025,8149.00,8149.00,300.00,Self
+Motor,Self,RAMADHINDI SRINIVASARAO,9703043523,softpro.ppm@gmail.com,AP39TP2165,Tractor,Chola MS,Comprehensive,16-11-2024,15-11-2025,13045.00,13045.00,2541.00,Self
+Motor,Self,MARADANA JAGADEESWARA RAO,9704820101,softpro.ppm@gmail.com,AP39TP1195,Tractor,Chola MS,Comprehensive,16-11-2024,15-11-2025,13227.00,13227.00,2980.00,Self
+Motor,Agent,MARADANA JAGADEESWARA RAO,9160271272,chbalaram321@gmail.com,AP35W0925,Auto (Passenger),SBI General,Third Party,14-11-2024,13-11-2025,7255.00,7255.00,400.00,Chinta Balaram Naidu
+Motor,Self,MEENAKA DASU,6301828091,softpro.ppm@gmail.com,AP35X9700,Auto (Passenger),SBI General,Comprehensive,12-11-2024,11-11-2025,7583.00,7583.00,817.00,Self
+Motor,Self,ANANTHANENI RAGHUNATH,6303676059,softpro.ppm@gmail.com,AP24Y6584,HGV (Goods),Royal Sundaram,Third Party,11-11-2024,10-11-2025,30879.00,30879.00,4000.00,Self
+Motor,Agent,MARADANA UMAMAHESWARARAO,9160271272,chbalaram321@gmail.com,AP39US9508,Auto (Passenger),SBI General,Comprehensive,10-11-2024,09-11-2025,7754.00,7754.00,300.00,Chinta Balaram Naidu
+Motor,Self,SAILA VIJAYA BHASHKAR RAO,8519903576,softpro.ppm@gmail.com,AP35W5300,Auto (Passenger),SBI General,Comprehensive,08-11-2024,07-11-2025,7371.00,7371.00,1229.00,Self
+Motor,Agent,DHEESARI SATYANARAYANA,9160271272,chbalaram321@gmail.com,AP35X7276,Auto (Passenger),SBI General,Comprehensive,08-11-2024,07-11-2025,7517.00,7517.00,300.00,Chinta Balaram Naidu
+Motor,Agent,JAMMA SUDHAKAR,9160271272,chbalaram321@gmail.com,AP39TJ6749,Auto (Passenger),SBI General,Comprehensive,08-11-2024,07-11-2025,7505.00,7505.00,300.00,Chinta Balaram Naidu
+Motor,Self,POLIREDDY SATYANARAYANA,8074120729,softpro.ppm@gmail.com,AP39CE6257,Two-Wheeler,Go Digit,Third Party,07-11-2024,06-11-2025,842.00,842.00,100.00,Self
+Motor,Agent,REDDY RAGHAVA KUMAR,9160271272,chbalaram321@gmail.com,AP35Y5218,Tractor,Chola MS,Comprehensive,07-11-2024,06-11-2025,13734.00,13734.00,1164.00,Chinta Balaram Naidu
+Motor,Agent,GANESH AARIKA,9160271272,chbalaram321@gmail.com,AP35Y1901,Auto (Passenger),SBI General,Comprehensive,07-11-2024,06-11-2025,7535.00,7535.00,300.00,Chinta Balaram Naidu
+Motor,Agent,CHODARAPU SOMESWARA RAO,9160271272,chbalaram321@gmail.com,AP39TS9429,Tractor,SBI General,Comprehensive,07-11-2024,06-11-2025,13312.00,13312.00,902.00,Chinta Balaram Naidu
+Motor,Self,PADALA SIMHACHALAM ,9390391235,softpro.ppm@gmail.com,AP39TA5704,Tractor,SBI General,Comprehensive,06-11-2024,05-11-2025,12574.00,12574.00,1600.00,Self
+Motor,Self,ALLU SRINIVASA RAO,9703747009,softpro.ppm@gmail.com,AP39TL3519,Tractor,Chola MS,Comprehensive,05-11-2024,04-11-2025,13315.00,13315.00,0.00,Self
+Motor,Agent,VANJALA RAMAKRISHNA,9160271272,chbalaram321@gmail.com,AP39TM6468,Auto (Passenger),SBI General,Comprehensive,05-11-2024,04-11-2025,7416.00,7416.00,300.00,Chinta Balaram Naidu
+Motor,Self,SANTHI RAJU SEPENA,9640844053,softpro.ppm@gmail.com,AP35Y1877,Auto (Passenger),SBI General,Comprehensive,05-11-2024,04-11-2025,7317.00,7317.00,883.00,Self
+Motor,Self,JAMBADA SOMESHU,9010790667,softpro.ppm@gmail.com,AP35TB4336,Auto (Passenger),SBI General,Comprehensive,05-11-2024,04-11-2025,7427.00,7427.00,1173.00,Self
+Motor,Agent,BOORI APPALA NAIDU,9160271272,chbalaram321@gmail.com,AP37TD9116,LCV (Goods),SBI General,Comprehensive,04-11-2024,03-11-2025,19706.00,19706.00,1588.00,Chinta Balaram Naidu
+Motor,Self,KANAKALA SURESH,6305762849,softpro.ppm@gmail.com,AP35X7155,Auto (Passenger),SBI General,Comprehensive,03-11-2024,02-11-2025,7383.00,7383.00,817.00,Self
+Motor,Self,ODDU RAMESH,9963119913,softpro.ppm@gmail.com,AP35X0217,Auto (Passenger),SBI General,Third Party,03-11-2024,02-11-2025,7196.00,7196.00,804.00,Self
+Motor,Agent, TODABANDI APPALANAIDU,9160271272,chbalaram321@gmail.com,AP39TD1338,Auto (Passenger),SBI General,Comprehensive,03-11-2024,02-11-2025,7374.00,7374.00,300.00,Chinta Balaram Naidu
+Motor,Self,GUNUPURU VENKATA RAO,7386244445,softpro.ppm@gmail.com,AP39JC0099,Car (Private),SBI General,Comprehensive,03-11-2024,02-11-2025,31035.00,31035.00,2390.00,Self
+Motor,Agent,BEHARA VENKATARAMANA,9160271272,chbalaram321@gmail.com,AP35X9254,Auto (Passenger),SBI General,Third Party,03-11-2024,02-11-2025,7196.00,7196.00,400.00,Chinta Balaram Naidu
+Motor,Agent,NADIMINTI APPALANAIDU,9160271272,chbalaram321@gmail.com,AP39V5364,Auto (Passenger),SBI General,Third Party,03-11-2024,02-11-2025,7196.00,7196.00,400.00,Chinta Balaram Naidu
+Motor,Self,GANDARAPU SUJATHA,9000511213,softpro.ppm@gmail.com,AP35X6506,Auto (Passenger),SBI General,Comprehensive,03-11-2024,02-11-2025,6993.00,6993.00,1007.00,Self
+Motor,Self,NAGARAJU GEMBALI,7306262333,softpro.ppm@gmail.com,AP35Y1256,Auto (Passenger),SBI General,Comprehensive,02-11-2024,01-11-2025,7476.00,7476.00,724.00,Self
+Motor,Self,POLA SURESH,8500535836,softpro.ppm@gmail.com,AP35W8527,Auto (Passenger),SBI General,Third Party,02-11-2024,01-11-2025,7196.00,7196.00,704.00,Self
+Motor,Self,KOTA SANKARA RAO,9398539887,softpro.ppm@gmail.com,AP07TH2618,Trailer,United India,Third Party,02-11-2024,01-11-2025,2485.00,2485.00,300.00,Self
+Motor,Agent,AKKENA SANKARA RAO,9160271272,chbalaram321@gmail.com,AP35TB3767,Auto (Passenger),SBI General,Comprehensive,02-11-2024,01-11-2025,7552.00,7552.00,300.00,Chinta Balaram Naidu
+Motor,Self,VANJARAPU CHANTI,6302982332,softpro.ppm@gmail.com,AP35TB4374,Tractor,SBI General,Comprehensive,02-11-2024,01-11-2025,12969.00,12969.00,2427.00,Self
+Motor,Self,DONAKA UMA MAHESWARA RAO,6281340393,softpro.ppm@gmail.com,AP39TD6511,Auto (Passenger),SBI General,Comprehensive,02-11-2024,01-11-2025,7344.00,7344.00,956.00,Self
+Motor,Self,Perapatruni Suneetha,8367365073,softpro.ppm@gmail.com,AP39X2757,Auto (Passenger),SBI General,Comprehensive,02-11-2024,01-11-2025,7028.00,7028.00,1072.00,Self
+Motor,Self,DASARI PADMA,9441019414,softpro.ppm@gmail.com,AP39RE9363,Two-Wheeler,Shriram General,Comprehensive,01-11-2024,31-10-2025,614.00,614.00,100.00,Self
+Motor,Self,GULLIPALLI SRINIVASA RAO,9441019414,softpro.ppm@gmail.com,AP39QX6310,Two-Wheeler,Shriram General,Comprehensive,01-11-2024,31-10-2025,711.00,711.00,100.00,Self
+Motor,Agent,VENNELA DURGARAO,9160271272,chbalaram321@gmail.com,AP35X7152,Tractor,SBI General,Comprehensive,31-10-2024,30-10-2025,12946.00,12946.00,820.00,Chinta Balaram Naidu
+Motor,Agent,YALLANKI SRINIVAS,9160271272,chbalaram321@gmail.com,AP31TE0095,Auto (Passenger),SBI General,Comprehensive,31-10-2024,30-10-2025,7312.00,7312.00,300.00,Chinta Balaram Naidu
+Motor,Self,Vuyaka Majji Gowri,8374069810,softpro.ppm@gmail.com,AP35Y1601,Auto (Passenger),SBI General,Comprehensive,31-10-2024,30-10-2025,7494.00,7494.00,700.00,Self
+Motor,Self,BADE CHINNAM NAIDU,9989803819,softpro.ppm@gmail.com,AP35W0506,Tractor,SBI General,Comprehensive,30-10-2024,29-10-2025,12946.00,12946.00,3620.00,Self
+Motor,Self,PATUR SRINIVASARAO,7569108891,softpro.ppm@gmail.com,AP39UT0692,Tractor,SBI General,Comprehensive,29-10-2024,28-10-2025,13622.00,13622.00,3309.00,Self
+Motor,Self,POTULA LINGAYYA,8500453856,softpro.ppm@gmail.com,AP39UL9606,Auto (Passenger),SBI General,Comprehensive,27-10-2024,26-10-2025,7802.00,7802.00,500.00,Self
+Motor,Agent,T APPALANAIDU,9160271272,chbalaram321@gmail.com,AP39TY3296,Tractor,SBI General,Comprehensive,26-10-2024,25-10-2025,13517.00,13517.00,1223.00,Chinta Balaram Naidu
+Motor,Self, SRI VENKATESWARA RYTHU MITRA GROUP,9441013679,softpro.ppm@gmail.com,AP39SP6137,Tractor,SBI General,Comprehensive,26-10-2024,25-10-2025,9852.00,9852.00,1755.00,Self
+Motor,Self,BADE JOGI NAIDU,6303676059,softpro.ppm@gmail.com,AP35W7744,Tractor,SBI General,Comprehensive,26-10-2024,25-10-2025,12808.00,12808.00,2382.00,Self
+Motor,Self,PALLEM PRASAD RAO,6305130678,softpro.ppm@gmail.com,AP39TN4904,Auto (Passenger),SBI General,Comprehensive,26-10-2024,25-10-2025,7463.00,7463.00,937.00,Self
+Motor,Agent,GOWRI SANKAR KARRI,9160271272,chbalaram321@gmail.com,AP35TB0751,Auto (Passenger),SBI General,Comprehensive,25-10-2024,24-10-2025,7574.00,7574.00,300.00,Chinta Balaram Naidu
+Motor,Self,LOKKOJU SANTOSH KUMAR,7993873433,softpro.ppm@gmail.com,AP35X6882,Auto (Passenger),SBI General,Comprehensive,25-10-2024,24-10-2025,7325.00,7325.00,800.00,Self
+Motor,Self,CHALLA CHINNAMNAIDU,9491841180,softpro.ppm@gmail.com,AP35W9909,HGV (Goods),SBI General,Comprehensive,24-10-2024,23-10-2025,42057.00,42057.00,4000.00,Self
+Motor,Agent,NALLA NAGABHUSHANA RAO,9160271272,chbalaram321@gmail.com,AP39US8850,Auto (Passenger),SBI General,Comprehensive,24-10-2024,23-10-2025,7754.00,7754.00,300.00,Chinta Balaram Naidu
+Motor,Agent,CHIPURUPALLI NARASIMHA RAO,9160271272,chbalaram321@gmail.com,AP39US9094,Auto (Passenger),SBI General,Comprehensive,24-10-2024,23-10-2025,7754.00,7754.00,300.00,Chinta Balaram Naidu
+Motor,Self,SINGIPURAM TRINADHA RAO,9381161153,softpro.ppm@gmail.com,AP39TZ0247,LCV (Goods),Future Generali,Comprehensive,24-10-2024,23-10-2025,21122.00,21122.00,1878.00,Self
+Motor,Self,KULLUMATLA RAMANA,6305252844,softpro.ppm@gmail.com,AP39TU5538,Tractor,SBI General,Comprehensive,24-10-2024,23-10-2025,12753.00,12753.00,2813.00,Self
+Motor,Self, THOTA RAJU,8179205594,softpro.ppm@gmail.com,AP35TA1257,Auto (Passenger),SBI General,Comprehensive,24-10-2024,23-10-2025,7427.00,7427.00,873.00,Self
+Motor,Agent,AVALA PAVAN KUMAR,9160271272,chbalaram321@gmail.com,AP39US8900,Auto (Passenger),SBI General,Comprehensive,23-10-2024,22-10-2025,7754.00,7754.00,300.00,Chinta Balaram Naidu
+Motor,Agent,YALLA GOWRI SANKAR RAO,9160271272,chbalaram321@gmail.com,AP35TB2821,Auto (Passenger),SBI General,Comprehensive,23-10-2024,22-10-2025,7380.00,7380.00,300.00,Chinta Balaram Naidu
+Motor,Self,GORJI SANKAR RAO,9948809017,softpro.ppm@gmail.com,AP39TA3598,Auto (Passenger),SBI General,Comprehensive,23-10-2024,22-10-2025,7440.00,7440.00,800.00,Self
+Motor,Agent,PALAKA SRINUVASARAO,9160271272,chbalaram321@gmail.com,AP35TA1295,Auto (Passenger),SBI General,Comprehensive,23-10-2024,22-10-2025,7598.00,7598.00,300.00,Chinta Balaram Naidu
+Motor,Agent,MUDILA DHANUJAYARAO,9160271272,chbalaram321@gmail.com,AP39US2622,Tractor,SBI General,Comprehensive,21-10-2024,20-10-2025,13585.00,13585.00,1266.00,Chinta Balaram Naidu
+Motor,Agent,BONU BANGARUNAIDU,9160271272,chbalaram321@gmail.com,AP39VB5231,Auto (Passenger),SBI General,Comprehensive,20-10-2024,19-10-2025,7736.00,7736.00,300.00,Chinta Balaram Naidu
+Motor,Self,DOKULU RAMU,9652689477,softpro.ppm@gmail.com,AP35Y2344,Auto (Passenger),SBI General,Comprehensive,20-10-2024,19-10-2025,7465.00,7465.00,300.00,Self
+Motor,Agent,BURIDI UMAMAHESH,9160271272,chbalaram321@gmail.com,AP39UJ0621,Trailer,The New India,Third Party,19-10-2024,18-10-2025,2783.00,2783.00,150.00,Chinta Balaram Naidu
+Motor,Agent,THANNA RAMESH NAIDU,9160271272,chbalaram321@gmail.com,AP39TD4021,Auto (Passenger),SBI General,Comprehensive,17-10-2024,16-10-2025,7427.00,7427.00,300.00,Chinta Balaram Naidu
+Motor,Agent,ANNEPU SRINU,9160271272,chbalaram321@gmail.com,AP39TD3311,Auto (Passenger),SBI General,Comprehensive,16-10-2024,15-10-2025,7598.00,7598.00,300.00,Chinta Balaram Naidu
+Motor,Agent,PATRA LAKSHMANARAO,9160271272,chbalaram321@gmail.com,AP35TB2480,Auto (Passenger),SBI General,Comprehensive,10-10-2024,09-10-2025,7455.00,7455.00,300.00,Chinta Balaram Naidu
+Motor,Self,KADALI CHANDRASEKHARA RAO,7799773656,softpro.ppm@gmail.com,AP39LL5484,Car (Private),Tata AIG,Comprehensive,08-10-2024,07-10-2025,15064.00,15064.00,1520.00,Self
+Motor,Agent,SUNIL KUMAR BHUPATHI,9160271272,chbalaram321@gmail.com,AP39TN0932,Auto (Passenger),SBI General,Comprehensive,06-10-2024,05-10-2025,7656.00,7656.00,300.00,Chinta Balaram Naidu
+Motor,Self,CHODAVARAPU VENKATARAMANA,7207828913,softpro.ppm@gmail.com,AP39UD8938,Trailer,United India,Third Party,06-10-2024,05-10-2025,2485.00,2485.00,350.00,Self
+Motor,Self,RAYAGADA LAXMANA DORA,7386709609,softpro.ppm@gmail.com,AP30TA2209,Auto (Passenger),SBI General,Comprehensive,04-10-2024,03-10-2025,7479.00,7479.00,821.00,Self
+Motor,Agent,GORRELA GOWRISHANKARA RAO,9160271272,chbalaram321@gmail.com,AP35TB0966,LCV (Goods),SBI General,Comprehensive,01-10-2024,30-09-2025,19738.00,19738.00,1500.00,Chinta Balaram Naidu
+Motor,Agent, PALAKOLLU RAMAPRASAD,9160271272,chbalaram321@gmail.com,AP39UP9040,Auto (Passenger),SBI General,Comprehensive,01-10-2024,30-09-2025,7879.00,7879.00,300.00,Chinta Balaram Naidu
+Motor,Self,PUDI RAMAKRISHNA,9014584512,softpro.ppm@gmail.com,AP39UD8413,Tractor,SBI General,Comprehensive,27-09-2024,26-09-2025,13018.00,13018.00,2440.00,Self
+Motor,Self,PUDI PARVATHI,9014584512,softpro.ppm@gmail.com,AP35T7528,Trailer,United India,Third Party,27-09-2024,26-09-2025,2783.00,2783.00,350.00,Self
+Motor,Self,SATYANARAYANA  TADDI,7660850710,softpro.ppm@gmail.com,AP39TV7177,Tractor,SBI General,Comprehensive,27-09-2024,26-09-2025,12766.00,12766.00,2370.00,Self
+Motor,Self,UMAMAHESWARA RAO NEELAPU,9177744920,softpro.ppm@gmail.com,AP35V1765,Auto (Passenger),SBI General,Comprehensive,26-09-2024,25-09-2025,7255.00,7255.00,600.00,Self
+Motor,Self,PALAGARRA SANKARA RAO,9177995030,softpro.ppm@gmail.com,AP35TA0273,Auto (Passenger),SBI General,Comprehensive,21-09-2024,20-09-2025,7468.00,7468.00,932.00,Self
+Motor,Self,THODARANGI DHANUNJEYA,9652891112,softpro.ppm@gmail.com,AP35TA0062,Auto (Passenger),SBI General,Third Party,18-09-2024,17-09-2025,7255.00,7255.00,645.00,Self
+Motor,Self,YALLA MANOJ KUMAR,9440222001,softpro.ppm@gmail.com,AP39KX6391,Car (Private),Chola MS,Comprehensive,17-09-2024,16-09-2025,16396.00,16396.00,1500.00,Self
+Motor,Self,KORADA BHASKARARAO,9676963894,softpro.ppm@gmail.com,AP35X5367,Auto (Passenger),SBI General,Comprehensive,17-09-2024,16-09-2025,7479.00,7479.00,621.00,Self
+Motor,Self,BATHULA SANKARA RAO,8688595772,softpro.ppm@gmail.com,AP39TX6425,Auto (Passenger),SBI General,Comprehensive,17-09-2024,16-09-2025,7545.00,7545.00,755.00,Self
+Motor,Agent,RAJAMAHENDRAVARAPU GOWRI SHANKAR,9160271272,chbalaram321@gmail.com,AP35TB1608,Auto (Passenger),SBI General,Comprehensive,17-09-2024,16-09-2025,7574.00,7574.00,400.00,Chinta Balaram Naidu
+Motor,Self,GUMPA SWAMI PEDDINTI,8008343336,softpro.ppm@gmail.com,AP35TB0758,Auto (Passenger),SBI General,Comprehensive,14-09-2024,13-09-2025,7598.00,7598.00,702.00,Self
+Motor,Self,Malireddy Nagabhusana Rao,6372974718,softpro.ppm@gmail.com,AP35V5073,Auto (Passenger),SBI General,Third Party,13-09-2024,12-09-2025,7255.00,7255.00,845.00,Self
+Motor,Self,KARRI THIRUPATHI,6303332016,softpro.ppm@gmail.com,AP39VA4236,Auto (Passenger),SBI General,Comprehensive,12-09-2024,11-09-2025,0.00,0.00,0.00,Self
+Motor,Self,CHODAPARAPU RAMBABU,8142727966,softpro.ppm@gmail.com,AP39UG8409,Trailer,United India,Third Party,12-09-2024,11-09-2025,2783.00,2783.00,367.00,Self
+Motor,Agent,BHANUJI RAO BONGU,9160271272,chbalaram321@gmail.com,AP05TD0295,LCV (Goods),SBI General,Comprehensive,11-09-2024,10-09-2025,19461.00,19461.00,1000.00,Chinta Balaram Naidu
+Motor,Self,BOMMI SRINIVASARAO,9985089723,softpro.ppm@gmail.com,AP39UG9332,Trailer,United India,Third Party,11-09-2024,10-09-2025,2783.00,2783.00,367.00,Self
+Motor,Self,KODANDA ANJI DORA,7730991661,softpro.ppm@gmail.com,AP35X3916,Auto (Passenger),SBI General,Comprehensive,07-09-2024,06-09-2025,7510.00,7510.00,700.00,Self
+Motor,Self,YANAPARTHI NAGESWARARAO,9573912424,softpro.ppm@gmail.com,AP35AN9834,Two-Wheeler,Go Digit,Comprehensive,01-09-2024,31-08-2025,1509.00,1509.00,361.00,Self
+Motor,Self,SHANAMULLU CHINNA RAO,7569058481,softpro.ppm@gmail.com,AP39TX3997,Auto (Passenger),SBI General,Comprehensive,05-09-2025,04-09-2026,7556.00,5300.00,3100.00,Self
+Motor,Agent,ARIKA PRASAD,9160271272,chbalaram321@gmail.com,AP39TJ2723,Auto (Passenger),SBI General,Comprehensive,30-08-2024,29-08-2025,7633.00,7633.00,400.00,Chinta Balaram Naidu
+Motor,Agent,KONDATAMARA APHRID,9160271272,chbalaram321@gmail.com,AP39TS7103,Auto (Passenger),SBI General,Comprehensive,30-08-2024,29-08-2025,7656.00,7656.00,400.00,Chinta Balaram Naidu
+Motor,Self,PORAPU CHIRANJEEVULU,8520809689,softpro.ppm@gmail.com,AP35Y0094,Auto (Passenger),SBI General,Comprehensive,30-08-2024,29-08-2025,7441.00,7441.00,1159.00,Self
+Motor,Self,NIMMAKA NAGARJUNA,8500782715,softpro.ppm@gmail.com,AP39TC0791,Auto (Passenger),SBI General,Comprehensive,27-08-2024,26-08-2025,7547.00,7547.00,500.00,Self
+Motor,Self,BOTTA NARASIMHULU,9848836562,softpro.ppm@gmail.com,AP39Y9971,Auto (Passenger),SBI General,Comprehensive,27-08-2024,26-08-2025,7530.00,7530.00,500.00,Self
+Motor,Self,TUMARADA SANKARA RAO,9491321471,softpro.ppm@gmail.com,AP35W6582,Auto (Passenger),SBI General,Comprehensive,25-08-2024,24-08-2025,7255.00,7255.00,745.00,Self
+Motor,Self,MANDANGI SUBHASH,9493940452,softpro.ppm@gmail.com,AP39Y5338,Auto (Passenger),SBI General,Comprehensive,24-08-2024,23-08-2025,7620.00,7620.00,800.00,Self
+Motor,Self, GOWRISANKARRAO BATTINI,7989745739,softpro.ppm@gmail.com,AP35Y3206,Auto (Passenger),SBI General,Comprehensive,14-08-2024,13-08-2025,7455.00,7455.00,1645.00,Self
+Motor,Self,ROMPILLI LAXMANA RAO,8096958136,softpro.ppm@gmail.com,AP39T9458,Auto (Passenger),SBI General,Comprehensive,14-08-2024,13-08-2025,7400.00,7400.00,1200.00,Self
+Motor,Self,PODUGU MURALIKRISHNA,8919285635,softpro.ppm@gmail.com,AP35TB3487,Auto (Passenger),SBI General,Comprehensive,04-08-2024,03-08-2025,7530.00,7530.00,600.00,Self
+Motor,Self,SAMBANGI SIMHACHALAM,8885920222,softpro.ppm@gmail.com,AP39UA6414,Tractor,SBI General,Comprehensive,31-07-2024,30-07-2025,13631.00,13631.00,2480.00,Self
+Motor,Agent,PATHIREDDI JOSHNA,9160271272,chbalaram321@gmail.com,AP39UE1568,LCV (Goods),SBI General,Comprehensive,24-07-2024,23-07-2025,22272.00,22272.00,2000.00,Chinta Balaram Naidu
+Motor,Agent,JALAMURU YESWANTH,9160271272,chbalaram321@gmail.com,AP39X1824,Auto (Passenger),Future Generali,Comprehensive,18-07-2024,17-07-2025,7598.00,7598.00,400.00,Chinta Balaram Naidu
+Motor,Agent,DODDI MOHANARAO,9160271272,chbalaram321@gmail.com,AP35W8625,Auto (Passenger),SBI General,Comprehensive,17-07-2024,16-07-2025,7255.00,7255.00,400.00,Chinta Balaram Naidu
+Motor,Self,MAJJI KRISHNARAO,8297096070,softpro.ppm@gmail.com,AP35TB2362,Auto (Passenger),SBI General,Comprehensive,11-07-2024,10-07-2025,7530.00,7530.00,1100.00,Self
+Motor,Self,THOTA RAMAKRISHNA,9550290229,softpro.ppm@gmail.com,AP35TB3271,Auto (Passenger),SBI General,Comprehensive,07-07-2024,06-07-2025,7255.00,7255.00,1100.00,Self
+Motor,Self,MIRIYALA VASUDEVARAO,9666561731,softpro.ppm@gmail.com,AP39TJ8033,Tractor,SBI General,Comprehensive,16-06-2024,15-06-2025,13321.00,13321.00,3162.00,Self
+Motor,Agent,GOLLAPILLI GANGU NAIDU,9160271272,chbalaram321@gmail.com,AP39T8495,Auto (Passenger),SBI General,Comprehensive,15-06-2024,14-06-2025,7564.00,7564.00,400.00,Chinta Balaram Naidu
+Motor,Self,GARUGUBILLI VINOD KUMAR,9502512256,softpro.ppm@gmail.com,AP35W7901 ,Auto (Passenger),SBI General,Comprehensive,15-06-2024,14-06-2025,7333.00,7333.00,1367.00,Self
+Motor,Agent,NEELABONU BHASKARA RAO,9160271272,chbalaram321@gmail.com,AP39TN4873,Auto (Passenger),SBI General,Comprehensive,13-06-2024,12-06-2025,7631.00,7631.00,400.00,Chinta Balaram Naidu
+Motor,Self,BIDDIKA SRIKANTH,8985027392,softpro.ppm@gmail.com,AP39UP6916,Auto (Passenger),SBI General,Comprehensive,12-06-2024,11-06-2025,7769.00,7769.00,400.00,Self
+Motor,Self,BEHARA SHENKARA RAO P,9440990244,softpro.ppm@gmail.com,AP35X3411,Auto (Passenger),SBI General,Comprehensive,09-06-2024,08-06-2025,7196.00,7196.00,1104.00,Self
+Motor,Self, ESTHER RANI L,8328403223,softpro.ppm@gmail.com,AP35AQ1706,Car (Private),Bajaj Allianz,Comprehensive,08-06-2024,07-06-2025,13664.00,13664.00,1300.00,Self
+Motor,Agent,BAKKIREDDI YERUKUNAIDU,9160271272,chbalaram321@gmail.com,AP39TF1621,Auto (Passenger),SBI General,Comprehensive,24-05-2024,23-05-2025,7605.00,7605.00,400.00,Chinta Balaram Naidu
+Motor,Self,PAPPALA SURESH,7675909095,softpro.ppm@gmail.com,AP39TV0447,Tractor,SBI General,Comprehensive,23-05-2024,22-05-2025,13374.00,13374.00,2626.00,Self
+Motor,Self,SAMBANGI CHINNAM NAIDU ,9676448829,softpro.ppm@gmail.com,AP35V2501,Trailer,United India,Third Party,23-05-2024,22-05-2025,2785.00,2785.00,365.00,Self
+Motor,Self,CHUKKA SHANKAR RAO,9951847867,softpro.ppm@gmail.com,AP35X4670,Auto (Passenger),SBI General,Comprehensive,04-05-2024,03-05-2025,7368.00,7368.00,500.00,Self
+Motor,Self,ARIKA SRINU,9502628630,softpro.ppm@gmail.com,AP39TD6527,Auto (Passenger),SBI General,Comprehensive,01-05-2024,30-04-2025,7581.00,7581.00,1100.00,Self
+Motor,Self,SINGARATHI ASHOK KUMAR,8106522604,softpro.ppm@gmail.com,AP35Y3694,Auto (Passenger),SBI General,Comprehensive,01-05-2024,30-04-2025,7412.00,7412.00,1100.00,Self
+Motor,Self,KOORANGI LAKSHMI,8500147141,softpro.ppm@gmail.com,AP35Y1160,Auto (Passenger),SBI General,Comprehensive,01-05-2024,30-04-2025,7407.00,7407.00,1100.00,Self
+Motor,Agent,MITHIREDDY KURMARAO,9160271272,chbalaram321@gmail.com,AP39V9332,Auto (Passenger),SBI General,Comprehensive,29-04-2024,28-04-2025,7512.00,7512.00,400.00,Chinta Balaram Naidu
+Motor,Agent,TIRUPATHI RAO SAVUKARI,9160271272,chbalaram321@gmail.com,AP35TA1311,Auto (Passenger),SBI General,Comprehensive,26-04-2024,25-04-2025,7485.00,7485.00,400.00,Chinta Balaram Naidu
+Motor,Self,VANA SATEESH,9642602282,softpro.ppm@gmail.com,AP39TN3226,Tractor,SBI General,Comprehensive,24-04-2024,23-04-2025,13207.00,13207.00,2493.00,Self
+Motor,Self,PUDI VENKATA NAIDU,8919285635,softpro.ppm@gmail.com,AP35Y2661,Trailer,United India,Third Party,23-04-2024,22-04-2025,2783.00,2783.00,317.00,Self
+Motor,Self,VANGAPANDU RAMESH,9010542527,softpro.ppm@gmail.com,AP39VE2597,Trailer,The New India,Comprehensive,23-04-2024,04-02-2025,2783.00,2783.00,0.00,Self
+Motor,Self,ROMPALLI PRASADARAO,9010618523,softpro.ppm@gmail.com,AP39T4994,Tractor,SBI General,Comprehensive,21-04-2024,20-04-2025,13142.00,13142.00,2500.00,Self
+Motor,Self,CHERUKUBILLI KIRAN,9550587057,softpro.ppm@gmail.com,AP35X4510,Auto (Passenger),SBI General,Comprehensive,19-04-2024,18-04-2025,7317.00,7317.00,1383.00,Self
+Motor,Self,MALIREDDY NAGABHUSANARAO,6372974718,softpro.ppm@gmail.com,AP31TC4633,Auto (Passenger),SBI General,Comprehensive,19-04-2024,18-04-2025,7330.00,7330.00,0.00,Self
+Motor,Self,SEERA KIRAN KUMAR,9441019414,softpro.ppm@gmail.com,AP39TK2980,Tractor,SBI General,Comprehensive,19-04-2024,18-04-2025,12717.00,12717.00,2256.00,Self
+Motor,Self,ALAM SATYA SRI,7702771569,softpro.ppm@gmail.com,AP31EB5516,Two-Wheeler,Go Digit,Third Party,18-04-2024,17-04-2025,842.00,842.00,200.00,Self
+Motor,Self,ARIKA PRASADA RAO,9515790567,softpro.ppm@gmail.com,AP39UD1482,Auto (Passenger),SBI General,Comprehensive,17-04-2024,16-04-2025,7579.00,7579.00,1321.00,Self
+Motor,Self,GRANDHI SUMAN,9515790567,softpro.ppm@gmail.com,AP35X8052,Auto (Passenger),SBI General,Comprehensive,16-04-2024,15-04-2025,7465.00,7465.00,435.00,Self
+Motor,Self,ILLA CHANDRA SEKHAR,9182903279,softpro.ppm@gmail.com,AP39TH9436,Auto (Passenger),SBI General,Comprehensive,13-04-2024,12-04-2025,7619.00,7619.00,1181.00,Self
