@@ -26,8 +26,8 @@
 
 # PHP Upload Limits
 <IfModule mod_php.c>
-    php_value upload_max_filesize 3M
-    php_value post_max_size 3M
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
     php_value max_execution_time 300
     php_value max_input_time 300
     php_value memory_limit 256M
@@ -36,6 +36,6 @@
 # Alternative for PHP-FPM
 <IfModule mod_fastcgi.c>
     <IfModule mod_fcgid.c>
-        FcgidMaxRequestLen 3145728
+        FcgidMaxRequestLen 10485760
     </IfModule>
 </IfModule>

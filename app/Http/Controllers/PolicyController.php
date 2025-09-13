@@ -74,11 +74,11 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             'vehicleNumber' => 'nullable|string|max:20',
             'vehicleType' => 'nullable|string|max:50',
-            // File upload validation - set to 5MB
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
-            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            // File upload validation - set to 10MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'rcCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
 
         ];
 
@@ -261,10 +261,10 @@ class PolicyController extends Controller
             'payout' => 'nullable|numeric|min:0',
             // Optional business type when updating; restrict to new values
             'businessType' => 'nullable|in:Self,Agent',
-            // File upload validation - set to 5MB
-            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
-            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
-            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+            // File upload validation - set to 10MB
+            'policyCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'aadharCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'panCopy' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
         ];
         
         // Add Motor-specific validation rules only for Motor policies
