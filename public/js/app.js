@@ -1973,8 +1973,13 @@ const initializeEventListeners = () => {
         }
     });
     
-    // Auto-calculate end date for policy
+    // Auto-calculate end date for policy (only for new policies, not edit mode)
     $('#startDate').change(function() {
+        // Don't auto-calculate if we're in edit mode
+        if ($('#policyModalTitle').text() === 'Edit Policy') {
+            return;
+        }
+        
         const startDate = new Date($(this).val());
         const endDate = new Date(startDate);
         endDate.setFullYear(endDate.getFullYear() + 1);
