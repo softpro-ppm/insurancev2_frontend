@@ -63,29 +63,30 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.7);
+            color: #6b7280;
             font-size: 16px;
         }
         
         .form-input {
             width: 100% !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid rgba(79, 70, 229, 0.3) !important;
             border-radius: 12px !important;
             padding: 16px 16px 16px 48px !important;
-            color: #ffffff !important;
+            color: #1f2937 !important;
             font-size: 16px !important;
             transition: all 0.3s ease !important;
         }
         
         .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
+            color: #6b7280 !important;
         }
         
         .form-input:focus {
             outline: none !important;
-            border-color: rgba(255, 255, 255, 0.5) !important;
-            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: #4f46e5 !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
         }
         
         .auth-button {
