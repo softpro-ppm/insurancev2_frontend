@@ -31,15 +31,18 @@
         }
         
         .auth-title {
-            color: #ffffff !important;
-            font-size: 28px !important;
-            font-weight: 600 !important;
+            color: #000000 !important;
+            font-size: 32px !important;
+            font-weight: 700 !important;
             margin-bottom: 8px !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
         }
         
         .auth-subtitle {
-            color: rgba(255, 255, 255, 0.8) !important;
-            font-size: 16px !important;
+            color: #333333 !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
         }
         
         .form-group {
@@ -48,10 +51,11 @@
         
         .form-label {
             display: block;
-            color: #ffffff !important;
-            font-weight: 500 !important;
+            color: #000000 !important;
+            font-weight: 700 !important;
             margin-bottom: 8px !important;
-            font-size: 14px !important;
+            font-size: 16px !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
         }
         
         .input-wrapper {
