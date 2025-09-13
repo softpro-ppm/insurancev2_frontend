@@ -70,26 +70,28 @@
         .form-input {
             width: 100% !important;
             background: #ffffff !important;
-            border: 2px solid #d1d5db !important;
+            border: 3px solid #374151 !important;
             border-radius: 12px !important;
             padding: 16px 16px 16px 48px !important;
-            color: #111827 !important;
-            font-size: 16px !important;
-            font-weight: 500 !important;
+            color: #000000 !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
             transition: all 0.3s ease !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         }
         
         .form-input::placeholder {
-            color: #9ca3af !important;
-            font-weight: 400 !important;
+            color: #4b5563 !important;
+            font-weight: 500 !important;
+            font-size: 16px !important;
         }
         
         .form-input:focus {
             outline: none !important;
-            border-color: #4f46e5 !important;
+            border-color: #1d4ed8 !important;
             background: #ffffff !important;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
-            color: #111827 !important;
+            box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.2) !important;
+            color: #000000 !important;
         }
         
         .auth-button {
