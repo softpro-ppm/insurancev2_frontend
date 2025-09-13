@@ -3309,6 +3309,9 @@ const editPolicy = async (id) => {
         if (policyType === 'Motor') {
             console.log('EditPolicy: Populating Motor form fields');
             
+            // Temporarily disable auto-calculation during edit mode
+            $('#startDate').off('change');
+            
             // Populate motor-specific fields
             $('#vehicleNumber').val(vehicleNumber);
             $('#vehicleType').val(vehicleType);
@@ -3324,6 +3327,20 @@ const editPolicy = async (id) => {
             $('#customerPaidAmount').val(customerPaidAmount);
             $('#revenue').val(revenue);
             
+            // Re-enable auto-calculation for new policies
+            $('#startDate').on('change', function() {
+                // Don't auto-calculate if we're in edit mode
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#endDate').val(endDate.toISOString().split('T')[0]);
+            });
+            
             console.log('EditPolicy: Motor form fields populated');
             console.log('EditPolicy: Customer name field value:', $('#customerName').val());
             console.log('EditPolicy: Customer phone field value:', $('#customerPhone').val());
@@ -3333,6 +3350,9 @@ const editPolicy = async (id) => {
             console.log('EditPolicy: End date field value:', $('#endDate').val());
             
         } else if (policyType === 'Health') {
+            // Temporarily disable auto-calculation during edit mode
+            $('#healthStartDate').off('change');
+            
             // Populate health-specific fields
             $('#healthCustomerName').val(customerName);
             $('#healthCustomerPhone').val(customerPhone);
@@ -3346,12 +3366,28 @@ const editPolicy = async (id) => {
             $('#healthCustomerPaid').val(customerPaidAmount);
             $('#healthRevenue').val(revenue);
             
+            // Re-enable auto-calculation for new policies
+            $('#healthStartDate').on('change', function() {
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#healthEndDate').val(endDate.toISOString().split('T')[0]);
+            });
+            
             // Additional health fields if available
             if (policy.customerAge) $('#healthCustomerAge').val(policy.customerAge);
             if (policy.customerGender) $('#healthCustomerGender').val(policy.customerGender);
             if (policy.sumInsured) $('#healthSumInsured').val(policy.sumInsured);
             
         } else if (policyType === 'Life') {
+            // Temporarily disable auto-calculation during edit mode
+            $('#lifeStartDate').off('change');
+            
             // Populate life-specific fields
             $('#lifeCustomerName').val(customerName);
             $('#lifeCustomerPhone').val(customerPhone);
@@ -3364,6 +3400,19 @@ const editPolicy = async (id) => {
             $('#lifePayout').val(payout);
             $('#lifeCustomerPaid').val(customerPaidAmount);
             $('#lifeRevenue').val(revenue);
+            
+            // Re-enable auto-calculation for new policies
+            $('#lifeStartDate').on('change', function() {
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#lifeEndDate').val(endDate.toISOString().split('T')[0]);
+            });
             
             // Additional life fields if available
             if (policy.customerAge) $('#lifeCustomerAge').val(policy.customerAge);

@@ -2852,6 +2852,9 @@ const editPolicy = async (id) => {
         if (policyType === 'Motor') {
             console.log('EditPolicy: Populating Motor form fields');
             
+            // Temporarily disable auto-calculation during edit mode
+            $('#startDate').off('change');
+            
             // Populate motor-specific fields
             $('#vehicleNumber').val(vehicleNumber);
             $('#vehicleType').val(vehicleType);
@@ -2866,6 +2869,20 @@ const editPolicy = async (id) => {
             $('#payout').val(payout);
             $('#customerPaidAmount').val(customerPaidAmount);
             $('#revenue').val(revenue);
+            
+            // Re-enable auto-calculation for new policies
+            $('#startDate').on('change', function() {
+                // Don't auto-calculate if we're in edit mode
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#endDate').val(endDate.toISOString().split('T')[0]);
+            });
             
             console.log('EditPolicy: Motor form fields populated');
             console.log('EditPolicy: Customer name field value:', $('#customerName').val());
