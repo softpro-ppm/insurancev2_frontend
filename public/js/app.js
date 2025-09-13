@@ -3149,6 +3149,8 @@ const getPeriodLabel = (period) => {
 };
 // Policy actions
 const editPolicy = async (id) => {
+    console.log('🚀 EditPolicy function called with ID:', id);
+    
     // Initialize from local cache if available
     let policy = (Array.isArray(allPolicies) ? allPolicies.find(p => p.id === id) : null) || null;
     // Clear any pending duplicate timers and messages before proceeding
