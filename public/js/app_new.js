@@ -796,7 +796,6 @@ const loadPoliciesData = async () => {
         filteredData = [];
     }
 };
-
 // Load agents data
 const loadAgentsData = async () => {
     try {
@@ -1431,7 +1430,6 @@ const initializeReportsPage = () => {
     initializeReportTabs();
     generateReports();
 };
-
 // Initialize event listeners
 const initializeEventListeners = () => {
     // Theme toggle
@@ -1462,15 +1460,6 @@ const initializeEventListeners = () => {
             $('#profileDropdown').removeClass('show');
         }
     });
-    
-    // Modal controls - Policy Modal (handled in initializeModals())
-    // $('#addPolicyBtn, #addPolicyFromPoliciesBtn').off('click').on('click', function(e) {
-    //     e.preventDefault();
-    //     e.stopPropagation();
-    //     console.log('Add Policy button clicked:', this.id);
-    //     openPolicyModal();
-    // });
-    // $('#closePolicyModal, #cancelPolicy').click(() => closePolicyModal());
     
     // Modal controls - Agent Modal
     $('#addAgentBtn').click(() => openAgentModal());
@@ -2061,7 +2050,6 @@ const setupDocumentDownloadButtons = (policy) => {
         }
     });
 };
-
 // Form handlers
 const handlePolicySubmit = async (e) => {
     e.preventDefault();
@@ -2707,7 +2695,6 @@ const handleChartPeriodChange = () => {
     // For now, we'll just show a notification
     showNotification(`Chart data updated for ${period}`, 'info');
 };
-
 // Policy actions
 const editPolicy = async (id) => {
     let policy = allPolicies.find(p => p.id === id);
@@ -3440,7 +3427,6 @@ const viewPolicyDetails = (id) => {
     
     populatePolicyModal(policy);
 };
-
 const populatePolicyModal = async (policy) => {
     // Store the current policy ID for the edit button
     window.currentViewingPolicyId = policy.id;
@@ -4168,7 +4154,6 @@ const generateFollowupsCSV = () => {
     
     return csvRows.join('\n');
 }; 
-
 // Multi-step modal functions
 const initializeMultiStepModal = () => {
     // Ensure agent dropdowns are populated and listeners attached
@@ -4459,31 +4444,19 @@ const goToStep = (step) => {
 
 const showPolicyForm = (policyType) => {
     console.log('showPolicyForm: Called with policyType:', policyType);
-    
-    // Hide all forms by removing active class (CSS will handle display)
-    $('.policy-form').removeClass('active');
-    console.log('showPolicyForm: All forms hidden');
-    
-    // Disable validation on ALL hidden fields first (including those in hidden forms)
-    $('.policy-form input[required], .policy-form select[required]').prop('required', false);
-    
-    // Show selected form and add active class (CSS will handle display)
-    const $selectedForm = $(`#${policyType.toLowerCase()}Form`);
-    console.log('showPolicyForm: Selected form element:', $selectedForm);
-    console.log('showPolicyForm: Form exists:', $selectedForm.length > 0);
-    
-    $selectedForm.addClass('active');
-    console.log('showPolicyForm: Form should now be visible');
-    console.log('showPolicyForm: Form has active class:', $selectedForm.hasClass('active'));
-    console.log('showPolicyForm: Form display style:', $selectedForm.css('display'));
-    
-    // Enable validation only on visible fields in the current form
-    $selectedForm.find('input[required], select[required]').prop('required', true);
-    
-    // Set default dates for the visible form
-    setDefaultDates(policyType);
 
-    // Setup auto calculation for revenue based on inputs
+    $('.policy-form').removeClass('active');
+    $('.policy-form input[required], .policy-form select[required]').prop('required', false);
+
+    const $selectedForm = $(`#${policyType.toLowerCase()}Form`);
+    $selectedForm.addClass('active');
+    $selectedForm.find('input[required], select[required]').prop('required', true);
+
+    const isEditMode = $('#policyModalTitle').text().trim() === 'Edit Policy';
+    if (!isEditMode) {
+        setDefaultDates(policyType);
+    }
+
     setupRevenueAutoCalcForPolicyType(policyType);
 };
 
@@ -4492,19 +4465,19 @@ const setDefaultDates = (policyType) => {
     const oneYearLater = new Date(today);
     oneYearLater.setFullYear(today.getFullYear() + 1);
     oneYearLater.setDate(oneYearLater.getDate() - 1);
-    
+
     const startDate = today.toISOString().split('T')[0];
     const endDate = oneYearLater.toISOString().split('T')[0];
-    
+
     if (policyType === 'Motor') {
-        $('#startDate').val(startDate);
-        $('#endDate').val(endDate);
+        if (!$('#startDate').val()) { $('#startDate').val(startDate); }
+        if (!$('#endDate').val()) { $('#endDate').val(endDate); }
     } else if (policyType === 'Health') {
-        $('#healthStartDate').val(startDate);
-        $('#healthEndDate').val(endDate);
+        if (!$('#healthStartDate').val()) { $('#healthStartDate').val(startDate); }
+        if (!$('#healthEndDate').val()) { $('#healthEndDate').val(endDate); }
     } else if (policyType === 'Life') {
-        $('#lifeStartDate').val(startDate);
-        $('#lifeEndDate').val(endDate);
+        if (!$('#lifeStartDate').val()) { $('#lifeStartDate').val(startDate); }
+        if (!$('#lifeEndDate').val()) { $('#lifeEndDate').val(endDate); }
     }
 };
 
@@ -4966,7 +4939,6 @@ const applyRenewalsFilters = () => {
     updateRenewalsPagination();
     updateRenewalsStats();
 };
-
 const handleRenewalsRowsPerPageChange = () => {
     renewalsRowsPerPage = parseInt($('#renewalsRowsPerPage').val());
     renewalsCurrentPage = 1;
@@ -5746,7 +5718,6 @@ const generateRenewalsReport = () => {
         : 0;
     $('#renewalRateReport').text(`${renewalRate.toFixed(1)}%`);
 };
-
 const generateFollowupsReport = () => {
     const tbody = $('#followupsReportTableBody');
     tbody.empty();
@@ -6537,7 +6508,6 @@ const getAllCustomers = () => {
         policyId: policy.id
     }));
 };
-
 const updateMessagePreview = () => {
     const filterType = $('#bulkFilterType').val();
     
@@ -7204,7 +7174,6 @@ const initializeAnalyticsCharts = () => {
         });
     }
 };
-
 // Initialize all modals and their event listeners
 const initializeModals = () => {
     console.log('initializeModals called');

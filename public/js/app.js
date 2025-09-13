@@ -1544,7 +1544,6 @@ window.debugChartStatus = () => {
             console.error('❌ API Error:', error);
         });
 };
-
 window.forceChartRefresh = () => {
     console.log('🔄 Forcing chart refresh...');
     
@@ -2338,7 +2337,6 @@ const openAgentModal = () => {
     $('#agentForm').removeData('edit-id');
     $('#agentModal').addClass('show');
 };
-
 const closeAgentModal = () => {
     $('#agentModal').removeClass('show');
     $('#agentForm')[0].reset();
@@ -3137,7 +3135,6 @@ const handleChartPeriodChange = async () => {
         chartContainer.removeClass('loading');
     }
 };
-
 // Helper function to get period label
 const getPeriodLabel = (period) => {
     switch(period) {
@@ -3931,7 +3928,6 @@ const handlePoliciesSort = (column) => {
     renderPoliciesTable();
     updatePoliciesSortIcons();
 };
-
 const updatePoliciesSortIcons = () => {
     $('#policiesPageTable th[data-sort] i').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
     
@@ -5032,8 +5028,12 @@ const showPolicyForm = (policyType) => {
     // Enable validation only on visible fields in the current form
     $selectedForm.find('input[required], select[required]').prop('required', true);
     
-    // Set default dates for the visible form
-    setDefaultDates(policyType);
+    // Set default dates for the visible form ONLY when adding a new policy.
+    // When editing, keep original dates intact.
+    const isEditMode = $('#policyModalTitle').text().trim() === 'Edit Policy';
+    if (!isEditMode) {
+        setDefaultDates(policyType);
+    }
 
     // Setup auto calculation for revenue based on inputs
     setupRevenueAutoCalcForPolicyType(policyType);
@@ -5048,15 +5048,17 @@ const setDefaultDates = (policyType) => {
     const startDate = today.toISOString().split('T')[0];
     const endDate = oneYearLater.toISOString().split('T')[0];
     
+    // Only set the dates if the fields are empty. This prevents overwriting
+    // any values that were populated programmatically (e.g., during Edit Policy).
     if (policyType === 'Motor') {
-        $('#startDate').val(startDate);
-        $('#endDate').val(endDate);
+        if (!$('#startDate').val()) { $('#startDate').val(startDate); }
+        if (!$('#endDate').val()) { $('#endDate').val(endDate); }
     } else if (policyType === 'Health') {
-        $('#healthStartDate').val(startDate);
-        $('#healthEndDate').val(endDate);
+        if (!$('#healthStartDate').val()) { $('#healthStartDate').val(startDate); }
+        if (!$('#healthEndDate').val()) { $('#healthEndDate').val(endDate); }
     } else if (policyType === 'Life') {
-        $('#lifeStartDate').val(startDate);
-        $('#lifeEndDate').val(endDate);
+        if (!$('#lifeStartDate').val()) { $('#lifeStartDate').val(startDate); }
+        if (!$('#lifeEndDate').val()) { $('#lifeEndDate').val(endDate); }
     }
 };
 
@@ -5507,7 +5509,6 @@ const handleRenewalsSearch = () => {
 const handleRenewalsFilter = () => {
     applyRenewalsFilters();
 };
-
 const applyRenewalsFilters = () => {
     // v2: only search affects filtering here; time period handled on the Blade page
     const searchTerm = ($('#renewalsSearch').val() || '').toLowerCase();
@@ -6295,7 +6296,6 @@ const generatePoliciesReport = () => {
         : 0;
     $('#avgPremiumReport').text(`₹${avgPremium.toFixed(0)}`);
 };
-
 const generateRenewalsReport = () => {
     const tbody = $('#renewalsReportTableBody');
     tbody.empty();
@@ -7094,7 +7094,6 @@ const getRenewalsRecipients = (daysRange, policyType) => {
             policyId: renewal.policyId
         }));
 };
-
 const getFollowupsRecipients = (daysRange, policyType) => {
     const today = new Date();
     const endDate = new Date(today.getTime() + (daysRange * 24 * 60 * 60 * 1000));

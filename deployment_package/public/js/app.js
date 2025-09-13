@@ -1540,7 +1540,6 @@ const initializeFollowupsPage = () => {
     updateFollowupsPagination();
     updateFollowupsStats();
 };
-
 // Initialize reports page
 const initializeReportsPage = () => {
     // Only initialize reports if we're on the reports page
@@ -4731,7 +4730,10 @@ const showPolicyForm = (policyType) => {
     $selectedForm.find('input[required], select[required]').prop('required', true);
     
     // Set default dates for the visible form
-    setDefaultDates(policyType);
+    const isEditMode = $('#policyModalTitle').text().trim() === 'Edit Policy';
+    if (!isEditMode) {
+        setDefaultDates(policyType);
+    }
 
     // Setup auto calculation for revenue based on inputs
     setupRevenueAutoCalcForPolicyType(policyType);
@@ -4747,14 +4749,14 @@ const setDefaultDates = (policyType) => {
     const endDate = oneYearLater.toISOString().split('T')[0];
     
     if (policyType === 'Motor') {
-        $('#startDate').val(startDate);
-        $('#endDate').val(endDate);
+        if (!$('#startDate').val()) { $('#startDate').val(startDate); }
+        if (!$('#endDate').val()) { $('#endDate').val(endDate); }
     } else if (policyType === 'Health') {
-        $('#healthStartDate').val(startDate);
-        $('#healthEndDate').val(endDate);
+        if (!$('#healthStartDate').val()) { $('#healthStartDate').val(startDate); }
+        if (!$('#healthEndDate').val()) { $('#healthEndDate').val(endDate); }
     } else if (policyType === 'Life') {
-        $('#lifeStartDate').val(startDate);
-        $('#lifeEndDate').val(endDate);
+        if (!$('#lifeStartDate').val()) { $('#lifeStartDate').val(startDate); }
+        if (!$('#lifeEndDate').val()) { $('#lifeEndDate').val(endDate); }
     }
 };
 
