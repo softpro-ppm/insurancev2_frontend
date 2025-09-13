@@ -140,12 +140,14 @@ class Policy extends Model
 
     public function getFormattedPremiumAttribute()
     {
-        return '₹' . number_format($this->premium, 2);
+        $value = (float) $this->premium;
+        return '₹' . number_format($value, 0, '.', ',');
     }
 
     public function getFormattedRevenueAttribute()
     {
-        return '₹' . number_format($this->revenue, 2);
+        $value = (float) $this->revenue;
+        return '₹' . number_format($value, 0, '.', ',');
     }
 
     private static function canonicalizeVehicleNumber(?string $value): string

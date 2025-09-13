@@ -1008,16 +1008,17 @@ const loadFollowupsData = async () => {
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
     if (stats.stats) {
-        $('#monthlyPremium').text('₹' + (stats.stats.monthlyPremium || 0).toLocaleString());
-        $('#yearlyPremium').text('₹' + (stats.stats.yearlyPremium || 0).toLocaleString() + ' (FY)');
+        const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
+        $('#monthlyPremium').text(fmtINR(stats.stats.monthlyPremium));
+        $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
         $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
         const renewed = stats.stats.monthlyRenewed || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
         $('#monthlyRenewals').text(`${renewed}/${totalRenewals}`);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
-        $('#monthlyRevenue').text('₹' + (stats.stats.monthlyRevenue || 0).toLocaleString());
-        $('#yearlyRevenue').text('₹' + (stats.stats.yearlyRevenue || 0).toLocaleString() + ' (FY)');
+        $('#monthlyRevenue').text(fmtINR(stats.stats.monthlyRevenue));
+        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
     }
     
     if (stats.chartData) {

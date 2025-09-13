@@ -80,11 +80,13 @@ class Renewal extends Model
 
     public function getFormattedCurrentPremiumAttribute()
     {
-        return '₹' . number_format($this->current_premium, 2);
+        $value = (float) $this->current_premium;
+        return '₹' . number_format($value, 0, '.', ',');
     }
 
     public function getFormattedRenewalPremiumAttribute()
     {
-        return '₹' . number_format($this->renewal_premium, 2);
+        $value = (float) $this->renewal_premium;
+        return '₹' . number_format($value, 0, '.', ',');
     }
 }
