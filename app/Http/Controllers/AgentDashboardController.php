@@ -14,36 +14,46 @@ class AgentDashboardController extends Controller
     {
         $agent = Auth::guard('agent')->user();
         
-        // Get agent's policies
-        $policies = Policy::where('phone', $agent->phone)->get();
+        // Get current month date range
+        $currentMonth = now()->format('Y-m');
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
         
-        // Get agent's renewals
-        $renewals = Renewal::where('agent_name', $agent->name)->get();
+        // 1. Total Policies = policies with start date in current month
+        $totalPoliciesCurrentMonth = Policy::where('phone', $agent->phone)
+            ->whereBetween('startDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->count();
         
-        // Get agent's followups
-        $followups = Followup::where('agent_name', $agent->name)->get();
+        // 2. Total Renewals = policies with end date in current month (expiring this month)
+        $totalRenewalsCurrentMonth = Policy::where('phone', $agent->phone)
+            ->whereBetween('endDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->count();
         
-        // Calculate stats
-        $totalPolicies = $policies->count();
-        $activePolicies = $policies->where('status', 'Active')->count();
-        $expiringSoon = $policies->filter(function($policy) {
-            $endDate = \Carbon\Carbon::parse($policy->endDate);
-            return $endDate->diffInDays(now()) <= 30 && $endDate->isFuture();
-        })->count();
+        // 3. Total Renewed = policies that were updated/modified in current month (renewed)
+        $totalRenewedCurrentMonth = Policy::where('phone', $agent->phone)
+            ->whereBetween('updated_at', [$startOfMonth, $endOfMonth])
+            ->where('updated_at', '!=', 'created_at') // Exclude newly created policies
+            ->count();
         
-        $totalPremium = $policies->sum('premium');
-        $totalRevenue = $policies->sum('revenue');
+        // 4. Total Premium = premium of policies with start date in current month
+        $totalPremiumCurrentMonth = Policy::where('phone', $agent->phone)
+            ->whereBetween('startDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->sum('premium');
+        
+        // Get policies for current month table (start date in current month)
+        $currentMonthPolicies = Policy::where('phone', $agent->phone)
+            ->whereBetween('startDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->orderBy('startDate', 'desc')
+            ->get();
         
         return view('agent.dashboard', compact(
             'agent',
-            'policies',
-            'renewals', 
-            'followups',
-            'totalPolicies',
-            'activePolicies',
-            'expiringSoon',
-            'totalPremium',
-            'totalRevenue'
+            'currentMonthPolicies',
+            'totalPoliciesCurrentMonth',
+            'totalRenewalsCurrentMonth',
+            'totalRenewedCurrentMonth',
+            'totalPremiumCurrentMonth',
+            'currentMonth'
         ));
     }
     

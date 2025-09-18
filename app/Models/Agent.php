@@ -76,7 +76,7 @@ class Agent extends Authenticatable
 
     public function getAuthIdentifier()
     {
-        return $this->getKey();
+        return $this->email;
     }
 
     public function getAuthPassword()
