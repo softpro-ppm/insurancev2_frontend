@@ -56,6 +56,9 @@ Route::get('/bulk-upload-test', function () {
 // Policy document download route
 Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController::class, 'downloadDocument'])->name('policies.download-document');
 
+// Policy document delete route
+Route::delete('/api/policies/{policyId}/document/{documentType}', [PolicyController::class, 'deleteDocument'])->name('policies.delete-document')->middleware(['auth', 'verified']);
+
 // Policy history route
 Route::get('/api/policies/{id}/history', [PolicyController::class, 'getHistory'])->name('policies.history')->middleware(['auth', 'verified']);
 

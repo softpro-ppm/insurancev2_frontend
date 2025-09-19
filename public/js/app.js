@@ -2358,7 +2358,7 @@ window.downloadDocument = (documentType) => {
     }
     
     // Create download URL
-    const downloadUrl = `/api/policies/${policyId}/download/${documentType}`;
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`; // cache-bust
     
     // Show loading notification
     showNotification(`Downloading ${documentType} document...`, 'info');
@@ -2418,6 +2418,45 @@ window.downloadDocument = (documentType) => {
         });
 };
 
+// Remove a document from a policy
+window.removeDocument = (documentType) => {
+    const policyId = $('#viewPolicyModal').data('policy-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+
+    if (!confirm('Remove this document? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/api/policies/${policyId}/document/${documentType}`, {
+        method: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to remove document');
+        }
+        return response.json();
+    })
+    .then(() => {
+        // Disable the buttons for this doc type
+        const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+        $(`#download${cap}Btn`).prop('disabled', true).addClass('disabled');
+        $(`#remove${cap}Btn`).prop('disabled', true).addClass('disabled');
+        showNotification('Document removed successfully', 'success');
+    })
+    .catch((err) => {
+        console.error('Remove document failed:', err);
+        showNotification(err.message || 'Failed to remove document', 'error');
+    });
+};
+
 const setupDocumentDownloadButtons = (policy) => {
     // Store policy ID in modal for download functions
     $('#viewPolicyModal').data('policy-id', policy.id);
@@ -2433,12 +2472,17 @@ const setupDocumentDownloadButtons = (policy) => {
     
     Object.keys(documents).forEach(docType => {
         const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
+        const removeButton = $(`#remove${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
         if (documents[docType] && documents[docType].trim() !== '') {
             button.prop('disabled', false).removeClass('disabled');
             button.attr('title', `Download ${docType} document`);
+            removeButton.prop('disabled', false).removeClass('disabled');
+            removeButton.attr('title', `Remove ${docType} document`);
         } else {
             button.prop('disabled', true).addClass('disabled');
             button.attr('title', `${docType} document not available`);
+            removeButton.prop('disabled', true).addClass('disabled');
+            removeButton.attr('title', `${docType} document not available`);
         }
     });
 };

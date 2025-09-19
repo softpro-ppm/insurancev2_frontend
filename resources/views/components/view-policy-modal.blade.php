@@ -155,12 +155,18 @@
                             <button class="download-btn" onclick="downloadDocument('policy')" id="downloadPolicyBtn">
                                 <i class="fas fa-download"></i> Download
                             </button>
+                            <button class="delete-btn" onclick="removeDocument('policy')" id="removePolicyBtn" style="margin-left:8px;">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
                         </div>
                         <div class="document-item" id="rcCopyItem">
                             <i class="fas fa-file-pdf"></i>
                             <span>RC Copy</span>
                             <button class="download-btn" onclick="downloadDocument('rc')" id="downloadRcBtn">
                                 <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="delete-btn" onclick="removeDocument('rc')" id="removeRcBtn" style="margin-left:8px;">
+                                <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
                         <div class="document-item">
@@ -169,12 +175,18 @@
                             <button class="download-btn" onclick="downloadDocument('aadhar')" id="downloadAadharBtn">
                                 <i class="fas fa-download"></i> Download
                             </button>
+                            <button class="delete-btn" onclick="removeDocument('aadhar')" id="removeAadharBtn" style="margin-left:8px;">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
                         </div>
                         <div class="document-item">
                             <i class="fas fa-file-pdf"></i>
                             <span>PAN Copy</span>
                             <button class="download-btn" onclick="downloadDocument('pan')" id="downloadPanBtn">
                                 <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="delete-btn" onclick="removeDocument('pan')" id="removePanBtn" style="margin-left:8px;">
+                                <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
 

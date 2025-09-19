@@ -12,6 +12,7 @@ use App\Exports\PoliciesTemplateExport;
 use App\Exports\PoliciesCSVExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PolicyController extends Controller
 {
@@ -539,7 +540,62 @@ class PolicyController extends Controller
         $contentType = $contentTypes[$fileExtension] ?? 'application/octet-stream';
         
         return response()->download($fullPath, $downloadFileName, [
-            'Content-Type' => $contentType
+            'Content-Type' => $contentType,
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+    }
+
+    /**
+     * Delete a specific document from a policy and clear its path
+     */
+    public function deleteDocument($policyId, $documentType)
+    {
+        $policy = Policy::find($policyId);
+
+        if (!$policy) {
+            return response()->json(['message' => 'Policy not found'], 404);
+        }
+
+        $documentFieldMap = [
+            'policy' => 'policy_copy_path',
+            'rc' => 'rc_copy_path',
+            'aadhar' => 'aadhar_copy_path',
+            'pan' => 'pan_copy_path',
+        ];
+
+        if (!isset($documentFieldMap[$documentType])) {
+            return response()->json(['message' => 'Invalid document type'], 400);
+        }
+
+        $documentField = $documentFieldMap[$documentType];
+        $filePath = $policy->$documentField;
+
+        if (!$filePath) {
+            return response()->json(['message' => 'Document not found or already removed'], 404);
+        }
+
+        try {
+            // Delete the file from local storage if present
+            Storage::disk('local')->delete($filePath);
+        } catch (\Throwable $e) {
+            Log::warning('Failed deleting policy document', [
+                'policy_id' => $policyId,
+                'type' => $documentType,
+                'path' => $filePath,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Clear the document path on the policy
+        $policy->$documentField = null;
+        $policy->save();
+
+        return response()->json([
+            'message' => 'Document removed successfully',
+            'policyId' => $policyId,
+            'documentType' => $documentType,
         ]);
     }
 
