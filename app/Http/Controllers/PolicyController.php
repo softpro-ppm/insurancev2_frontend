@@ -291,15 +291,23 @@ class PolicyController extends Controller
 
         $policy = Policy::findOrFail($id);
 
-        // Save current policy state as a version before updating
-        $version = PolicyVersion::createFromPolicy(
-            $policy, 
-            'Policy updated via edit form',
-            auth()->user()->name ?? 'System'
-        );
-        
-        // Copy current documents to version-specific directory to preserve them
-        $this->preserveDocumentsForVersion($policy, $version);
+        // Check if policy dates are being changed
+        $startDateChanged = $policy->start_date->format('Y-m-d') !== $request->startDate;
+        $endDateChanged = $policy->end_date->format('Y-m-d') !== $request->endDate;
+        $datesChanged = $startDateChanged || $endDateChanged;
+
+        // Only create version history if dates are changing
+        $version = null;
+        if ($datesChanged) {
+            $version = PolicyVersion::createFromPolicy(
+                $policy, 
+                'Policy dates updated via edit form',
+                auth()->user()->name ?? 'System'
+            );
+            
+            // Copy current documents to version-specific directory to preserve them
+            $this->preserveDocumentsForVersion($policy, $version);
+        }
 
         // Compute revenue on server using incoming values
         $premium = (float) $request->premium;

@@ -1828,11 +1828,11 @@ const initializeEventListeners = () => {
     $('#addRenewalBtn').click(() => openRenewalModal());
     $('#closeRenewalModal, #cancelRenewal').click(() => closeRenewalModal());
     
-    // Form submissions
-    $('#policyForm').submit(handlePolicySubmit);
-    $('#agentForm').submit(handleAgentSubmit);
-    $('#followupForm').submit(handleFollowupSubmit);
-    $('#renewalForm').submit(handleRenewalSubmit);
+    // Form submissions - remove existing handlers first to prevent duplicates
+    $('#policyForm').off('submit').on('submit', handlePolicySubmit);
+    $('#agentForm').off('submit').on('submit', handleAgentSubmit);
+    $('#followupForm').off('submit').on('submit', handleFollowupSubmit);
+    $('#renewalForm').off('submit').on('submit', handleRenewalSubmit);
     
     // Modal backdrop clicks
     $(document).on('click', '.modal', function(e) {
