@@ -1,0 +1,166 @@
+<?php
+/**
+ * Policy Version Cleanup Script - Copy this entire content into a new file on Hostinger
+ * Create a new file called: cleanup_simple.php
+ * Then visit: https://v2insurance.softpromis.com/cleanup_simple.php
+ */
+
+// Set error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+echo "<h1>🧹 Policy Version Cleanup</h1>";
+echo "<style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .success { color: #28a745; font-weight: bold; }
+    .error { color: #dc3545; font-weight: bold; }
+    .warning { color: #ffc107; font-weight: bold; }
+    .info { color: #17a2b8; font-weight: bold; }
+    .btn { background: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
+    .btn:hover { background: #c82333; }
+    pre { background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; }
+</style>";
+
+echo "<div class='container'>";
+
+try {
+    // Include Laravel bootstrap
+    require_once __DIR__ . '/vendor/autoload.php';
+    $app = require_once __DIR__ . '/bootstrap/app.php';
+    $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+    
+    use App\Models\Policy;
+    use App\Models\PolicyVersion;
+    
+    echo "<h2>🔍 Analyzing Policy Versions...</h2>";
+    
+    // Get all policies with their version counts
+    $allPolicies = Policy::with('versions')->get();
+    $policiesWithMultipleVersions = $allPolicies->filter(function ($policy) {
+        return $policy->versions->count() > 1;
+    });
+    
+    $totalPolicies = $allPolicies->count();
+    $policiesWithDuplicates = $policiesWithMultipleVersions->count();
+    $totalVersionsToDelete = $policiesWithMultipleVersions->sum(function ($policy) {
+        return $policy->versions->count() - 1;
+    });
+    
+    echo "<div class='info'>";
+    echo "<h3>📊 Analysis Results:</h3>";
+    echo "<p>• Total policies in system: <strong>{$totalPolicies}</strong></p>";
+    echo "<p>• Policies with multiple versions: <strong>{$policiesWithDuplicates}</strong></p>";
+    echo "<p>• Total versions to delete: <strong>{$totalVersionsToDelete}</strong></p>";
+    echo "<p>• Versions to keep: <strong>{$policiesWithDuplicates}</strong></p>";
+    echo "</div>";
+    
+    if ($policiesWithDuplicates === 0) {
+        echo "<p class='success'>✅ No duplicate versions found. All policies have only 1 version.</p>";
+        echo "<p>Your system is already clean!</p>";
+    } else {
+        echo "<h3>📋 Sample Policies with Duplicate Versions:</h3>";
+        echo "<ul>";
+        $sampleCount = 0;
+        foreach ($policiesWithMultipleVersions as $policy) {
+            if ($sampleCount >= 10) {
+                echo "<li>... and " . ($policiesWithDuplicates - 10) . " more policies</li>";
+                break;
+            }
+            echo "<li>Policy #{$policy->id}: <strong>{$policy->customer_name}</strong> ({$policy->versions->count()} versions)</li>";
+            $sampleCount++;
+        }
+        echo "</ul>";
+        
+        // Check if cleanup action is requested
+        if (isset($_GET['action']) && $_GET['action'] === 'cleanup') {
+            echo "<h2 class='warning'>🗑️ Starting Cleanup Process...</h2>";
+            
+            $deletedCount = 0;
+            $errors = [];
+            $processedCount = 0;
+            
+            foreach ($policiesWithMultipleVersions as $policy) {
+                try {
+                    $processedCount++;
+                    echo "<p>Processing Policy #{$policy->id}: <strong>{$policy->customer_name}</strong>... ({$processedCount}/{$policiesWithDuplicates})</p>";
+                    
+                    // Delete all versions except version 1
+                    $versionsToDelete = PolicyVersion::where('policy_id', $policy->id)
+                        ->where('version_number', '>', 1)
+                        ->get();
+                        
+                    foreach ($versionsToDelete as $version) {
+                        echo "<p style='margin-left: 20px; color: #666;'>- Deleting version {$version->version_number} (created: {$version->version_created_at})</p>";
+                        $version->delete();
+                        $deletedCount++;
+                    }
+                    
+                    echo "<p class='success'>✅ Cleaned up Policy #{$policy->id}</p>";
+                    
+                } catch (Exception $e) {
+                    $error = "Error processing Policy #{$policy->id}: " . $e->getMessage();
+                    $errors[] = $error;
+                    echo "<p class='error'>❌ {$error}</p>";
+                }
+            }
+            
+            echo "<h2>📊 Cleanup Results</h2>";
+            echo "<div class='success'>";
+            echo "<p>✅ Versions deleted: <strong>{$deletedCount}</strong></p>";
+            echo "<p>✅ Policies processed: <strong>{$processedCount}</strong></p>";
+            echo "<p>❌ Errors encountered: <strong>" . count($errors) . "</strong></p>";
+            echo "</div>";
+            
+            if (!empty($errors)) {
+                echo "<h3 class='error'>❌ Errors:</h3>";
+                echo "<ul>";
+                foreach ($errors as $error) {
+                    echo "<li class='error'>{$error}</li>";
+                }
+                echo "</ul>";
+            }
+            
+            // Verify cleanup
+            echo "<h2>🔍 Verifying Cleanup...</h2>";
+            $remainingDuplicates = Policy::with('versions')
+                ->get()
+                ->filter(function ($policy) {
+                    return $policy->versions->count() > 1;
+                })
+                ->count();
+            
+            if ($remainingDuplicates === 0) {
+                echo "<p class='success'>✅ Cleanup successful! No policies have duplicate versions.</p>";
+                echo "<p class='success'>🎉 Your policy system is now clean!</p>";
+            } else {
+                echo "<p class='warning'>⚠️ Warning: {$remainingDuplicates} policies still have multiple versions.</p>";
+            }
+            
+        } else {
+            echo "<h2 class='warning'>⚠️ Ready to Cleanup</h2>";
+            echo "<div class='warning'>";
+            echo "<p><strong>This will permanently delete duplicate policy versions!</strong></p>";
+            echo "<p>This script will:</p>";
+            echo "<ul>";
+            echo "<li>Keep only version 1 for each policy</li>";
+            echo "<li>Delete all versions 2, 3, 4, etc.</li>";
+            echo "<li>This action cannot be undone!</li>";
+            echo "</ul>";
+            echo "</div>";
+            
+            echo "<p><a href='?action=cleanup' class='btn'>🗑️ DELETE DUPLICATE VERSIONS</a></p>";
+            echo "<p><small>Click the button above to start the cleanup process</small></p>";
+        }
+    }
+    
+} catch (Exception $e) {
+    echo "<h2 class='error'>❌ Error</h2>";
+    echo "<p class='error'>Failed to run cleanup script: " . $e->getMessage() . "</p>";
+    echo "<pre>" . $e->getTraceAsString() . "</pre>";
+}
+
+echo "</div>";
+echo "<p style='text-align: center; margin-top: 30px; color: #666;'>Policy Version Cleanup Script - Insurance Management System</p>";
+?>
+
