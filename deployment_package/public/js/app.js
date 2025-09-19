@@ -844,26 +844,53 @@ $(document).ready(function() {
 // Main initialization function
 const initializeApplication = async () => {
     try {
+        console.log('🚀 Starting application initialization...');
+        
+        // Initialize charts first so they're ready for data
+        initializeCharts();
+        
         // Load all data from APIs
         await Promise.all([
             loadDashboardData(),
             loadPoliciesData(),
             loadAgentsData(),
-            loadRenewalsData(),
+            loadRenewalsData(), // Now safe - skips old API call on renewals page
             loadFollowupsData()
         ]);
+        
+        console.log('📊 Data loaded, ensuring charts have data...');
+        
+        // Ensure charts get the loaded data
+        if (window.latestChartData && window.barChart) {
+            console.log('🔄 Applying data to initialized charts');
+            updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+        } else if (window.barChart) {
+            console.log('📊 Chart initialized but no data yet, triggering fresh fetch...');
+            // Force a fresh data fetch for the default period
+            setTimeout(() => {
+                const defaultPeriod = $('#chartPeriod').val() || 'fy';
+                console.log('🔄 Fetching data for default period:', defaultPeriod);
+                handleChartPeriodChange();
+            }, 300);
+        }
         
     // Build renewals VM from policies before initializing components
     await buildRenewalsFromPoliciesAsync();
 
-    // Initialize components
-        initializeCharts();
+    // Initialize other components
         initializeTable();
         initializeAgents();
         initializePoliciesPage();
-        initializeRenewalsPage();
+        // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
+        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
+        if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
+            initializeRenewalsPage();
+        }
         initializeFollowupsPage();
-        initializeReportsPage();
+        // Skip legacy reports initializer on the Reports page; Blade v2 script owns it
+        if (currentPath !== '/reports' || !window.REPORTS_V2) {
+            initializeReportsPage();
+        }
         initializeEventListeners();
         initializeModals(); // Initialize modals
         
@@ -887,33 +914,43 @@ const initializeApplication = async () => {
 // Load dashboard data
 const loadDashboardData = async () => {
     try {
-        // Load dashboard stats (charts might fail, but that's ok)
-        try {
-            const stats = await fetchDashboardStats();
-            if (stats) {
-                updateDashboardStats(stats);
-            }
-        } catch (statsError) {
-            console.warn('Failed to load dashboard stats (charts):', statsError);
+        // Show loading indicators for cards
+        $('.card-value').text('Loading...');
+        
+        // Load all data in parallel for better performance
+        const [stats, recentPolicies, expiringPolicies] = await Promise.allSettled([
+            fetchDashboardStats(),
+            fetchRecentPolicies(),
+            fetchExpiringPolicies()
+        ]);
+
+        // Handle stats
+        if (stats.status === 'fulfilled' && stats.value) {
+            updateDashboardStats(stats.value);
+        } else {
+            console.warn('Failed to load dashboard stats:', stats.reason);
+            // Reset loading indicators
+            $('.card-value').text('0');
+        }
+
+        // Handle recent policies
+        if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
+            updateRecentPoliciesTable(recentPolicies.value);
+        } else {
+            console.warn('Failed to load recent policies:', recentPolicies.reason);
+        }
+
+        // Handle expiring policies
+        if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
+            updateExpiringPoliciesList(expiringPolicies.value);
+        } else {
+            console.warn('Failed to load expiring policies:', expiringPolicies.reason);
         }
         
-        // Load recent policies separately (this should always work)
-        try {
-            const recentPolicies = await fetchRecentPolicies();
-            console.log('Fetched recent policies:', recentPolicies);
-            if (recentPolicies.length > 0) {
-                updateRecentPoliciesTable(recentPolicies);
-            }
-        } catch (policiesError) {
-            console.error('Failed to load recent policies:', policiesError);
-        }
-        
-        const expiringPolicies = await fetchExpiringPolicies();
-        if (expiringPolicies.length > 0) {
-            updateExpiringPoliciesList(expiringPolicies);
-        }
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        // Reset loading indicators
+        $('.card-value').text('Error');
     }
 };
 // Load policies data
@@ -942,7 +979,15 @@ const loadAgentsData = async () => {
 // Load renewals data
 const loadRenewalsData = async () => {
     try {
-    // Keep API call for backward compatibility but we'll derive the visible list from policies
+        // Skip loading old renewals data if we're on the renewals page to prevent conflicts
+        const currentPath = window.location.pathname;
+        if (currentPath === '/renewals') {
+            console.log('🔄 Skipping old renewals data load on renewals page - using policy-based logic instead');
+            allRenewals = []; // Keep empty to prevent conflicts
+            return;
+        }
+
+        // Keep API call for backward compatibility but we'll derive the visible list from policies
         allRenewals = await fetchRenewals();
     } catch (error) {
         console.error('Failed to load renewals data:', error);
@@ -963,23 +1008,27 @@ const loadFollowupsData = async () => {
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
     if (stats.stats) {
-        $('#monthlyPremium').text('₹' + (stats.stats.monthlyPremium || 0).toLocaleString());
-        $('#yearlyPremium').text('₹' + (stats.stats.yearlyPremium || 0).toLocaleString() + ' (FY)');
+        const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
+        $('#monthlyPremium').text(fmtINR(stats.stats.monthlyPremium));
+        $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
         $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
         const renewed = stats.stats.monthlyRenewed || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
         $('#monthlyRenewals').text(`${renewed}/${totalRenewals}`);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
-        $('#monthlyRevenue').text('₹' + (stats.stats.monthlyRevenue || 0).toLocaleString());
-        $('#yearlyRevenue').text('₹' + (stats.stats.yearlyRevenue || 0).toLocaleString() + ' (FY)');
+        $('#monthlyRevenue').text(fmtINR(stats.stats.monthlyRevenue));
+        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
     }
     
     if (stats.chartData) {
+        console.log('📊 Received chart data from API:', stats.chartData);
         // Cache the latest chart data in case charts are not yet initialized
         window.latestChartData = stats.chartData;
         window.latestPolicyTypes = stats.policyTypes || {};
         updateDashboardCharts(stats.chartData, stats.policyTypes);
+    } else {
+        console.warn('⚠️ No chart data received from API');
     }
 };
 
@@ -1169,28 +1218,83 @@ const updateExpiringPoliciesList = (policies) => {
 
 // Update dashboard charts
 const updateDashboardCharts = (chartData, policyTypes) => {
+    console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
+    
+    // Validate chart data
+    if (!chartData || !Array.isArray(chartData)) {
+        console.warn('⚠️ Invalid chart data received:', chartData);
+        return;
+    }
+    
+    // Prevent double updates by checking if data has changed
+    const dataHash = JSON.stringify(chartData);
+    if (window.lastChartDataHash === dataHash) {
+        console.log('📊 Chart data unchanged, skipping update');
+        return;
+    }
+    window.lastChartDataHash = dataHash;
+    
     // Update bar chart with real data
-    if (window.barChart && window.barChart.data && chartData) {
-        const labels = chartData.map(item => item.month);
-        const premiumData = chartData.map(item => item.premium);
-        const revenueData = chartData.map(item => item.revenue);
-        const policiesData = chartData.map(item => item.policies);
+    if (window.barChart && window.barChart.data && window.barChart.data.datasets) {
+        console.log('📈 Updating bar chart with', chartData.length, 'data points');
         
+        const labels = chartData.map(item => item.month || 'Unknown');
+        const premiumData = chartData.map(item => parseFloat(item.premium || 0));
+        const revenueData = chartData.map(item => parseFloat(item.revenue || 0));
+        const policiesData = chartData.map(item => parseInt(item.policies || 0));
+        
+        console.log('📊 Processed chart data:', { 
+            labels, 
+            premiumData, 
+            revenueData, 
+            policiesData,
+            hasData: premiumData.some(val => val > 0) || revenueData.some(val => val > 0) || policiesData.some(val => val > 0)
+        });
+        
+        // Update chart data
         window.barChart.data.labels = labels;
         window.barChart.data.datasets[0].data = premiumData;
         window.barChart.data.datasets[1].data = revenueData;
         window.barChart.data.datasets[2].data = policiesData;
-        window.barChart.update();
+        
+        // Force chart update with animation
+        window.barChart.update('active');
+        console.log('✅ Bar chart updated successfully');
+        
+        // Show notification if no data
+        const hasAnyData = premiumData.some(val => val > 0) || revenueData.some(val => val > 0) || policiesData.some(val => val > 0);
+        if (!hasAnyData) {
+            console.log('📊 No data available for current period');
+            showNotification('No data available for the selected time period', 'info');
+        }
+    } else {
+        console.error('❌ Bar chart not initialized:', {
+            hasBarChart: !!window.barChart,
+            hasBarChartData: !!(window.barChart && window.barChart.data),
+            hasDatasets: !!(window.barChart && window.barChart.data && window.barChart.data.datasets)
+        });
+        
+        // Cache the data for later use
+        window.latestChartData = chartData;
+        window.latestPolicyTypes = policyTypes;
+        
+        // Try to reinitialize chart
+        setTimeout(() => {
+            console.log('🔄 Attempting to reinitialize charts...');
+            initializeCharts();
+        }, 1000);
     }
     
     // Update pie chart with real data
-    if (window.pieChart && window.pieChart.data && policyTypes) {
+    if (window.pieChart && window.pieChart.data && policyTypes && Object.keys(policyTypes).length > 0) {
+        console.log('🥧 Updating pie chart');
         const labels = Object.keys(policyTypes);
         const data = Object.values(policyTypes);
         
         window.pieChart.data.labels = labels;
         window.pieChart.data.datasets[0].data = data;
-        window.pieChart.update();
+        window.pieChart.update('active');
+        console.log('✅ Pie chart updated successfully');
     }
 };
 
@@ -1207,28 +1311,54 @@ const hideLoadingState = () => {
 
 // Initialize charts
 const initializeCharts = () => {
-    // Only initialize charts on dashboard page
-    if (!$('#dashboard').hasClass('active')) {
+    console.log('🚀 Initializing charts...');
+    console.log('Chart.js available:', typeof Chart !== 'undefined');
+    console.log('Current URL:', window.location.href);
+    console.log('Current pathname:', window.location.pathname);
+    
+    // Check if we're on dashboard page OR if this is initial load
+    const isDashboardActive = $('#dashboard').hasClass('active');
+    const isDashboardPage = window.location.pathname === '/dashboard' || window.location.pathname === '/';
+    
+    console.log('Dashboard active:', isDashboardActive);
+    console.log('Dashboard page:', isDashboardPage);
+    
+    if (!isDashboardActive && !isDashboardPage) {
+        console.log('⏭️ Not on dashboard page, skipping chart initialization');
         return;
+    }
+    
+    if (!isDashboardActive) {
+        console.log('📊 Dashboard not active yet but we\'re on dashboard page, proceeding...');
     }
     
     // Wait for DOM to be ready
     setTimeout(() => {
         const barCtx = document.getElementById('barChart');
+        console.log('Canvas element found:', barCtx);
         if (!barCtx) {
-            console.log('Bar chart canvas not found');
+            console.error('❌ Bar chart canvas not found');
+            console.log('Available elements with "chart" in ID:', document.querySelectorAll('[id*="chart"]'));
             return;
         }
         
+        console.log('📊 Found bar chart canvas, proceeding with initialization');
+        
         // Destroy existing charts if they exist
         if (window.barChart && typeof window.barChart.destroy === 'function') {
+            console.log('🗑️ Destroying existing bar chart');
             window.barChart.destroy();
         }
         if (window.pieChart && typeof window.pieChart.destroy === 'function') {
+            console.log('🗑️ Destroying existing pie chart');
             window.pieChart.destroy();
         }
         
         // Bar Chart
+        console.log('Creating Chart instance...');
+        console.log('Chart constructor available:', typeof Chart);
+        console.log('Canvas context:', barCtx);
+        
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
@@ -1263,6 +1393,9 @@ const initializeCharts = () => {
             },
             options: {
                 responsive: true,
+                animation: {
+                    duration: 0  // Disable initial animation
+                },
                 maintainAspectRatio: false,
                 interaction: {
                     mode: 'index',
@@ -1352,11 +1485,98 @@ const initializeCharts = () => {
 
         // Store chart references
         window.barChart = barChart;
+        console.log('✅ Bar chart initialized successfully');
+        console.log('Chart instance:', barChart);
+        console.log('Chart data:', barChart.data);
+        console.log('Chart options:', barChart.options);
         
-        // If we already fetched data before charts were ready, apply it now
-        if (window.latestChartData) {
-            updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
-        }
+        // Wait a bit more to ensure chart is fully initialized
+        setTimeout(() => {
+            // If we already fetched data before charts were ready, apply it now
+            if (window.latestChartData) {
+                console.log('📊 Applying cached chart data');
+                updateDashboardCharts(window.latestChartData, window.latestPolicyTypes || {});
+            } else {
+                console.log('⏳ No cached chart data, fetching fresh data...');
+                // Fetch data immediately if not cached
+                setTimeout(() => {
+                    fetch('/api/dashboard/stats')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('📊 Fresh chart data fetched for initialization:', data);
+                            if (data.chartData) {
+                                window.latestChartData = data.chartData;
+                                window.latestPolicyTypes = data.policyTypes || {};
+                                updateDashboardCharts(data.chartData, data.policyTypes);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('❌ Failed to fetch initial chart data:', error);
+                        });
+                }, 200);
+            }
+        }, 500);
+    }, 100);
+};
+
+// Debug and utility functions for charts
+window.debugChartStatus = () => {
+    console.log('=== 📊 CHART DEBUG STATUS ===');
+    console.log('Bar Chart exists:', !!window.barChart);
+    console.log('Bar Chart data exists:', !!(window.barChart && window.barChart.data));
+    console.log('Dashboard element active:', $('#dashboard').hasClass('active'));
+    console.log('Chart canvas element:', document.getElementById('barChart'));
+    console.log('Latest Chart Data:', window.latestChartData);
+    console.log('Latest Policy Types:', window.latestPolicyTypes);
+    
+    // Test API endpoint
+    fetch('/api/dashboard/stats')
+        .then(response => response.json())
+        .then(data => {
+            console.log('📡 API Response:', data);
+            console.log('📊 Chart Data from API:', data.chartData);
+            if (data.chartData && data.chartData.length > 0) {
+                console.log('✅ API has chart data');
+            } else {
+                console.log('❌ API has no chart data');
+            }
+        })
+        .catch(error => {
+            console.error('❌ API Error:', error);
+        });
+};
+window.forceChartRefresh = () => {
+    console.log('🔄 Forcing chart refresh...');
+    
+    // Destroy existing chart
+    if (window.barChart) {
+        window.barChart.destroy();
+        window.barChart = null;
+    }
+    
+    // Clear cache
+    window.latestChartData = null;
+    window.latestPolicyTypes = null;
+    window.lastChartDataHash = null;
+    
+    // Re-initialize
+    setTimeout(() => {
+        initializeCharts();
+        
+        // Re-fetch data
+        setTimeout(() => {
+            fetch('/api/dashboard/stats')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📊 Fresh data fetched:', data);
+                    if (data.chartData) {
+                        updateDashboardCharts(data.chartData, data.policyTypes);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Failed to fetch fresh data:', error);
+                });
+        }, 500);
     }, 100);
 };
 
@@ -1521,9 +1741,10 @@ const initializeRenewalsPage = () => {
     updateRenewalsPagination();
     updateRenewalsStats();
     
-    // Initialize search and filter functionality
+    // Initialize search functionality
     $('#renewalsSearch').off('input').on('input', debounce(handleRenewalsSearch, 300));
-    $('#renewalStatusFilter, #renewalPriorityFilter').off('change').on('change', handleRenewalsFilter);
+    // Status/Priority filters removed in v2; ensure no legacy bindings
+    $('#renewalStatusFilter, #renewalPriorityFilter').off('change');
     $('#renewalsRowsPerPage').off('change').on('change', handleRenewalsRowsPerPageChange);
     
     // Initialize sort functionality
@@ -1540,6 +1761,7 @@ const initializeFollowupsPage = () => {
     updateFollowupsPagination();
     updateFollowupsStats();
 };
+
 // Initialize reports page
 const initializeReportsPage = () => {
     // Only initialize reports if we're on the reports page
@@ -1606,11 +1828,11 @@ const initializeEventListeners = () => {
     $('#addRenewalBtn').click(() => openRenewalModal());
     $('#closeRenewalModal, #cancelRenewal').click(() => closeRenewalModal());
     
-    // Form submissions
-    $('#policyForm').submit(handlePolicySubmit);
-    $('#agentForm').submit(handleAgentSubmit);
-    $('#followupForm').submit(handleFollowupSubmit);
-    $('#renewalForm').submit(handleRenewalSubmit);
+    // Form submissions - remove existing handlers first to prevent duplicates
+    $('#policyForm').off('submit').on('submit', handlePolicySubmit);
+    $('#agentForm').off('submit').on('submit', handleAgentSubmit);
+    $('#followupForm').off('submit').on('submit', handleFollowupSubmit);
+    $('#renewalForm').off('submit').on('submit', handleRenewalSubmit);
     
     // Modal backdrop clicks
     $(document).on('click', '.modal', function(e) {
@@ -1648,7 +1870,9 @@ const initializeEventListeners = () => {
     $('#policyTypeFilter').change(handlePoliciesFilter);
     $('#statusFilter').change(handlePoliciesFilter);
     $('#policiesRowsPerPage').change(handlePoliciesRowsPerPageChange);
-    $('#exportPoliciesBtn').click(exportPoliciesData);
+    // Policies export (support both header and table controls buttons)
+    $('#exportPoliciesBtn').off('click').on('click', exportPoliciesData);
+    $('#exportPolicies').off('click').on('click', exportPoliciesData);
     
     // Policies pagination
     $('#policiesPrevPage').click(() => goToPoliciesPage(policiesCurrentPage - 1));
@@ -1678,22 +1902,24 @@ const initializeEventListeners = () => {
         setupRevenueAutoCalcForPolicyType(policyType);
     });
     
-    // Renewals page controls
-    $('#renewalsSearch').on('input', handleRenewalsSearch);
-    $('#renewalStatusFilter').change(handleRenewalsFilter);
-    $('#renewalPriorityFilter').change(handleRenewalsFilter);
-    $('#renewalsRowsPerPage').change(handleRenewalsRowsPerPageChange);
-    $('#exportRenewals').click(exportRenewalsData);
-    
-    // Renewals pagination
-    $('#renewalsPrevPage').click(() => goToRenewalsPage(renewalsCurrentPage - 1));
-    $('#renewalsNextPage').click(() => goToRenewalsPage(renewalsCurrentPage + 1));
-    
-    // Renewals table sorting
-    $('#renewalsTable th[data-sort]').click(function() {
-        const column = $(this).data('sort');
-        handleRenewalsSort(column);
-    });
+    // Renewals page controls (skip when Renewals v2 owns the page)
+    const onRenewalsV2 = (window.location && window.location.pathname === '/renewals') && (window.RENEWALS_V2 === true);
+    if (!onRenewalsV2) {
+        $('#renewalsSearch').on('input', handleRenewalsSearch);
+        // Removed: status/priority filters for renewals v2
+        $('#renewalsRowsPerPage').off('change').on('change', handleRenewalsRowsPerPageChange);
+        $('#exportRenewals').click(exportRenewalsData);
+        
+        // Renewals pagination
+        $('#renewalsPrevPage').click(() => goToRenewalsPage(renewalsCurrentPage - 1));
+        $('#renewalsNextPage').click(() => goToRenewalsPage(renewalsCurrentPage + 1));
+        
+        // Renewals table sorting
+        $('#renewalsTable th[data-sort]').off('click').on('click', function() {
+            const column = $(this).data('sort');
+            handleRenewalsSort(column);
+        });
+    }
     
     // Follow-ups page controls
     $('#followupsSearch').on('input', handleFollowupsSearch);
@@ -2112,7 +2338,6 @@ const openAgentModal = () => {
     $('#agentForm').removeData('edit-id');
     $('#agentModal').addClass('show');
 };
-
 const closeAgentModal = () => {
     $('#agentModal').removeClass('show');
     $('#agentForm')[0].reset();
@@ -2133,7 +2358,7 @@ window.downloadDocument = (documentType) => {
     }
     
     // Create download URL
-    const downloadUrl = `/api/policies/${policyId}/download/${documentType}`;
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`; // cache-bust
     
     // Show loading notification
     showNotification(`Downloading ${documentType} document...`, 'info');
@@ -2193,6 +2418,45 @@ window.downloadDocument = (documentType) => {
         });
 };
 
+// Remove a document from a policy
+window.removeDocument = (documentType) => {
+    const policyId = $('#viewPolicyModal').data('policy-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+
+    if (!confirm('Remove this document? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/api/policies/${policyId}/document/${documentType}`, {
+        method: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to remove document');
+        }
+        return response.json();
+    })
+    .then(() => {
+        // Disable the buttons for this doc type
+        const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+        $(`#download${cap}Btn`).prop('disabled', true).addClass('disabled');
+        $(`#remove${cap}Btn`).prop('disabled', true).addClass('disabled');
+        showNotification('Document removed successfully', 'success');
+    })
+    .catch((err) => {
+        console.error('Remove document failed:', err);
+        showNotification(err.message || 'Failed to remove document', 'error');
+    });
+};
+
 const setupDocumentDownloadButtons = (policy) => {
     // Store policy ID in modal for download functions
     $('#viewPolicyModal').data('policy-id', policy.id);
@@ -2208,12 +2472,17 @@ const setupDocumentDownloadButtons = (policy) => {
     
     Object.keys(documents).forEach(docType => {
         const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
+        const removeButton = $(`#remove${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
         if (documents[docType] && documents[docType].trim() !== '') {
             button.prop('disabled', false).removeClass('disabled');
             button.attr('title', `Download ${docType} document`);
+            removeButton.prop('disabled', false).removeClass('disabled');
+            removeButton.attr('title', `Remove ${docType} document`);
         } else {
             button.prop('disabled', true).addClass('disabled');
             button.attr('title', `${docType} document not available`);
+            removeButton.prop('disabled', true).addClass('disabled');
+            removeButton.attr('title', `${docType} document not available`);
         }
     });
 };
@@ -2911,7 +3180,6 @@ const handleChartPeriodChange = async () => {
         chartContainer.removeClass('loading');
     }
 };
-
 // Helper function to get period label
 const getPeriodLabel = (period) => {
     switch(period) {
@@ -2923,6 +3191,8 @@ const getPeriodLabel = (period) => {
 };
 // Policy actions
 const editPolicy = async (id) => {
+    console.log('🚀 EditPolicy function called with ID:', id);
+    
     // Initialize from local cache if available
     let policy = (Array.isArray(allPolicies) ? allPolicies.find(p => p.id === id) : null) || null;
     // Clear any pending duplicate timers and messages before proceeding
@@ -3006,6 +3276,15 @@ const editPolicy = async (id) => {
             status, agentName
         });
         
+        console.log('EditPolicy: Original policy dates:', {
+            startDate: policy.startDate,
+            endDate: policy.endDate,
+            start_date: policy.start_date,
+            end_date: policy.end_date,
+            extractedStartDate: startDate,
+            extractedEndDate: endDate
+        });
+        
         // Set global variables for the modal
         selectedPolicyType = policyType;
         selectedBusinessType = businessType;
@@ -3083,6 +3362,16 @@ const editPolicy = async (id) => {
         if (policyType === 'Motor') {
             console.log('EditPolicy: Populating Motor form fields');
             
+            // Temporarily disable auto-calculation during edit mode
+            $('#startDate').off('change');
+            
+            console.log('EditPolicy: About to set dates:', {
+                startDate: startDate,
+                endDate: endDate,
+                startDateType: typeof startDate,
+                endDateType: typeof endDate
+            });
+            
             // Populate motor-specific fields
             $('#vehicleNumber').val(vehicleNumber);
             $('#vehicleType').val(vehicleType);
@@ -3093,10 +3382,29 @@ const editPolicy = async (id) => {
             $('#insuranceType').val(insuranceType);
             $('#startDate').val(startDate);
             $('#endDate').val(endDate);
+            
+            console.log('EditPolicy: After setting dates:', {
+                startDateValue: $('#startDate').val(),
+                endDateValue: $('#endDate').val()
+            });
             $('#premium').val(premium);
             $('#payout').val(payout);
             $('#customerPaidAmount').val(customerPaidAmount);
             $('#revenue').val(revenue);
+            
+            // Re-enable auto-calculation for new policies
+            $('#startDate').on('change', function() {
+                // Don't auto-calculate if we're in edit mode
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#endDate').val(endDate.toISOString().split('T')[0]);
+            });
             
             console.log('EditPolicy: Motor form fields populated');
             console.log('EditPolicy: Customer name field value:', $('#customerName').val());
@@ -3107,6 +3415,9 @@ const editPolicy = async (id) => {
             console.log('EditPolicy: End date field value:', $('#endDate').val());
             
         } else if (policyType === 'Health') {
+            // Temporarily disable auto-calculation during edit mode
+            $('#healthStartDate').off('change');
+            
             // Populate health-specific fields
             $('#healthCustomerName').val(customerName);
             $('#healthCustomerPhone').val(customerPhone);
@@ -3120,12 +3431,28 @@ const editPolicy = async (id) => {
             $('#healthCustomerPaid').val(customerPaidAmount);
             $('#healthRevenue').val(revenue);
             
+            // Re-enable auto-calculation for new policies
+            $('#healthStartDate').on('change', function() {
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#healthEndDate').val(endDate.toISOString().split('T')[0]);
+            });
+            
             // Additional health fields if available
             if (policy.customerAge) $('#healthCustomerAge').val(policy.customerAge);
             if (policy.customerGender) $('#healthCustomerGender').val(policy.customerGender);
             if (policy.sumInsured) $('#healthSumInsured').val(policy.sumInsured);
             
         } else if (policyType === 'Life') {
+            // Temporarily disable auto-calculation during edit mode
+            $('#lifeStartDate').off('change');
+            
             // Populate life-specific fields
             $('#lifeCustomerName').val(customerName);
             $('#lifeCustomerPhone').val(customerPhone);
@@ -3138,6 +3465,19 @@ const editPolicy = async (id) => {
             $('#lifePayout').val(payout);
             $('#lifeCustomerPaid').val(customerPaidAmount);
             $('#lifeRevenue').val(revenue);
+            
+            // Re-enable auto-calculation for new policies
+            $('#lifeStartDate').on('change', function() {
+                if ($('#policyModalTitle').text() === 'Edit Policy') {
+                    return;
+                }
+                
+                const startDate = new Date($(this).val());
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1);
+                $('#lifeEndDate').val(endDate.toISOString().split('T')[0]);
+            });
             
             // Additional life fields if available
             if (policy.customerAge) $('#lifeCustomerAge').val(policy.customerAge);
@@ -3547,6 +3887,11 @@ const goToPoliciesPage = (page) => {
 };
 
 const updatePoliciesStats = () => {
+    // Prevent cross-page override: do not touch renewals counters on Renewals page
+    const currentPathForPolicies = window.location && window.location.pathname ? window.location.pathname : '';
+    if (currentPathForPolicies === '/renewals' || currentPathForPolicies.startsWith('/renewals')) {
+        return; // The Renewals page owns these counters via its own script
+    }
     const activeCount = allPolicies.filter(p => p.status === 'Active').length;
     const expiredCount = allPolicies.filter(p => p.status === 'Expired').length;
     const pendingCount = allPolicies.filter(p => p.status === 'Pending').length;
@@ -3628,7 +3973,6 @@ const handlePoliciesSort = (column) => {
     renderPoliciesTable();
     updatePoliciesSortIcons();
 };
-
 const updatePoliciesSortIcons = () => {
     $('#policiesPageTable th[data-sort] i').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
     
@@ -4729,7 +5073,8 @@ const showPolicyForm = (policyType) => {
     // Enable validation only on visible fields in the current form
     $selectedForm.find('input[required], select[required]').prop('required', true);
     
-    // Set default dates for the visible form
+    // Set default dates for the visible form ONLY when adding a new policy.
+    // When editing, keep original dates intact.
     const isEditMode = $('#policyModalTitle').text().trim() === 'Edit Policy';
     if (!isEditMode) {
         setDefaultDates(policyType);
@@ -4748,6 +5093,8 @@ const setDefaultDates = (policyType) => {
     const startDate = today.toISOString().split('T')[0];
     const endDate = oneYearLater.toISOString().split('T')[0];
     
+    // Only set the dates if the fields are empty. This prevents overwriting
+    // any values that were populated programmatically (e.g., during Edit Policy).
     if (policyType === 'Motor') {
         if (!$('#startDate').val()) { $('#startDate').val(startDate); }
         if (!$('#endDate').val()) { $('#endDate').val(endDate); }
@@ -5167,6 +5514,11 @@ const goToRenewalsPage = (page) => {
 };
 
 const updateRenewalsStats = () => {
+    // Prevent legacy renewals logic from overriding the dedicated Renewals page logic
+    const currentPathForRenewals = window.location && window.location.pathname ? window.location.pathname : '';
+    if (currentPathForRenewals === '/renewals' || currentPathForRenewals.startsWith('/renewals')) {
+        return; // The Renewals page script computes and renders its own stats
+    }
     const pending = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Pending').length;
     const overdue = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Overdue').length;
     const completed = renewalsFilteredData.filter(r => (r.status || 'Pending') === 'Completed').length;
@@ -5202,18 +5554,17 @@ const handleRenewalsSearch = () => {
 const handleRenewalsFilter = () => {
     applyRenewalsFilters();
 };
-
 const applyRenewalsFilters = () => {
-    const statusFilter = $('#renewalStatusFilter').val();
-    const priorityFilter = $('#renewalPriorityFilter').val();
+    // v2: only search affects filtering here; time period handled on the Blade page
+    const searchTerm = ($('#renewalsSearch').val() || '').toLowerCase();
     
     renewalsFilteredData = policiesAsRenewals.filter(renewal => {
-        const status = renewal.status || 'Pending';
-        const priority = renewal.priority || 'Medium';
-        
-        const statusMatch = !statusFilter || status === statusFilter;
-        const priorityMatch = !priorityFilter || priority === priorityFilter;
-        return statusMatch && priorityMatch;
+        if (!searchTerm) return true;
+        const idMatch = (renewal.id || '').toString().includes(searchTerm);
+        const nameMatch = (renewal.customerName || '').toLowerCase().includes(searchTerm);
+        const typeMatch = (renewal.policyType || '').toLowerCase().includes(searchTerm);
+        const agentMatch = (renewal.assignedTo || '').toLowerCase().includes(searchTerm);
+        return idMatch || nameMatch || typeMatch || agentMatch;
     });
     
     renewalsCurrentPage = 1;
@@ -5549,7 +5900,13 @@ const closeViewRenewalModal = () => {
 };
 
 const exportRenewalsData = () => {
-    const csvContent = generateRenewalsCSV();
+    // Prefer the v2 renewals page dataset if present
+    let csvContent = '';
+    if (window.RENEWALS_V2 === true && Array.isArray(window.renewalsV2Filtered)) {
+        csvContent = generateRenewalsCSVFromArray(window.renewalsV2Filtered);
+    } else {
+        csvContent = generateRenewalsCSV();
+    }
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -5564,28 +5921,48 @@ const exportRenewalsData = () => {
 };
 
 const generateRenewalsCSV = () => {
-    const headers = ['Sl. No', 'Policy ID', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To', 'Reminder Date', 'Notes'];
+    const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
     const csvRows = [headers.join(',')];
     
     renewalsFilteredData.forEach(renewal => {
         const row = [
             renewal.id,
-            `#${renewal.policyId.toString().padStart(3, '0')}`,
             renewal.customerName,
             renewal.policyType,
             renewal.expiryDate,
             renewal.daysLeft < 0 ? `${Math.abs(renewal.daysLeft)} days overdue` : `${renewal.daysLeft} days`,
             renewal.status,
             renewal.priority,
-            renewal.assignedTo,
-            renewal.reminderDate,
-            renewal.notes
+            renewal.assignedTo
         ];
         csvRows.push(row.join(','));
     });
     
     return csvRows.join('\n');
 }; 
+
+// CSV from v2 array (policies view model)
+const generateRenewalsCSVFromArray = (arr) => {
+    const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Expiry Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+    const csvRows = [headers.join(',')];
+    arr.forEach((row, idx) => {
+        const isRenewed = !!row.hasRenewal;
+        const status = isRenewed ? 'Renewed' : (row.daysLeft < 0 ? 'Overdue' : (row.daysLeft <= 7 ? 'Pending' : (row.daysLeft <= 30 ? 'In Progress' : 'Pending')));
+        const priority = row.daysLeft <= 7 ? 'High' : (row.daysLeft <= 30 ? 'Medium' : 'Low');
+        const csvRow = [
+            idx + 1,
+            row.customerName || '',
+            row.policyType || '',
+            row.endDate || '',
+            row.daysLeft < 0 ? `${Math.abs(row.daysLeft)} days overdue` : `${row.daysLeft} days`,
+            status,
+            priority,
+            row.agentName || ''
+        ];
+        csvRows.push(csvRow.join(','));
+    });
+    return csvRows.join('\n');
+};
 
 // Reports Functions
 const updateReportDateRange = () => {
@@ -5964,7 +6341,6 @@ const generatePoliciesReport = () => {
         : 0;
     $('#avgPremiumReport').text(`₹${avgPremium.toFixed(0)}`);
 };
-
 const generateRenewalsReport = () => {
     const tbody = $('#renewalsReportTableBody');
     tbody.empty();
@@ -6763,7 +7139,6 @@ const getRenewalsRecipients = (daysRange, policyType) => {
             policyId: renewal.policyId
         }));
 };
-
 const getFollowupsRecipients = (daysRange, policyType) => {
     const today = new Date();
     const endDate = new Date(today.getTime() + (daysRange * 24 * 60 * 60 * 1000));
