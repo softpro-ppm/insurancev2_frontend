@@ -42,3 +42,12 @@ echo "<h3>Cache clearing complete!</h3>";
 echo "<p><strong>Important:</strong> Delete this file (clear_cache.php) after use for security.</p>";
 echo "<p>Now try the document removal functionality again.</p>";
 ?>
+<?php
+echo "Clearing cache...<br>";
+$commands = ['route:clear', 'config:clear', 'cache:clear'];
+foreach($commands as $cmd) {
+    exec("php artisan $cmd 2>&1", $output);
+    echo "✓ $cmd<br>";
+}
+echo "Cache cleared! Delete this file now.";
+?>
