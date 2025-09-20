@@ -841,6 +841,32 @@ class PolicyController extends Controller
         $versions = $policy->versions()->with('policy')->get();
 
         // Create current version from the main policy data
+        // Only show documents that are different from the latest version (if any)
+        $latestVersion = $versions->first();
+        $currentDocuments = [];
+        
+        if ($latestVersion) {
+            // Compare current documents with latest version to find what's new/changed
+            if ($policy->policy_copy_path && $policy->policy_copy_path !== $latestVersion->policy_copy_path) {
+                $currentDocuments['policy_copy'] = $policy->policy_copy_path;
+            }
+            if ($policy->rc_copy_path && $policy->rc_copy_path !== $latestVersion->rc_copy_path) {
+                $currentDocuments['rc_copy'] = $policy->rc_copy_path;
+            }
+            if ($policy->aadhar_copy_path && $policy->aadhar_copy_path !== $latestVersion->aadhar_copy_path) {
+                $currentDocuments['aadhar_copy'] = $policy->aadhar_copy_path;
+            }
+            if ($policy->pan_copy_path && $policy->pan_copy_path !== $latestVersion->pan_copy_path) {
+                $currentDocuments['pan_copy'] = $policy->pan_copy_path;
+            }
+        } else {
+            // If no previous versions, show all current documents
+            if ($policy->policy_copy_path) $currentDocuments['policy_copy'] = $policy->policy_copy_path;
+            if ($policy->rc_copy_path) $currentDocuments['rc_copy'] = $policy->rc_copy_path;
+            if ($policy->aadhar_copy_path) $currentDocuments['aadhar_copy'] = $policy->aadhar_copy_path;
+            if ($policy->pan_copy_path) $currentDocuments['pan_copy'] = $policy->pan_copy_path;
+        }
+        
         $currentVersion = [
             'id' => 'current_' . $policy->id,
             'version_number' => $versions->count() + 1,
@@ -855,13 +881,8 @@ class PolicyController extends Controller
             'status' => $policy->status,
             'start_date' => $policy->start_date->format('Y-m-d'),
             'end_date' => $policy->end_date->format('Y-m-d'),
-            'has_documents' => !empty($policy->policy_copy_path) || !empty($policy->rc_copy_path) || !empty($policy->aadhar_copy_path) || !empty($policy->pan_copy_path),
-            'documents' => [
-                'policy_copy' => $policy->policy_copy_path,
-                'rc_copy' => $policy->rc_copy_path,
-                'aadhar_copy' => $policy->aadhar_copy_path,
-                'pan_copy' => $policy->pan_copy_path,
-            ],
+            'has_documents' => !empty($currentDocuments),
+            'documents' => $currentDocuments,
             'notes' => null,
             'created_by' => null,
             'version_created_at' => $policy->updated_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
