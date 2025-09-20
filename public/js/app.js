@@ -2457,6 +2457,63 @@ window.removeDocument = (documentType) => {
     });
 };
 
+// Download existing document from edit modal
+window.downloadExistingDocument = (documentType) => {
+    const policyId = $('#policyForm').data('edit-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+    
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`;
+    window.open(downloadUrl, '_blank');
+};
+
+// Remove existing document from edit modal
+window.removeExistingDocument = (documentType) => {
+    const policyId = $('#policyForm').data('edit-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+
+    if (!confirm('Remove this document? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/api/policies/${policyId}/document/${documentType}`, {
+        method: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to remove document');
+        }
+        return response.json();
+    })
+    .then(() => {
+        // Hide the existing document item
+        const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+        $(`#existing${cap}Copy`).hide();
+        
+        // Check if any existing documents are left
+        const remainingDocs = $('.existing-doc-item:visible').length;
+        if (remainingDocs === 0) {
+            $('#existingDocuments').hide();
+        }
+        
+        showNotification('Document removed successfully', 'success');
+    })
+    .catch((err) => {
+        console.error('Remove document failed:', err);
+        showNotification(err.message || 'Failed to remove document', 'error');
+    });
+};
+
 const setupDocumentDownloadButtons = (policy) => {
     // Store policy ID in modal for download functions
     $('#viewPolicyModal').data('policy-id', policy.id);

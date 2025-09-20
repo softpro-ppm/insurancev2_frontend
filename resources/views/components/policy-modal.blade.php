@@ -200,28 +200,91 @@
                         </div>
                     </div>
 
-                    <!-- Upload Section -->
+                    <!-- Documents Section -->
                     <div class="form-section">
-                        <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <h3><i class="fas fa-file-alt"></i> Documents</h3>
                         <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 5MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
+                        
+                        <!-- Existing Documents -->
+                        <div id="existingDocuments" style="display: none;">
+                            <h4 style="margin-bottom: 10px; color: #374151;">Current Documents:</h4>
+                            <div class="existing-docs-grid">
+                                <div class="existing-doc-item" id="existingPolicyCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Policy Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('policy')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('policy')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="existingRcCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>RC Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('rc')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('rc')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="existingAadharCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Aadhar Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('aadhar')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('aadhar')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="existingPanCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>PAN Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('pan')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('pan')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="margin: 15px 0;">
+                        </div>
+
+                        <!-- Upload New Documents -->
+                        <h4 style="margin-bottom: 10px; color: #374151;">Upload New Documents:</h4>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="policyCopy">Policy Copy</label>
-                                <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                <small class="file-hint">You can select multiple files</small>
                             </div>
                             <div class="form-group">
                                 <label for="rcCopy">RC Copy</label>
-                                <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                <small class="file-hint">You can select multiple files</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="aadharCopy">Aadhar Copy</label>
-                                <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                <small class="file-hint">You can select multiple files</small>
                             </div>
                             <div class="form-group">
                                 <label for="panCopy">PAN Copy</label>
-                                <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                <small class="file-hint">You can select multiple files</small>
                             </div>
                         </div>
                     </div>
