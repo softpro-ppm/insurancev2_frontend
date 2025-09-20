@@ -3715,7 +3715,11 @@ const formatDate = (dateString) => {
 const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     
+    console.log('formatDateTime input:', dateString);
     const date = new Date(dateString);
+    console.log('formatDateTime parsed date:', date);
+    console.log('formatDateTime UTC time:', date.toISOString());
+    console.log('formatDateTime local time:', date.toLocaleString());
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -3724,7 +3728,7 @@ const formatDateTime = (dateString) => {
     
     // Format with IST timezone (UTC+5:30)
     try {
-        return date.toLocaleString('en-IN', {
+        const formatted = date.toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
             year: 'numeric',
             month: 'short',
@@ -3733,6 +3737,8 @@ const formatDateTime = (dateString) => {
             minute: '2-digit',
             hour12: true
         });
+        console.log('formatDateTime IST output:', formatted);
+        return formatted;
     } catch (error) {
         console.error('Date formatting error:', error);
         // Fallback to basic formatting
@@ -8823,6 +8829,15 @@ function renderPolicyHistory(data) {
         return;
     }
     
+    // Sort versions by version_created_at in descending order (newest first)
+    // This ensures the latest version appears first and is marked as "Current"
+    const sortedVersions = [...versions].sort((a, b) => {
+        return new Date(b.version_created_at) - new Date(a.version_created_at);
+    });
+    
+    console.log('Original versions order:', versions.map(v => ({ id: v.id, version_label: v.version_label, created_at: v.version_created_at })));
+    console.log('Sorted versions order:', sortedVersions.map(v => ({ id: v.id, version_label: v.version_label, created_at: v.version_created_at })));
+    
     let html = `
         <div class="policy-info">
             <h3>${policy.customer_name} - ${policy.vehicle_number || 'N/A'}</h3>
@@ -8831,7 +8846,7 @@ function renderPolicyHistory(data) {
         <div class="history-timeline">
     `;
     
-    versions.forEach((version, index) => {
+    sortedVersions.forEach((version, index) => {
         const isLatest = index === 0;
         html += `
             <div class="history-item ${isLatest ? 'latest' : ''}">
