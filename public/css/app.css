@@ -2146,7 +2146,8 @@ body.dark-theme {
     justify-content: flex-end;
 }
 
-.action-btn {
+/* Document card action buttons - more specific to avoid conflicts */
+.document-actions .action-btn {
     padding: 10px 16px;
     border-radius: 8px;
     border: none;
@@ -2161,31 +2162,31 @@ body.dark-theme {
     justify-content: center;
 }
 
-.download-action {
+.document-actions .download-action {
     background: linear-gradient(135deg, #3B82F6, #2563EB);
     color: white;
     border: 1px solid #2563EB;
 }
 
-.download-action:hover:not(:disabled) {
+.document-actions .download-action:hover:not(:disabled) {
     background: linear-gradient(135deg, #2563EB, #1D4ED8);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.remove-action {
+.document-actions .remove-action {
     background: linear-gradient(135deg, #EF4444, #DC2626);
     color: white;
     border: 1px solid #DC2626;
 }
 
-.remove-action:hover:not(:disabled) {
+.document-actions .remove-action:hover:not(:disabled) {
     background: linear-gradient(135deg, #DC2626, #B91C1C);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-.action-btn:disabled {
+.document-actions .action-btn:disabled {
     background: #F3F4F6;
     color: #9CA3AF;
     border: 1px solid #D1D5DB;
@@ -2194,7 +2195,7 @@ body.dark-theme {
     box-shadow: none;
 }
 
-.dark-theme .action-btn:disabled {
+.dark-theme .document-actions .action-btn:disabled {
     background: #374151;
     color: #6B7280;
     border: 1px solid #4B5563;
