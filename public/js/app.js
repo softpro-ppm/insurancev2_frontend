@@ -3719,6 +3719,20 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('en-IN');
 };
 
+const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    // Format with IST timezone (UTC+5:30)
+    return date.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
 const showNotification = (message, type = 'info') => {
     // Escape HTML to prevent XSS
     const escapeHtml = (str) => String(str)
@@ -8818,7 +8832,7 @@ function renderPolicyHistory(data) {
                 <div class="history-content">
                     <div class="history-header">
                         <h4>${version.version_label} ${isLatest ? '(Current)' : ''}</h4>
-                        <span class="history-date">${version.version_created_at}</span>
+                        <span class="history-date">${formatDateTime(version.version_created_at)}</span>
                     </div>
                     <div class="history-details">
                         <div class="detail-grid">
