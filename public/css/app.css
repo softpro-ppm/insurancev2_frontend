@@ -4858,6 +4858,140 @@ body.dark-theme #viewPolicyModal .policy-overview {
     font-weight: 500;
 }
 
+/* Enhanced Policy History Document List */
+.documents-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.documents-section h5 {
+    margin-bottom: 12px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.document-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.document-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.document-item i.fa-file-pdf {
+    color: #dc2626;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.document-item i.fa-exclamation-circle {
+    color: #6b7280;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.doc-name {
+    flex: 1;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.download-btn i {
+    font-size: 11px;
+}
+
+.document-item.no-docs {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+    font-style: italic;
+}
+
+.document-item.no-docs:hover {
+    background: #fde68a;
+    border-color: #d97706;
+}
+
+/* Dark theme support */
+body.dark-theme .documents-section {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-theme .documents-section h5 {
+    color: #e2e8f0;
+}
+
+body.dark-theme .document-item {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-theme .document-item:hover {
+    border-color: #3b82f6;
+    background: #1e293b;
+}
+
+body.dark-theme .doc-name {
+    color: #e2e8f0;
+}
+
+body.dark-theme .document-item.no-docs {
+    background: #451a03;
+    border-color: #d97706;
+    color: #fbbf24;
+}
+
+body.dark-theme .document-item.no-docs:hover {
+    background: #78350f;
+    border-color: #f59e0b;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .preview-tables {

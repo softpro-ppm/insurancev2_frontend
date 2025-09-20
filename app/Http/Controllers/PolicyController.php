@@ -864,7 +864,7 @@ class PolicyController extends Controller
             ],
             'notes' => null,
             'created_by' => null,
-            'version_created_at' => $policy->updated_at->format('M d, Y g:i A'),
+            'version_created_at' => $policy->updated_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
         ];
 
         // Map historical versions
@@ -887,7 +887,7 @@ class PolicyController extends Controller
                 'documents' => $version->getDocuments(),
                 'notes' => $version->notes,
                 'created_by' => $version->created_by,
-                'version_created_at' => $version->version_created_at->format('M d, Y g:i A'),
+                'version_created_at' => $version->version_created_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
             ];
         });
 
@@ -910,6 +910,56 @@ class PolicyController extends Controller
      */
     public function downloadVersionDocument($versionId, $documentType)
     {
+        // Handle current version (format: current_1496)
+        if (strpos($versionId, 'current_') === 0) {
+            $policyId = str_replace('current_', '', $versionId);
+            $policy = Policy::find($policyId);
+            
+            if (!$policy) {
+                return response()->json(['message' => 'Policy not found'], 404);
+            }
+
+            // Map document types to policy fields
+            $documentFieldMap = [
+                'policy' => 'policy_copy_path',
+                'rc' => 'rc_copy_path',
+                'aadhar' => 'aadhar_copy_path',
+                'pan' => 'pan_copy_path',
+            ];
+
+            if (!isset($documentFieldMap[$documentType])) {
+                return response()->json(['message' => 'Invalid document type'], 400);
+            }
+
+            $documentField = $documentFieldMap[$documentType];
+            $filePath = $policy->$documentField;
+
+            if (!$filePath) {
+                return response()->json(['message' => 'Document not found for current version'], 404);
+            }
+
+            // Try the standard storage path first
+            $fullPath = storage_path('app/' . $filePath);
+            
+            if (!file_exists($fullPath)) {
+                \Log::error("Document not found for current policy {$policyId}, path: {$fullPath}");
+                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+            }
+
+            // Get original filename
+            $originalName = basename($filePath);
+            
+            // Create a more user-friendly filename
+            $customerName = $policy->customer_name;
+            $versionCount = $policy->versions()->count() + 1; // Current version number
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+            
+            $friendlyName = "{$customerName}_Version{$versionCount}_{$documentType}.{$extension}";
+
+            return response()->download($fullPath, $friendlyName);
+        }
+
+        // Handle historical versions
         $version = PolicyVersion::find($versionId);
         
         if (!$version) {

@@ -8885,13 +8885,30 @@ function renderPolicyHistory(data) {
                             </div>
                         </div>
                         <div class="documents-section">
-                            <h5>Documents:</h5>
+                            <h5>📄 Documents Available:</h5>
                             <div class="document-list">
                                 ${version.has_documents ? 
-                                    Object.entries(version.documents).map(([type, path]) => 
-                                        path ? `<a href="/api/policy-versions/${version.id}/download/${type.replace('_copy', '')}" class="document-item downloadable" target="_blank" title="Download ${type.replace('_', ' ').toUpperCase()}">${type.replace('_', ' ').toUpperCase()} <i class="fas fa-download"></i></a>` : ''
-                                    ).filter(Boolean).join('') || '<span class="document-item no-docs">No documents available for this version</span>'
-                                    : '<span class="document-item no-docs">No documents available for this version</span>'
+                                    Object.entries(version.documents).map(([type, path]) => {
+                                        if (path) {
+                                            const documentType = type.replace('_copy', '');
+                                            const displayName = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+                                            return `
+                                                <div class="document-item downloadable">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                    <span class="doc-name">${displayName}</span>
+                                                    <a href="/api/policy-versions/${version.id}/download/${documentType}" 
+                                                       class="download-btn" 
+                                                       target="_blank" 
+                                                       title="Download ${displayName}">
+                                                        <i class="fas fa-download"></i>
+                                                        Download
+                                                    </a>
+                                                </div>
+                                            `;
+                                        }
+                                        return '';
+                                    }).filter(Boolean).join('') || '<div class="document-item no-docs"><i class="fas fa-exclamation-circle"></i> No documents available for this version</div>'
+                                    : '<div class="document-item no-docs"><i class="fas fa-exclamation-circle"></i> No documents available for this version</div>'
                                 }
                             </div>
                         </div>
