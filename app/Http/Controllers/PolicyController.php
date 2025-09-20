@@ -938,12 +938,25 @@ class PolicyController extends Controller
                 return response()->json(['message' => 'Document not found for current version'], 404);
             }
 
-            // Try the standard storage path first
-            $fullPath = storage_path('app/' . $filePath);
+            // Try multiple possible paths
+            $possiblePaths = [
+                storage_path('app/' . $filePath),
+                storage_path('app/private/' . $filePath),
+                storage_path('app/private/policies/' . $policyId . '/documents/' . basename($filePath)),
+                storage_path('app/policies/' . $policyId . '/documents/' . basename($filePath)),
+            ];
             
-            if (!file_exists($fullPath)) {
-                \Log::error("Document not found for current policy {$policyId}, path: {$fullPath}");
-                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+            $fullPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $fullPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$fullPath) {
+                \Log::error("Document not found for current policy {$policyId}, tried paths:", $possiblePaths);
+                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath, 'tried_paths' => $possiblePaths], 404);
             }
 
             // Get original filename
@@ -985,12 +998,25 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Document not found for this version'], 404);
         }
 
-        // Try the standard storage path first
-        $fullPath = storage_path('app/' . $filePath);
+        // Try multiple possible paths for historical versions
+        $possiblePaths = [
+            storage_path('app/' . $filePath),
+            storage_path('app/private/' . $filePath),
+            storage_path('app/versions/' . $versionId . '/' . basename($filePath)),
+            storage_path('app/policy-versions/' . $versionId . '/' . basename($filePath)),
+        ];
         
-        if (!file_exists($fullPath)) {
-            \Log::error("Document not found for version {$versionId}, path: {$fullPath}");
-            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+        $fullPath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $fullPath = $path;
+                break;
+            }
+        }
+        
+        if (!$fullPath) {
+            \Log::error("Document not found for version {$versionId}, tried paths:", $possiblePaths);
+            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath, 'tried_paths' => $possiblePaths], 404);
         }
 
         // Get original filename
