@@ -2514,6 +2514,39 @@ window.removeExistingDocument = (documentType) => {
     });
 };
 
+// Setup existing documents display in edit modal
+const setupExistingDocuments = (policy) => {
+    console.log('Setting up existing documents for policy:', policy);
+    
+    // Hide all existing document items first
+    $('.existing-doc-item').hide();
+    $('#existingDocuments').hide();
+    
+    // Check which documents exist and show them
+    const documentTypes = [
+        { type: 'policy', field: 'policy_copy_path' },
+        { type: 'rc', field: 'rc_copy_path' },
+        { type: 'aadhar', field: 'aadhar_copy_path' },
+        { type: 'pan', field: 'pan_copy_path' }
+    ];
+    
+    let hasExistingDocs = false;
+    
+    documentTypes.forEach(doc => {
+        const path = policy[doc.field];
+        if (path && path.trim() !== '') {
+            const cap = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
+            $(`#existing${cap}Copy`).show();
+            hasExistingDocs = true;
+        }
+    });
+    
+    // Show the existing documents section if any documents exist
+    if (hasExistingDocs) {
+        $('#existingDocuments').show();
+    }
+};
+
 const setupDocumentDownloadButtons = (policy) => {
     // Store policy ID in modal for download functions
     $('#viewPolicyModal').data('policy-id', policy.id);
@@ -3393,6 +3426,9 @@ const editPolicy = async (id) => {
     $('#policyModal').addClass('show');
     $('#step2, #step3').hide();
     $('#step1').show();
+    
+    // Setup existing documents display
+    setupExistingDocuments(policy);
         
     // Enable Next buttons based on pre-filled selections
     $('#nextStep1').prop('disabled', !selectedPolicyType);
