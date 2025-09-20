@@ -3632,16 +3632,8 @@ const editPolicy = async (id) => {
         $('.step-indicator').removeClass('active');
         $('.step-indicator[data-step="3"]').addClass('active');
         
-        // Add event listener for form submission if not already added
-        if (!$('#policyForm').data('edit-listener-added')) {
-            $('#savePolicyBtn').off('click').on('click', (e) => {
-                // Add a small delay to ensure form is populated
-                setTimeout(() => {
-                    handlePolicySubmit(e);
-                }, 50);
-            });
-            $('#policyForm').data('edit-listener-added', true);
-        }
+        // Form submission is already handled globally - no need for duplicate handlers
+        // $('#policyForm').data('edit-listener-added', true);
         
         // Ensure all required fields are visible and populated
         console.log('EditPolicy: Form populated, checking required fields...');
@@ -3720,17 +3712,36 @@ const formatDate = (dateString) => {
 };
 
 const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    console.log('formatDateTime input:', dateString);
     const date = new Date(dateString);
+    console.log('formatDateTime parsed date:', date);
+    console.log('formatDateTime UTC time:', date.toISOString());
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+    
     // Format with IST timezone (UTC+5:30)
-    return date.toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
+    try {
+        const formatted = date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+        console.log('formatDateTime output:', formatted);
+        return formatted;
+    } catch (error) {
+        console.error('Date formatting error:', error);
+        // Fallback to basic formatting
+        return date.toLocaleString('en-IN');
+    }
 };
 
 const showNotification = (message, type = 'info') => {
