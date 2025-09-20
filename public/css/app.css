@@ -1878,6 +1878,49 @@ body.dark-theme {
     color: #F1F5F9;
 }
 
+.document-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.document-buttons .download-btn,
+.document-buttons .delete-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.document-buttons .download-btn {
+    background: #3B82F6;
+    color: white;
+}
+
+.document-buttons .download-btn:hover {
+    background: #2563EB;
+}
+
+.document-buttons .delete-btn {
+    background: #EF4444;
+    color: white;
+}
+
+.document-buttons .delete-btn:hover {
+    background: #DC2626;
+}
+
+.document-buttons .download-btn:disabled,
+.document-buttons .delete-btn:disabled {
+    background: #9CA3AF;
+    cursor: not-allowed;
+}
+
 .btn-sm {
     padding: 6px 12px;
     font-size: 12px;
