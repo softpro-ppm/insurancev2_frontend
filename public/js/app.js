@@ -3715,11 +3715,7 @@ const formatDate = (dateString) => {
 const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     
-    console.log('formatDateTime input:', dateString);
     const date = new Date(dateString);
-    console.log('formatDateTime parsed date:', date);
-    console.log('formatDateTime UTC time:', date.toISOString());
-    console.log('formatDateTime local time:', date.toLocaleString());
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -3728,7 +3724,7 @@ const formatDateTime = (dateString) => {
     
     // Format with IST timezone (UTC+5:30)
     try {
-        const formatted = date.toLocaleString('en-IN', {
+        return date.toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
             year: 'numeric',
             month: 'short',
@@ -3737,8 +3733,6 @@ const formatDateTime = (dateString) => {
             minute: '2-digit',
             hour12: true
         });
-        console.log('formatDateTime IST output:', formatted);
-        return formatted;
     } catch (error) {
         console.error('Date formatting error:', error);
         // Fallback to basic formatting
@@ -8834,9 +8828,6 @@ function renderPolicyHistory(data) {
     const sortedVersions = [...versions].sort((a, b) => {
         return new Date(b.version_created_at) - new Date(a.version_created_at);
     });
-    
-    console.log('Original versions order:', versions.map(v => ({ id: v.id, version_label: v.version_label, created_at: v.version_created_at })));
-    console.log('Sorted versions order:', sortedVersions.map(v => ({ id: v.id, version_label: v.version_label, created_at: v.version_created_at })));
     
     let html = `
         <div class="policy-info">

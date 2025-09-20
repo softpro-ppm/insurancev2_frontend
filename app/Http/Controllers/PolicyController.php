@@ -840,6 +840,60 @@ class PolicyController extends Controller
         $policy = Policy::findOrFail($id);
         $versions = $policy->versions()->with('policy')->get();
 
+        // Create current version from the main policy data
+        $currentVersion = [
+            'id' => 'current_' . $policy->id,
+            'version_number' => $versions->count() + 1,
+            'version_label' => 'Version ' . ($versions->count() + 1) . ' (' . $policy->updated_at->format('M Y') . ')',
+            'policy_period' => $policy->start_date->format('M d, Y') . ' - ' . $policy->end_date->format('M d, Y'),
+            'company_name' => $policy->company_name,
+            'insurance_type' => $policy->insurance_type,
+            'premium' => $policy->premium,
+            'payout' => $policy->payout,
+            'customer_paid_amount' => $policy->customer_paid_amount,
+            'revenue' => $policy->revenue,
+            'status' => $policy->status,
+            'start_date' => $policy->start_date->format('Y-m-d'),
+            'end_date' => $policy->end_date->format('Y-m-d'),
+            'has_documents' => !empty($policy->policy_copy_path) || !empty($policy->rc_copy_path) || !empty($policy->aadhar_copy_path) || !empty($policy->pan_copy_path),
+            'documents' => [
+                'policy_copy' => $policy->policy_copy_path,
+                'rc_copy' => $policy->rc_copy_path,
+                'aadhar_copy' => $policy->aadhar_copy_path,
+                'pan_copy' => $policy->pan_copy_path,
+            ],
+            'notes' => null,
+            'created_by' => null,
+            'version_created_at' => $policy->updated_at->format('M d, Y g:i A'),
+        ];
+
+        // Map historical versions
+        $historicalVersions = $versions->map(function ($version) {
+            return [
+                'id' => $version->id,
+                'version_number' => $version->version_number,
+                'version_label' => $version->version_label,
+                'policy_period' => $version->policy_period,
+                'company_name' => $version->company_name,
+                'insurance_type' => $version->insurance_type,
+                'premium' => $version->premium,
+                'payout' => $version->payout,
+                'customer_paid_amount' => $version->customer_paid_amount,
+                'revenue' => $version->revenue,
+                'status' => $version->status,
+                'start_date' => $version->start_date->format('Y-m-d'),
+                'end_date' => $version->end_date->format('Y-m-d'),
+                'has_documents' => $version->hasDocuments(),
+                'documents' => $version->getDocuments(),
+                'notes' => $version->notes,
+                'created_by' => $version->created_by,
+                'version_created_at' => $version->version_created_at->format('M d, Y g:i A'),
+            ];
+        });
+
+        // Combine current version with historical versions
+        $allVersions = collect([$currentVersion])->merge($historicalVersions);
+
         return response()->json([
             'policy' => [
                 'id' => $policy->id,
@@ -847,28 +901,7 @@ class PolicyController extends Controller
                 'vehicle_number' => $policy->vehicle_number,
                 'policy_type' => $policy->policy_type,
             ],
-            'versions' => $versions->map(function ($version) {
-                return [
-                    'id' => $version->id,
-                    'version_number' => $version->version_number,
-                    'version_label' => $version->version_label,
-                    'policy_period' => $version->policy_period,
-                    'company_name' => $version->company_name,
-                    'insurance_type' => $version->insurance_type,
-                    'premium' => $version->premium,
-                    'payout' => $version->payout,
-                    'customer_paid_amount' => $version->customer_paid_amount,
-                    'revenue' => $version->revenue,
-                    'status' => $version->status,
-                    'start_date' => $version->start_date->format('Y-m-d'),
-                    'end_date' => $version->end_date->format('Y-m-d'),
-                    'has_documents' => $version->hasDocuments(),
-                    'documents' => $version->getDocuments(),
-                    'notes' => $version->notes,
-                    'created_by' => $version->created_by,
-                    'version_created_at' => $version->version_created_at->format('M d, Y g:i A'),
-                ];
-            })
+            'versions' => $allVersions
         ]);
     }
 
