@@ -8014,7 +8014,8 @@ const initializeModals = () => {
         console.log('All buttons with "policy" in ID:', $('[id*="policy"]').map(function() { return this.id; }).get());
     }
     $('#closePolicyModal, #cancelPolicy').off('click').on('click', closePolicyModal);
-    $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
+    // Remove this duplicate handler - already handled in form submission
+    // $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
     
     // Followup Modal
     $('#addFollowupBtn').off('click').on('click', openFollowupModal);
