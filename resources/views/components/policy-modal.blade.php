@@ -215,9 +215,11 @@
                                     <div class="doc-actions">
                                         <button type="button" class="btn-download-small" onclick="downloadExistingDocument('policy')">
                                             <i class="fas fa-download"></i>
+                                            <span>Download</span>
                                         </button>
                                         <button type="button" class="btn-remove-small" onclick="removeExistingDocument('policy')">
                                             <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
                                         </button>
                                     </div>
                                 </div>
@@ -227,9 +229,11 @@
                                     <div class="doc-actions">
                                         <button type="button" class="btn-download-small" onclick="downloadExistingDocument('rc')">
                                             <i class="fas fa-download"></i>
+                                            <span>Download</span>
                                         </button>
                                         <button type="button" class="btn-remove-small" onclick="removeExistingDocument('rc')">
                                             <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
                                         </button>
                                     </div>
                                 </div>
@@ -239,9 +243,11 @@
                                     <div class="doc-actions">
                                         <button type="button" class="btn-download-small" onclick="downloadExistingDocument('aadhar')">
                                             <i class="fas fa-download"></i>
+                                            <span>Download</span>
                                         </button>
                                         <button type="button" class="btn-remove-small" onclick="removeExistingDocument('aadhar')">
                                             <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
                                         </button>
                                     </div>
                                 </div>
@@ -251,9 +257,11 @@
                                     <div class="doc-actions">
                                         <button type="button" class="btn-download-small" onclick="downloadExistingDocument('pan')">
                                             <i class="fas fa-download"></i>
+                                            <span>Download</span>
                                         </button>
                                         <button type="button" class="btn-remove-small" onclick="removeExistingDocument('pan')">
                                             <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
                                         </button>
                                     </div>
                                 </div>

@@ -2460,13 +2460,29 @@ window.removeDocument = (documentType) => {
 // Download existing document from edit modal
 window.downloadExistingDocument = (documentType) => {
     const policyId = $('#policyForm').data('edit-id');
+    console.log('Download existing document - Policy ID:', policyId, 'Document Type:', documentType);
+    
     if (!policyId) {
         showNotification('Policy ID not found', 'error');
         return;
     }
     
+    // Create a temporary link element for download
     const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`;
-    window.open(downloadUrl, '_blank');
+    console.log('Download URL:', downloadUrl);
+    
+    // Create a temporary anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${documentType}_document.pdf`;
+    link.target = '_blank';
+    
+    // Add to DOM, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`Downloading ${documentType} document...`, 'info');
 };
 
 // Remove existing document from edit modal
