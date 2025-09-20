@@ -2445,10 +2445,23 @@ window.removeDocument = (documentType) => {
         return response.json();
     })
     .then(() => {
+        // Update the local policy data
+        const policyId = $('#viewPolicyModal').data('policy-id');
+        const policy = allPolicies.find(p => p.id === policyId);
+        if (policy) {
+            const pathField = `${documentType}_copy_path`;
+            policy[pathField] = null; // Clear the document path
+        }
+        
         // Disable the buttons for this doc type
         const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
         $(`#download${cap}Btn`).prop('disabled', true).addClass('disabled');
         $(`#remove${cap}Btn`).prop('disabled', true).addClass('disabled');
+        
+        // Update the status badge
+        const statusBadge = $(`#${documentType}Status .status-badge`);
+        statusBadge.removeClass('available').addClass('not-available').text('Not Available');
+        
         showNotification('Document removed successfully', 'success');
     })
     .catch((err) => {
@@ -2512,6 +2525,14 @@ window.removeExistingDocument = (documentType) => {
         return response.json();
     })
     .then(() => {
+        // Update the local policy data
+        const policyId = $('#policyForm').data('edit-id');
+        const policy = allPolicies.find(p => p.id === policyId);
+        if (policy) {
+            const pathField = `${documentType}_copy_path`;
+            policy[pathField] = null; // Clear the document path
+        }
+        
         // Hide the existing document item
         const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
         $(`#existing${cap}Copy`).hide();
