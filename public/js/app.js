@@ -2938,6 +2938,7 @@ const handlePolicySubmit = async (e) => {
                 allPolicies[index] = { ...allPolicies[index], ...response.policy };
             }
             
+            console.log('Showing policy update notification - should only appear once');
             showNotification('Policy updated successfully!', 'success');
             // Redirect to dashboard after update
             window.location.href = '/dashboard';
@@ -3714,10 +3715,7 @@ const formatDate = (dateString) => {
 const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     
-    console.log('formatDateTime input:', dateString);
     const date = new Date(dateString);
-    console.log('formatDateTime parsed date:', date);
-    console.log('formatDateTime UTC time:', date.toISOString());
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -3726,7 +3724,7 @@ const formatDateTime = (dateString) => {
     
     // Format with IST timezone (UTC+5:30)
     try {
-        const formatted = date.toLocaleString('en-IN', {
+        return date.toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
             year: 'numeric',
             month: 'short',
@@ -3735,8 +3733,6 @@ const formatDateTime = (dateString) => {
             minute: '2-digit',
             hour12: true
         });
-        console.log('formatDateTime output:', formatted);
-        return formatted;
     } catch (error) {
         console.error('Date formatting error:', error);
         // Fallback to basic formatting
@@ -3745,6 +3741,8 @@ const formatDateTime = (dateString) => {
 };
 
 const showNotification = (message, type = 'info') => {
+    console.log('showNotification called:', message, type);
+    
     // Escape HTML to prevent XSS
     const escapeHtml = (str) => String(str)
         .replace(/&/g, '&amp;')
