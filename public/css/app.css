@@ -2026,6 +2026,180 @@ body.dark-theme {
     display: block;
 }
 
+/* View Policy Modal Documents Section - New Design */
+.documents-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.document-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dark-theme .document-card {
+    background: #1F2937;
+    border: 1px solid #374151;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .document-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.document-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.document-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.dark-theme .document-info h4 {
+    color: #F9FAFB;
+}
+
+.document-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.dark-theme .document-info p {
+    color: #9CA3AF;
+}
+
+.document-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.available {
+    background: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.dark-theme .status-badge.available {
+    background: #064E3B;
+    color: #6EE7B7;
+    border: 1px solid #059669;
+}
+
+.status-badge.not-available {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.dark-theme .status-badge.not-available {
+    background: #7F1D1D;
+    color: #FCA5A5;
+    border: 1px solid #DC2626;
+}
+
+.document-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.download-action {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: white;
+    border: 1px solid #2563EB;
+}
+
+.download-action:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.remove-action {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: white;
+    border: 1px solid #DC2626;
+}
+
+.remove-action:hover:not(:disabled) {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.action-btn:disabled {
+    background: #F3F4F6;
+    color: #9CA3AF;
+    border: 1px solid #D1D5DB;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.dark-theme .action-btn:disabled {
+    background: #374151;
+    color: #6B7280;
+    border: 1px solid #4B5563;
+}
+
 .btn-sm {
     padding: 6px 12px;
     font-size: 12px;

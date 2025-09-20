@@ -148,56 +148,106 @@
                 <!-- Documents Section -->
                 <div class="detail-section">
                     <h3><i class="fas fa-file-alt"></i> Documents</h3>
-                    <div class="documents-grid">
-                        <div class="document-item">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Policy Copy</span>
-                            <div class="document-buttons">
-                                <button class="download-btn" onclick="downloadDocument('policy')" id="downloadPolicyBtn">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                                <button class="delete-btn" onclick="removeDocument('policy')" id="removePolicyBtn">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
+                    <div class="documents-container">
+                        <div class="document-card">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="document-info">
+                                    <h4>Policy Copy</h4>
+                                    <p>Insurance policy document</p>
+                                </div>
+                                <div class="document-status" id="policyStatus">
+                                    <span class="status-badge available">Available</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="document-item" id="rcCopyItem">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>RC Copy</span>
-                            <div class="document-buttons">
-                                <button class="download-btn" onclick="downloadDocument('rc')" id="downloadRcBtn">
-                                    <i class="fas fa-download"></i> Download
+                            <div class="document-actions">
+                                <button class="action-btn download-action" onclick="downloadDocument('policy')" id="downloadPolicyBtn">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
                                 </button>
-                                <button class="delete-btn" onclick="removeDocument('rc')" id="removeRcBtn">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                        <div class="document-item">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Aadhar Copy</span>
-                            <div class="document-buttons">
-                                <button class="download-btn" onclick="downloadDocument('aadhar')" id="downloadAadharBtn">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                                <button class="delete-btn" onclick="removeDocument('aadhar')" id="removeAadharBtn">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                        <div class="document-item">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>PAN Copy</span>
-                            <div class="document-buttons">
-                                <button class="download-btn" onclick="downloadDocument('pan')" id="downloadPanBtn">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                                <button class="delete-btn" onclick="removeDocument('pan')" id="removePanBtn">
-                                    <i class="fas fa-trash"></i> Remove
+                                <button class="action-btn remove-action" onclick="removeDocument('policy')" id="removePolicyBtn">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Remove</span>
                                 </button>
                             </div>
                         </div>
 
+                        <div class="document-card">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="document-info">
+                                    <h4>RC Copy</h4>
+                                    <p>Registration certificate</p>
+                                </div>
+                                <div class="document-status" id="rcStatus">
+                                    <span class="status-badge not-available">Not Available</span>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="action-btn download-action" onclick="downloadDocument('rc')" id="downloadRcBtn" disabled>
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
+                                </button>
+                                <button class="action-btn remove-action" onclick="removeDocument('rc')" id="removeRcBtn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    <span>Remove</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="document-info">
+                                    <h4>Aadhar Copy</h4>
+                                    <p>Identity verification document</p>
+                                </div>
+                                <div class="document-status" id="aadharStatus">
+                                    <span class="status-badge not-available">Not Available</span>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="action-btn download-action" onclick="downloadDocument('aadhar')" id="downloadAadharBtn" disabled>
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
+                                </button>
+                                <button class="action-btn remove-action" onclick="removeDocument('aadhar')" id="removeAadharBtn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    <span>Remove</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="document-info">
+                                    <h4>PAN Copy</h4>
+                                    <p>Tax identification document</p>
+                                </div>
+                                <div class="document-status" id="panStatus">
+                                    <span class="status-badge not-available">Not Available</span>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="action-btn download-action" onclick="downloadDocument('pan')" id="downloadPanBtn" disabled>
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
+                                </button>
+                                <button class="action-btn remove-action" onclick="removeDocument('pan')" id="removePanBtn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    <span>Remove</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

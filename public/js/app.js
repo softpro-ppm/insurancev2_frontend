@@ -2573,22 +2573,31 @@ const setupDocumentDownloadButtons = (policy) => {
         'rc': policy.rc_copy_path || policy.rcCopyPath,
         'aadhar': policy.aadhar_copy_path || policy.aadharCopyPath,
         'pan': policy.pan_copy_path || policy.panCopyPath,
-
     };
     
     Object.keys(documents).forEach(docType => {
         const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
         const removeButton = $(`#remove${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
+        const statusBadge = $(`#${docType}Status .status-badge`);
+        
         if (documents[docType] && documents[docType].trim() !== '') {
+            // Enable buttons
             button.prop('disabled', false).removeClass('disabled');
             button.attr('title', `Download ${docType} document`);
             removeButton.prop('disabled', false).removeClass('disabled');
             removeButton.attr('title', `Remove ${docType} document`);
+            
+            // Update status badge
+            statusBadge.removeClass('not-available').addClass('available').text('Available');
         } else {
+            // Disable buttons
             button.prop('disabled', true).addClass('disabled');
             button.attr('title', `${docType} document not available`);
             removeButton.prop('disabled', true).addClass('disabled');
             removeButton.attr('title', `${docType} document not available`);
+            
+            // Update status badge
+            statusBadge.removeClass('available').addClass('not-available').text('Not Available');
         }
     });
 };
