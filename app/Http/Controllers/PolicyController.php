@@ -890,6 +890,19 @@ class PolicyController extends Controller
 
         // Map historical versions
         $historicalVersions = $versions->map(function ($version) {
+            // Get all document paths from the version (regardless of file existence)
+            $allDocuments = [
+                'policy_copy' => $version->policy_copy_path,
+                'rc_copy' => $version->rc_copy_path,
+                'aadhar_copy' => $version->aadhar_copy_path,
+                'pan_copy' => $version->pan_copy_path,
+            ];
+            
+            // Filter out null/empty documents
+            $availableDocuments = array_filter($allDocuments, function($path) {
+                return !empty($path);
+            });
+            
             return [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
@@ -904,8 +917,8 @@ class PolicyController extends Controller
                 'status' => $version->status,
                 'start_date' => $version->start_date->format('Y-m-d'),
                 'end_date' => $version->end_date->format('Y-m-d'),
-                'has_documents' => $version->hasDocuments(),
-                'documents' => $version->getDocuments(),
+                'has_documents' => !empty($availableDocuments),
+                'documents' => $availableDocuments,
                 'notes' => $version->notes,
                 'created_by' => $version->created_by,
                 'version_created_at' => $version->version_created_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
