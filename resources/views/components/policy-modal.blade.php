@@ -75,7 +75,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="vehicleNumber">Vehicle Number *</label>
-                                <input type="text" id="vehicleNumber" name="vehicleNumber" required maxlength="10" pattern="[A-Z0-9]{10}" placeholder="AP39HG0020">
+                                <input type="text" id="vehicleNumber" name="vehicleNumber" required maxlength="10" pattern="[A-Z0-9]{8,10}" placeholder="AP39HG0020">
                             </div>
                             <div class="form-group">
                                 <label for="vehicleType">Vehicle Type *</label>
