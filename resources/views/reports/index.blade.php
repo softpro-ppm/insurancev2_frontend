@@ -9,41 +9,24 @@
 </script>
 
 <div class="page active" id="reports">
-    <div class="page-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="color: white; margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700;">📊 Reports & Analytics</h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 1rem;">Track your business performance and insights</p>
-            </div>
-            <div style="display: flex; gap: 1rem;">
-                <button class="export-report-btn" id="exportReportBtn" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease;">
-                    <i class="fas fa-download"></i>
-                    Export Report
-                </button>
-            </div>
-        </div>
+    <div class="page-header">
+        <h1>Reports & Analytics</h1>
     </div>
     <div class="page-content">
         <!-- Reports Controls -->
-        <div class="reports-controls" style="background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-bottom: 2rem;">
+        <div class="reports-controls">
             <div class="controls-left">
-                <div class="date-range-picker" style="display: flex; align-items: center; gap: 1rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 1rem; border-radius: 12px;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-calendar-alt" style="color: #667eea;"></i>
-                        <label for="reportStartDate" style="font-weight: 600; color: #374151; margin: 0;">From:</label>
-                        <input type="date" id="reportStartDate" style="padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 500; transition: all 0.3s ease;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <label for="reportEndDate" style="font-weight: 600; color: #374151; margin: 0;">To:</label>
-                        <input type="date" id="reportEndDate" style="padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 500; transition: all 0.3s ease;">
-                    </div>
+                <div class="date-range-picker">
+                    <label for="reportStartDate">From:</label>
+                    <input type="date" id="reportStartDate">
+                    <label for="reportEndDate">To:</label>
+                    <input type="date" id="reportEndDate">
                 </div>
             </div>
-            <div class="controls-right" style="display: flex; align-items: center; gap: 1rem;">
-                <div class="filter-group" style="display: flex; align-items: center; gap: 0.5rem; background: #f9fafb; padding: 0.75rem 1rem; border-radius: 10px;">
-                    <i class="fas fa-filter" style="color: #8b5cf6;"></i>
-                    <label for="reportTypeFilter" style="font-weight: 600; color: #374151; margin: 0;">Report Type:</label>
-                    <select id="reportTypeFilter" style="padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; background: white; font-weight: 500; cursor: pointer; min-width: 150px;">
+            <div class="controls-right">
+                <div class="filter-group">
+                    <label for="reportTypeFilter">Report Type:</label>
+                    <select id="reportTypeFilter">
                         <option value="all">All Reports</option>
                         <option value="policies">Policies</option>
                         <option value="renewals">Renewals</option>
@@ -52,71 +35,62 @@
                         <option value="revenue">Revenue</option>
                     </select>
                 </div>
-                <button class="generate-report-btn" id="generateReportBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                <button class="generate-report-btn" id="generateReportBtn">
                     <i class="fas fa-sync-alt"></i>
                     Refresh
+                </button>
+                <button class="export-report-btn" id="exportReportBtn">
+                    <i class="fas fa-download"></i>
+                    Export
                 </button>
             </div>
         </div>
 
         <!-- Key Performance Indicators -->
-        <div class="kpi-section" style="margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-chart-line" style="color: #667eea;"></i>
-                Key Performance Indicators
-            </h3>
-            <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
-                <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 20px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(20px);"></div>
-                    <div class="kpi-icon" style="width: 70px; height: 70px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);">
+        <div class="kpi-section">
+            <h3>Key Performance Indicators</h3>
+            <div class="kpi-grid">
+                <div class="kpi-card glass-effect">
+                    <div class="kpi-icon premium">
                         <i class="fas fa-rupee-sign"></i>
                     </div>
-                    <div class="kpi-content" style="flex: 1; z-index: 1;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Total Premium</h4>
-                        <p class="kpi-value" id="totalPremiumKPI" style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 800; color: white;">₹0</p>
-                        <span class="kpi-change" id="premiumChange" style="font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.2); border-radius: 20px; color: white;">0%</span>
+                    <div class="kpi-content">
+                        <h4>Total Premium</h4>
+                        <p class="kpi-value" id="totalPremiumKPI">₹0</p>
+                        <span class="kpi-change" id="premiumChange">0%</span>
                     </div>
                 </div>
-                <div class="kpi-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 2rem; border-radius: 20px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3); transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(20px);"></div>
-                    <div class="kpi-icon" style="width: 70px; height: 70px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);">
+                <div class="kpi-card glass-effect">
+                    <div class="kpi-icon revenue">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="kpi-content" style="flex: 1; z-index: 1;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</h4>
-                        <p class="kpi-value" id="totalRevenueKPI" style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 800; color: white;">₹0</p>
-                        <span class="kpi-change" id="revenueChange" style="font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.2); border-radius: 20px; color: white;">0%</span>
+                    <div class="kpi-content">
+                        <h4>Total Revenue</h4>
+                        <p class="kpi-value" id="totalRevenueKPI">₹0</p>
+                        <span class="kpi-change" id="revenueChange">0%</span>
                     </div>
                 </div>
-                <div class="kpi-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 2rem; border-radius: 20px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3); transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(20px);"></div>
-                    <div class="kpi-icon" style="width: 70px; height: 70px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);">
+                <div class="kpi-card glass-effect">
+                    <div class="kpi-icon policies">
                         <i class="fas fa-file-contract"></i>
                     </div>
-                    <div class="kpi-content" style="flex: 1; z-index: 1;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Active Policies</h4>
-                        <p class="kpi-value" id="activePoliciesKPI" style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 800; color: white;">0</p>
-                        <span class="kpi-change" id="policiesChange" style="font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.2); border-radius: 20px; color: white;">0%</span>
+                    <div class="kpi-content">
+                        <h4>Active Policies</h4>
+                        <p class="kpi-value" id="activePoliciesKPI">0</p>
+                        <span class="kpi-change" id="policiesChange">0%</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Charts Section -->
-        <div class="charts-section" style="margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-chart-area" style="color: #667eea;"></i>
-                Performance Analytics
-            </h3>
-            <div class="chart-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem;">
-                <div class="chart-container" style="background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; transition: all 0.3s ease;">
-                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <div>
-                            <h3 style="margin: 0 0 0.25rem 0; color: #1f2937; font-size: 1.125rem; font-weight: 700;">📈 Premium vs Revenue Trend</h3>
-                            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">Track your financial performance</p>
-                        </div>
+        <div class="charts-section">
+            <div class="chart-row">
+                <div class="chart-container glass-effect">
+                    <div class="chart-header">
+                        <h3>Premium vs Revenue Trend</h3>
                         <div class="chart-controls">
-                            <select id="trendPeriod" style="padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; background: #f9fafb; font-weight: 500; cursor: pointer;">
+                            <select id="trendPeriod">
                                 <option value="7">Last 7 Days</option>
                                 <option value="30" selected>Last 30 Days</option>
                                 <option value="90">Last 90 Days</option>
@@ -124,18 +98,15 @@
                             </select>
                         </div>
                     </div>
-                    <div class="chart-body" style="height: 320px; position: relative;">
+                    <div class="chart-body">
                         <canvas id="premiumRevenueChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-container" style="background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; transition: all 0.3s ease;">
-                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <div>
-                            <h3 style="margin: 0 0 0.25rem 0; color: #1f2937; font-size: 1.125rem; font-weight: 700;">👥 Agent Performance</h3>
-                            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">Top performing agents</p>
-                        </div>
+                <div class="chart-container glass-effect">
+                    <div class="chart-header">
+                        <h3>Agent Performance</h3>
                         <div class="chart-controls">
-                            <select id="agentPeriod" style="padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; background: #f9fafb; font-weight: 500; cursor: pointer;">
+                            <select id="agentPeriod">
                                 <option value="7">Last 7 Days</option>
                                 <option value="30" selected>Last 30 Days</option>
                                 <option value="90">Last 90 Days</option>
@@ -143,7 +114,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="chart-body" style="height: 320px; position: relative;">
+                    <div class="chart-body">
                         <canvas id="agentPerformanceChart"></canvas>
                     </div>
                 </div>
@@ -151,29 +122,11 @@
         </div>
 
         <!-- Reports Tabs -->
-        <div style="margin-bottom: 1.5rem;">
-            <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-table" style="color: #667eea;"></i>
-                Detailed Reports
-            </h3>
-            <div class="reports-tabs" style="display: flex; gap: 0.5rem; background: white; padding: 0.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                <button class="tab-btn active" data-tab="policies" style="padding: 0.75rem 1.5rem; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                    <i class="fas fa-file-contract"></i>
-                    Policies
-                </button>
-                <button class="tab-btn" data-tab="renewals" style="padding: 0.75rem 1.5rem; border: none; background: transparent; color: #6b7280; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-sync-alt"></i>
-                    Renewals
-                </button>
-                <button class="tab-btn" data-tab="followups" style="padding: 0.75rem 1.5rem; border: none; background: transparent; color: #6b7280; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-bell"></i>
-                    Follow-ups
-                </button>
-                <button class="tab-btn" data-tab="agents" style="padding: 0.75rem 1.5rem; border: none; background: transparent; color: #6b7280; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-users"></i>
-                    Agents
-                </button>
-            </div>
+        <div class="reports-tabs">
+            <button class="tab-btn active" data-tab="policies">Policies</button>
+            <button class="tab-btn" data-tab="renewals">Renewals</button>
+            <button class="tab-btn" data-tab="followups">Follow-ups</button>
+            <button class="tab-btn" data-tab="agents">Agents</button>
         </div>
 
         <!-- Reports Tables -->
@@ -358,52 +311,7 @@
 </div>
 
 <style>
-/* Modern Reports Styling */
-.reports-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-/* KPI Card Hover Effects */
-.kpi-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4) !important;
-}
-
-/* Chart Container Hover Effects */
-.chart-container:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-    border-color: #667eea !important;
-}
-
-/* Tab Button Styling */
-.tab-btn:not(.active):hover {
-    background: #f3f4f6 !important;
-    color: #667eea !important;
-}
-
-/* Input Focus Styles */
-input[type="date"]:focus,
-select:focus {
-    outline: none !important;
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-/* Button Hover Effects */
-.export-report-btn:hover {
-    background: rgba(255,255,255,0.3) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
-}
-
-.generate-report-btn:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
-}
+/* Reports Page Styles - matching global theme */
 
 .controls-left {
     display: flex;
@@ -619,176 +527,20 @@ select:focus {
     margin-bottom: 2rem;
 }
 
+/* Tables use global theme styles from styles.css */
 .report-table {
-    background: white;
+    background: rgba(255, 255, 255, 0.7);
     border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    border: 1px solid #f0f0f0;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.table-header h3 {
-    margin: 0;
-    color: #1f2937;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.table-controls {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.table-controls input {
-    padding: 0.5rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    background: white;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    min-width: 200px;
-}
-
-.table-controls input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.table-controls select {
-    padding: 0.5rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    background: white;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.table-controls select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.table-container {
-    overflow-x: auto;
-    margin-bottom: 1rem;
-    border-radius: 12px;
-    border: 1px solid #f0f0f0;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-}
-
-.data-table th {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 1rem;
-    text-align: left;
-    font-weight: 700;
-    color: #374151;
-    border-bottom: 2px solid #667eea;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.data-table th::after {
-    content: '⇅';
-    position: absolute;
-    right: 1rem;
-    opacity: 0.3;
-    transition: all 0.3s ease;
-}
-
-.data-table th:hover {
-    background: linear-gradient(135deg, #e5e7fa 0%, #b3bfd2 100%);
-    color: #667eea;
-}
-
-.data-table th:hover::after {
-    opacity: 1;
-}
-
-.data-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f0f0f0;
-    color: #374151;
-    font-weight: 500;
-}
-
-.data-table tbody tr {
-    transition: all 0.3s ease;
-}
-
-.data-table tbody tr:hover {
-    background: #f9fafb;
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.data-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.table-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #f0f0f0;
-}
-
-.pagination-info {
-    color: #6b7280;
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.pagination-controls button {
-    padding: 0.5rem 1rem;
-    border: 2px solid #e5e7eb;
-    background: white;
-    color: #374151;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.pagination-controls button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background: #f9fafb;
-}
-
-.pagination-controls button:not(:disabled):hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.dark-theme .report-table {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .notification {
@@ -831,7 +583,7 @@ select:focus {
 }
 
 .notification-info { 
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #4F46E5, #7C3AED);
 }
 
 .notification-info::before {
@@ -855,30 +607,38 @@ select:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(102, 126, 234, 0.15);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
 }
 
+.dark-theme .loading-overlay {
+    background: rgba(15, 23, 42, 0.9);
+}
+
 .loading-content {
-    padding: 2.5rem;
+    padding: 2rem;
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     text-align: center;
+}
+
+.dark-theme .loading-content {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #e5e7eb;
-    border-top: 4px solid #667eea;
-    border-right: 4px solid #764ba2;
+    border: 4px solid rgba(79, 70, 229, 0.3);
+    border-top: 4px solid #4F46E5;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
 }
 
@@ -1331,42 +1091,18 @@ function updatePaginationInfo(tableType, totalCount) {
 }
 
 function switchTab(tabName) {
-    // Update tab buttons with new styling
+    // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
-        btn.style.background = 'transparent';
-        btn.style.color = '#6b7280';
-        btn.style.boxShadow = 'none';
     });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     
-    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        activeBtn.style.color = 'white';
-        activeBtn.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
-    }
-    
-    // Show/hide tables with fade effect
+    // Show/hide tables
     document.querySelectorAll('.report-table').forEach(table => {
         table.style.display = 'none';
     });
-    const activeTable = document.getElementById(tabName + 'Table');
-    if (activeTable) {
-        activeTable.style.display = 'block';
-        activeTable.style.animation = 'fadeIn 0.3s ease';
-    }
+    document.getElementById(tabName + 'Table').style.display = 'block';
 }
-
-// Add fade animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-`;
-document.head.appendChild(style);
 
 function generateReport() {
     console.log('🔄 Generate Report clicked');
