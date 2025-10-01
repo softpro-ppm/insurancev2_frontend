@@ -83,43 +83,6 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
-        <div class="charts-section">
-            <div class="chart-row">
-                <div class="chart-container glass-effect">
-                    <div class="chart-header">
-                        <h3>Premium vs Revenue Trend</h3>
-                        <div class="chart-controls">
-                            <select id="trendPeriod">
-                                <option value="7">Last 7 Days</option>
-                                <option value="30" selected>Last 30 Days</option>
-                                <option value="90">Last 90 Days</option>
-                                <option value="365">Last Year</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="premiumRevenueChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-container glass-effect">
-                    <div class="chart-header">
-                        <h3>Agent Performance</h3>
-                        <div class="chart-controls">
-                            <select id="agentPeriod">
-                                <option value="7">Last 7 Days</option>
-                                <option value="30" selected>Last 30 Days</option>
-                                <option value="90">Last 90 Days</option>
-                                <option value="365">Last Year</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="agentPerformanceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Reports Tabs -->
         <div class="reports-tabs">
@@ -672,10 +635,6 @@
         grid-template-columns: 1fr !important;
     }
     
-    .chart-row {
-        grid-template-columns: 1fr !important;
-    }
-    
     .reports-tabs {
         flex-direction: column;
     }
@@ -693,10 +652,6 @@ let allRenewals = [];
 let allFollowups = [];
 let allAgents = [];
 let currentReportData = {};
-
-// Chart instances
-let premiumRevenueChart = null;
-let agentPerformanceChart = null;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -748,10 +703,6 @@ function bindEventListeners() {
             });
         }
     });
-    
-    // Chart period changes
-    document.getElementById('trendPeriod').addEventListener('change', renderCharts);
-    document.getElementById('agentPeriod').addEventListener('change', renderCharts);
 }
 
 async function loadAllData() {
@@ -789,7 +740,6 @@ async function loadAllData() {
         
         // Update UI
         updateKPIs(filteredData);
-        renderCharts();
         renderTables(filteredData);
         
         hideLoading();
@@ -915,120 +865,8 @@ function updateKPIChange(elementId, change) {
 }
 
 function renderCharts() {
-    console.log('📊 Rendering charts...');
-    
-    // Premium vs Revenue Chart
-    renderPremiumRevenueChart();
-    
-    // Agent Performance Chart
-    renderAgentPerformanceChart();
-}
-
-function renderPremiumRevenueChart() {
-    const ctx = document.getElementById('premiumRevenueChart');
-    if (!ctx) return;
-    
-    // Destroy existing chart
-    if (premiumRevenueChart) {
-        premiumRevenueChart.destroy();
-    }
-    
-    // Generate mock data for the last 30 days
-    const days = 30;
-    const labels = [];
-    const premiumData = [];
-    const revenueData = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        labels.push(date.toLocaleDateString());
-        
-        // Mock data - in real implementation, this would come from actual data
-        premiumData.push(Math.floor(Math.random() * 50000) + 20000);
-        revenueData.push(Math.floor(Math.random() * 10000) + 5000);
-    }
-    
-    premiumRevenueChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Premium (₹)',
-                data: premiumData,
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                tension: 0.4
-            }, {
-                label: 'Revenue (₹)',
-                data: revenueData,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₹' + value.toLocaleString();
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-function renderAgentPerformanceChart() {
-    const ctx = document.getElementById('agentPerformanceChart');
-    if (!ctx) return;
-    
-    // Destroy existing chart
-    if (agentPerformanceChart) {
-        agentPerformanceChart.destroy();
-    }
-    
-    // Use actual agent data
-    const agentNames = allAgents.slice(0, 5).map(agent => agent.name || 'Unknown');
-    const agentPolicies = allAgents.slice(0, 5).map(agent => agent.policies || 0);
-    
-    agentPerformanceChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: agentNames,
-            datasets: [{
-                label: 'Policies Sold',
-                data: agentPolicies,
-                backgroundColor: '#3b82f6',
-                borderColor: '#2563eb',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    console.log('📊 Charts disabled for reports page');
+    // Charts removed as per user request
 }
 
 function renderTables(data) {
