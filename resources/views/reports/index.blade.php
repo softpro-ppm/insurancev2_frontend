@@ -807,40 +807,52 @@ function filterDataByDateRange(startDate, endDate) {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
     
-    console.log('Filtering data between:', start, 'and', end);
-    console.log('All policies available:', allPolicies.length);
+    console.log('=== FILTER DEBUG ===');
+    console.log('Date Range:', start.toLocaleDateString(), 'to', end.toLocaleDateString());
+    console.log('Total policies available:', allPolicies.length);
     
-    // For policies, show policies that were created, started, or active during the date range
+    // Debug: Show first 3 policies with their dates
+    if (allPolicies.length > 0) {
+        console.log('Sample policy dates (first 3):');
+        allPolicies.slice(0, 3).forEach(p => {
+            console.log('Policy:', p.customerName, {
+                created_at: p.created_at,
+                startDate: p.startDate,
+                endDate: p.endDate
+            });
+        });
+    }
+    
+    // Show only policies where startDate falls in the selected range
     const filteredPolicies = allPolicies.filter(policy => {
-        // Try multiple date fields to be inclusive
-        const createdDate = policy.created_at ? new Date(policy.created_at) : null;
-        const startDatePolicy = policy.startDate ? new Date(policy.startDate) : null;
-        const endDatePolicy = policy.endDate ? new Date(policy.endDate) : null;
+        // Use startDate (policy start date) as the filter, not created_at
+        const policyStartDate = policy.startDate ? new Date(policy.startDate) : null;
         
-        // Include policy if:
-        // 1. Created during the range
-        // 2. Started during the range
-        // 3. Was active during the range (startDate before end and endDate after start)
-        // 4. Or just show all if we don't have good date data
+        if (!policyStartDate) {
+            // If no startDate, try created_at
+            const createdDate = policy.created_at ? new Date(policy.created_at) : null;
+            if (!createdDate) {
+                console.log('❌ Policy has no dates:', policy.customerName);
+                return false;
+            }
+            const isInRange = createdDate >= start && createdDate <= end;
+            if (isInRange) {
+                console.log('✓ Policy (by created_at):', policy.customerName, createdDate.toLocaleDateString());
+            }
+            return isInRange;
+        }
         
-        let isInRange = false;
+        const isInRange = policyStartDate >= start && policyStartDate <= end;
         
-        if (createdDate && createdDate >= start && createdDate <= end) {
-            isInRange = true;
-            console.log('Policy included by created date:', policy.customerName, createdDate);
-        } else if (startDatePolicy && startDatePolicy >= start && startDatePolicy <= end) {
-            isInRange = true;
-            console.log('Policy included by start date:', policy.customerName, startDatePolicy);
-        } else if (startDatePolicy && endDatePolicy && startDatePolicy <= end && endDatePolicy >= start) {
-            // Policy was active during the range
-            isInRange = true;
-            console.log('Policy included by active period:', policy.customerName);
+        if (isInRange) {
+            console.log('✓ Policy included:', policy.customerName, 'Start Date:', policyStartDate.toLocaleDateString());
         }
         
         return isInRange;
     });
     
-    console.log('Filtered policies:', filteredPolicies.length);
+    console.log('=== FILTERED RESULT ===');
+    console.log('Showing', filteredPolicies.length, 'policies out of', allPolicies.length);
     
     const filteredRenewals = allRenewals.filter(renewal => {
         const renewalDate = new Date(renewal.dueDate || renewal.created_at);
@@ -854,7 +866,6 @@ function filterDataByDateRange(startDate, endDate) {
     
     // Filter agents who have policies in the date range
     const filteredAgents = allAgents.map(agent => {
-        // Count policies for this agent in the date range
         const agentPolicies = filteredPolicies.filter(p => 
             p.agentName === agent.name || p.agent_name === agent.name
         );
@@ -863,13 +874,6 @@ function filterDataByDateRange(startDate, endDate) {
             policies: agentPolicies.length,
             totalPremium: agentPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
         };
-    });
-    
-    console.log('Filtered data:', {
-        policies: filteredPolicies.length,
-        renewals: filteredRenewals.length,
-        followups: filteredFollowups.length,
-        agents: filteredAgents.length
     });
     
     return {
