@@ -149,11 +149,12 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th data-sort="id">Policy ID</th>
+                                <th>Sl. No</th>
                                 <th data-sort="customerName">Customer Name</th>
                                 <th data-sort="policyType">Policy Type</th>
                                 <th data-sort="companyName">Company</th>
                                 <th data-sort="premium">Premium</th>
+                                <th data-sort="revenue">Revenue</th>
                                 <th data-sort="status">Status</th>
                                 <th data-sort="startDate">Start Date</th>
                                 <th data-sort="endDate">End Date</th>
@@ -194,7 +195,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th data-sort="id">Policy ID</th>
+                                <th>Sl. No</th>
                                 <th data-sort="customerName">Customer Name</th>
                                 <th data-sort="dueDate">Due Date</th>
                                 <th data-sort="daysLeft">Days Left</th>
@@ -238,6 +239,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th>Sl. No</th>
                                 <th data-sort="customerName">Customer Name</th>
                                 <th data-sort="phone">Phone</th>
                                 <th data-sort="followupType">Type</th>
@@ -282,7 +284,9 @@
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th>Sl. No</th>
                                 <th data-sort="name">Agent Name</th>
+                                <th data-sort="phone">Phone</th>
                                 <th data-sort="policies">Policies Sold</th>
                                 <th data-sort="totalPremium">Total Premium</th>
                                 <th data-sort="renewalsHandled">Renewals Handled</th>
@@ -799,11 +803,22 @@ async function loadAllData() {
 
 function filterDataByDateRange(startDate, endDate) {
     const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     
+    console.log('Filtering data between:', start, 'and', end);
+    
+    // For policies, check if they were active during the date range
+    // A policy is active if it was created before/during the period
     const filteredPolicies = allPolicies.filter(policy => {
-        const policyDate = new Date(policy.startDate || policy.created_at);
-        return policyDate >= start && policyDate <= end;
+        const createdDate = new Date(policy.created_at);
+        // Include all policies created up to the end date
+        const isInRange = createdDate <= end;
+        if (isInRange) {
+            console.log('Policy included:', policy.customerName, createdDate);
+        }
+        return isInRange;
     });
     
     const filteredRenewals = allRenewals.filter(renewal => {
@@ -816,8 +831,25 @@ function filterDataByDateRange(startDate, endDate) {
         return followupDate >= start && followupDate <= end;
     });
     
-    // Agents don't have date filtering
-    const filteredAgents = allAgents;
+    // Filter agents who have policies in the date range
+    const filteredAgents = allAgents.map(agent => {
+        // Count policies for this agent in the date range
+        const agentPolicies = filteredPolicies.filter(p => 
+            p.agentName === agent.name || p.agent_name === agent.name
+        );
+        return {
+            ...agent,
+            policies: agentPolicies.length,
+            totalPremium: agentPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
+        };
+    });
+    
+    console.log('Filtered data:', {
+        policies: filteredPolicies.length,
+        renewals: filteredRenewals.length,
+        followups: filteredFollowups.length,
+        agents: filteredAgents.length
+    });
     
     return {
         policies: filteredPolicies,
@@ -993,14 +1025,15 @@ function renderPoliciesTable(policies) {
     
     tbody.innerHTML = '';
     
-    policies.forEach(policy => {
+    policies.forEach((policy, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>#${String(policy.id || 0).padStart(3, '0')}</td>
+            <td>${index + 1}</td>
             <td>${escapeHtml(policy.customerName || '')}</td>
             <td>${escapeHtml(policy.policyType || '')}</td>
             <td>${escapeHtml(policy.companyName || '')}</td>
             <td>₹${parseFloat(policy.premium || 0).toLocaleString()}</td>
+            <td>₹${parseFloat(policy.revenue || 0).toLocaleString()}</td>
             <td>${escapeHtml(policy.status || '')}</td>
             <td>${formatDate(policy.startDate)}</td>
             <td>${formatDate(policy.endDate)}</td>
@@ -1017,14 +1050,14 @@ function renderRenewalsTable(renewals) {
     
     tbody.innerHTML = '';
     
-    renewals.forEach(renewal => {
+    renewals.forEach((renewal, index) => {
         const dueDate = renewal.dueDate ? new Date(renewal.dueDate) : null;
         const daysLeft = dueDate ? Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
         const priority = daysLeft === '' ? '' : (daysLeft <= 7 ? 'High' : daysLeft <= 14 ? 'Medium' : 'Low');
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>#${String(renewal.id || 0).padStart(3, '0')}</td>
+            <td>${index + 1}</td>
             <td>${escapeHtml(renewal.customerName || '')}</td>
             <td>${formatDate(renewal.dueDate)}</td>
             <td>${daysLeft}</td>
@@ -1044,9 +1077,10 @@ function renderFollowupsTable(followups) {
     
     tbody.innerHTML = '';
     
-    followups.forEach(followup => {
+    followups.forEach((followup, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td>${index + 1}</td>
             <td>${escapeHtml(followup.customerName || '')}</td>
             <td>${escapeHtml(followup.phone || '')}</td>
             <td>${escapeHtml(followup.followupType || '')}</td>
@@ -1067,15 +1101,19 @@ function renderAgentsTable(agents) {
     
     tbody.innerHTML = '';
     
-    agents.forEach(agent => {
+    console.log('Rendering agents:', agents);
+    
+    agents.forEach((agent, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td>${index + 1}</td>
             <td>${escapeHtml(agent.name || '')}</td>
+            <td>${escapeHtml(agent.phone || agent.contact || '')}</td>
             <td>${agent.policies || 0}</td>
             <td>₹${parseFloat(agent.totalPremium || 0).toLocaleString()}</td>
             <td>${agent.renewalsHandled || 0}</td>
             <td>${agent.followups || 0}</td>
-            <td>${agent.performance || '0%'}</td>
+            <td>${agent.performance || '0.00%'}</td>
         `;
         tbody.appendChild(row);
     });
@@ -1167,9 +1205,9 @@ function exportReport() {
 }
 
 function generatePoliciesCSV(policies) {
-    const headers = ['Policy ID', 'Customer Name', 'Policy Type', 'Company', 'Premium', 'Revenue', 'Status', 'Start Date', 'End Date'];
-    const rows = policies.map(policy => [
-        `#${String(policy.id || 0).padStart(3, '0')}`,
+    const headers = ['Sl. No', 'Customer Name', 'Policy Type', 'Company', 'Premium', 'Revenue', 'Status', 'Start Date', 'End Date'];
+    const rows = policies.map((policy, index) => [
+        index + 1,
         policy.customerName || '',
         policy.policyType || '',
         policy.companyName || '',
@@ -1184,14 +1222,14 @@ function generatePoliciesCSV(policies) {
 }
 
 function generateRenewalsCSV(renewals) {
-    const headers = ['Policy ID', 'Customer Name', 'Due Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
-    const rows = renewals.map(renewal => {
+    const headers = ['Sl. No', 'Customer Name', 'Due Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+    const rows = renewals.map((renewal, index) => {
         const dueDate = renewal.dueDate ? new Date(renewal.dueDate) : null;
         const daysLeft = dueDate ? Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
         const priority = daysLeft === '' ? '' : (daysLeft <= 7 ? 'High' : daysLeft <= 14 ? 'Medium' : 'Low');
         
         return [
-            `#${String(renewal.id || 0).padStart(3, '0')}`,
+            index + 1,
             renewal.customerName || '',
             formatDate(renewal.dueDate),
             daysLeft,
@@ -1205,8 +1243,9 @@ function generateRenewalsCSV(renewals) {
 }
 
 function generateFollowupsCSV(followups) {
-    const headers = ['Customer Name', 'Phone', 'Type', 'Status', 'Assigned To', 'Last Follow-up', 'Next Follow-up'];
-    const rows = followups.map(followup => [
+    const headers = ['Sl. No', 'Customer Name', 'Phone', 'Type', 'Status', 'Assigned To', 'Last Follow-up', 'Next Follow-up'];
+    const rows = followups.map((followup, index) => [
+        index + 1,
         followup.customerName || '',
         followup.phone || '',
         followup.followupType || '',
@@ -1220,14 +1259,16 @@ function generateFollowupsCSV(followups) {
 }
 
 function generateAgentsCSV(agents) {
-    const headers = ['Agent Name', 'Policies Sold', 'Total Premium', 'Renewals Handled', 'Follow-ups', 'Performance'];
-    const rows = agents.map(agent => [
+    const headers = ['Sl. No', 'Agent Name', 'Phone', 'Policies Sold', 'Total Premium', 'Renewals Handled', 'Follow-ups', 'Performance'];
+    const rows = agents.map((agent, index) => [
+        index + 1,
         agent.name || '',
+        agent.phone || agent.contact || '',
         agent.policies || 0,
         parseFloat(agent.totalPremium || 0),
         agent.renewalsHandled || 0,
         agent.followups || 0,
-        agent.performance || '0%'
+        agent.performance || '0.00%'
     ]);
     
     return generateCSV(headers, rows);
