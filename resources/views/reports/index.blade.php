@@ -808,18 +808,39 @@ function filterDataByDateRange(startDate, endDate) {
     end.setHours(23, 59, 59, 999);
     
     console.log('Filtering data between:', start, 'and', end);
+    console.log('All policies available:', allPolicies.length);
     
-    // For policies, check if they were active during the date range
-    // A policy is active if it was created before/during the period
+    // For policies, show policies that were created, started, or active during the date range
     const filteredPolicies = allPolicies.filter(policy => {
-        const createdDate = new Date(policy.created_at);
-        // Include all policies created up to the end date
-        const isInRange = createdDate <= end;
-        if (isInRange) {
-            console.log('Policy included:', policy.customerName, createdDate);
+        // Try multiple date fields to be inclusive
+        const createdDate = policy.created_at ? new Date(policy.created_at) : null;
+        const startDatePolicy = policy.startDate ? new Date(policy.startDate) : null;
+        const endDatePolicy = policy.endDate ? new Date(policy.endDate) : null;
+        
+        // Include policy if:
+        // 1. Created during the range
+        // 2. Started during the range
+        // 3. Was active during the range (startDate before end and endDate after start)
+        // 4. Or just show all if we don't have good date data
+        
+        let isInRange = false;
+        
+        if (createdDate && createdDate >= start && createdDate <= end) {
+            isInRange = true;
+            console.log('Policy included by created date:', policy.customerName, createdDate);
+        } else if (startDatePolicy && startDatePolicy >= start && startDatePolicy <= end) {
+            isInRange = true;
+            console.log('Policy included by start date:', policy.customerName, startDatePolicy);
+        } else if (startDatePolicy && endDatePolicy && startDatePolicy <= end && endDatePolicy >= start) {
+            // Policy was active during the range
+            isInRange = true;
+            console.log('Policy included by active period:', policy.customerName);
         }
+        
         return isInRange;
     });
+    
+    console.log('Filtered policies:', filteredPolicies.length);
     
     const filteredRenewals = allRenewals.filter(renewal => {
         const renewalDate = new Date(renewal.dueDate || renewal.created_at);
