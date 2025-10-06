@@ -31,7 +31,14 @@ class Policy extends Model
         'policy_copy_path',
         'rc_copy_path',
         'aadhar_copy_path',
-        'pan_copy_path'
+        'pan_copy_path',
+        // Health/Life
+        'customer_age',
+        'customer_gender',
+        'sum_insured',
+        'sum_assured',
+        'policy_term',
+        'premium_frequency'
     ];
 
     protected $casts = [
@@ -41,6 +48,8 @@ class Policy extends Model
         'payout' => 'decimal:2',
         'customer_paid_amount' => 'decimal:2',
         'revenue' => 'decimal:2',
+        'sum_insured' => 'decimal:2',
+        'sum_assured' => 'decimal:2',
     ];
 
     protected static function boot()

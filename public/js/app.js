@@ -849,14 +849,23 @@ const initializeApplication = async () => {
         // Initialize charts first so they're ready for data
         initializeCharts();
         
-        // Load all data from APIs
-        await Promise.all([
-            loadDashboardData(),
-            loadPoliciesData(),
-            loadAgentsData(),
-            loadRenewalsData(), // Now safe - skips old API call on renewals page
-            loadFollowupsData()
-        ]);
+        // Load only the data needed for the current page to reduce initial load
+        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
+        const loads = [];
+        if (currentPath === '/' || currentPath === '/dashboard') {
+            loads.push(loadDashboardData());
+        }
+        if (currentPath === '/policies') {
+            loads.push(loadPoliciesData());
+            loads.push(loadAgentsData());
+        }
+        if (currentPath === '/renewals') {
+            loads.push(loadRenewalsData());
+        }
+        if (currentPath === '/followups') {
+            loads.push(loadFollowupsData());
+        }
+        await Promise.allSettled(loads);
         
         console.log('📊 Data loaded, ensuring charts have data...');
         
@@ -874,8 +883,10 @@ const initializeApplication = async () => {
             }, 300);
         }
         
-    // Build renewals VM from policies before initializing components
-    await buildRenewalsFromPoliciesAsync();
+    // Build renewals VM only when needed
+    if (currentPath === '/policies' || currentPath === '/renewals') {
+        await buildRenewalsFromPoliciesAsync();
+    }
 
     // Initialize other components
         initializeTable();
@@ -3728,8 +3739,13 @@ const deletePolicyHandler = async (id) => {
 
 // Utility functions
 const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN');
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '';
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
 };
 
 const formatDateTime = (dateString) => {

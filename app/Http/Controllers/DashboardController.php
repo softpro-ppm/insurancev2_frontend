@@ -15,6 +15,14 @@ class DashboardController extends Controller
      */
     public function getStats(Request $request)
     {
+        // Simple cache to reduce DB hits on shared hosting
+        if (function_exists('cache')) {
+            $cacheKey = 'dashboard_stats_' . ($request->get('period', 'financial_year'));
+            $cached = cache()->get($cacheKey);
+            if ($cached) {
+                return response()->json($cached);
+            }
+        }
         $now = Carbon::now();
         $currentMonth = $now->copy()->startOfMonth();
         // Financial Year start: Apr 1 of current year if month >= 4 else Apr 1 of previous year
@@ -78,7 +86,7 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
             'chartData' => $chartData
         ]);
 
-        return response()->json([
+        $payload = [
             'stats' => [
                 'totalPolicies' => $totalPolicies,
                 'activePolicies' => $activePolicies,
@@ -99,7 +107,11 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
             ],
             'policyTypes' => $policyTypes,
             'chartData' => $chartData
-        ]);
+        ];
+        if (function_exists('cache')) {
+            cache()->put($cacheKey, $payload, 60); // cache 60 seconds
+        }
+        return response()->json($payload);
     }
 
     /**
@@ -188,8 +200,8 @@ public function getRecentPolicies()
                     'vehicleType' => $policy->vehicle_type,
                     'companyName' => $policy->company_name,
                     'insuranceType' => $policy->insurance_type,
-                    'startDate' => $policy->start_date->format('Y-m-d'),
-                    'endDate' => $policy->end_date->format('Y-m-d'),
+                    'startDate' => $policy->start_date->format('d-m-Y'),
+                    'endDate' => $policy->end_date->format('d-m-Y'),
                     'premium' => $policy->premium,
                     'payout' => $policy->payout,
                     'customerPaidAmount' => $policy->customer_paid_amount,

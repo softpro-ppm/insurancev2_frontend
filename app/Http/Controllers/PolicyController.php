@@ -22,7 +22,8 @@ class PolicyController extends Controller
      */
     public function index()
     {
-        $policies = Policy::with('versions')->get()->map(function ($policy) {
+        // Avoid eager-loading heavy relations for listing; fetch minimal fields
+        $policies = Policy::select('*')->get()->map(function ($policy) {
             return [
                 'id' => $policy->id,
                 'customerName' => $policy->customer_name,
@@ -33,8 +34,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('Y-m-d'),
-                'endDate' => $policy->end_date->format('Y-m-d'),
+                'startDate' => $policy->start_date->format('d-m-Y'),
+                'endDate' => $policy->end_date->format('d-m-Y'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -42,7 +43,7 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'createdAt' => $policy->created_at->format('d-m-Y'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
@@ -73,6 +74,7 @@ class PolicyController extends Controller
             ? Carbon::parse($validated['start'])->startOfDay()
             : $end->copy()->subDays(30)->startOfDay();
 
+        // Index-friendly query by date range and sort
         $policies = Policy::whereBetween('start_date', [$start, $end])
             ->orderBy('start_date', 'desc')
             ->get()
@@ -87,8 +89,8 @@ class PolicyController extends Controller
                     'vehicleType' => $policy->vehicle_type,
                     'companyName' => $policy->company_name,
                     'insuranceType' => $policy->insurance_type,
-                    'startDate' => optional($policy->start_date)->format('Y-m-d'),
-                    'endDate' => optional($policy->end_date)->format('Y-m-d'),
+                    'startDate' => optional($policy->start_date)->format('d-m-Y'),
+                    'endDate' => optional($policy->end_date)->format('d-m-Y'),
                     'premium' => $policy->premium,
                     'payout' => $policy->payout,
                     'customerPaidAmount' => $policy->customer_paid_amount,
@@ -96,7 +98,7 @@ class PolicyController extends Controller
                     'status' => $policy->status,
                     'businessType' => $policy->business_type,
                     'agentName' => $policy->agent_name,
-                    'createdAt' => optional($policy->created_at)->format('Y-m-d'),
+                    'createdAt' => optional($policy->created_at)->format('d-m-Y'),
                     'policy_copy_path' => $policy->policy_copy_path,
                     'rc_copy_path' => $policy->rc_copy_path,
                     'aadhar_copy_path' => $policy->aadhar_copy_path,
@@ -142,6 +144,18 @@ class PolicyController extends Controller
             $rules['vehicleNumber'] = 'required|string|max:20';
             $rules['vehicleType'] = 'required|string|max:50';
         }
+        if ($request->policyType === 'Health') {
+            $rules['customerAge'] = 'required|integer|min:0|max:120';
+            $rules['customerGender'] = 'required|in:Male,Female,Other';
+            $rules['sumInsured'] = 'required|numeric|min:0';
+        }
+        if ($request->policyType === 'Life') {
+            $rules['customerAge'] = 'required|integer|min:0|max:120';
+            $rules['customerGender'] = 'required|in:Male,Female,Other';
+            $rules['sumAssured'] = 'required|numeric|min:0';
+            $rules['policyTerm'] = 'required|string|max:50';
+            $rules['premiumFrequency'] = 'required|string|max:50';
+        }
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -181,6 +195,13 @@ class PolicyController extends Controller
             'status' => 'Active',
             'business_type' => $request->businessType,
             'agent_name' => $agentNameResolved,
+            // Health/Life specifics
+            'customer_age' => $request->customerAge,
+            'customer_gender' => $request->customerGender,
+            'sum_insured' => $request->sumInsured,
+            'sum_assured' => $request->sumAssured,
+            'policy_term' => $request->policyTerm,
+            'premium_frequency' => $request->premiumFrequency,
         ]);
 
         // Handle file uploads
@@ -225,8 +246,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('Y-m-d'),
-                'endDate' => $policy->end_date->format('Y-m-d'),
+                'startDate' => $policy->start_date->format('d-m-Y'),
+                'endDate' => $policy->end_date->format('d-m-Y'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -234,11 +255,18 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'createdAt' => $policy->created_at->format('d-m-Y'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
+                // Health/Life
+                'customerAge' => $policy->customer_age,
+                'customerGender' => $policy->customer_gender,
+                'sumInsured' => $policy->sum_insured,
+                'sumAssured' => $policy->sum_assured,
+                'policyTerm' => $policy->policy_term,
+                'premiumFrequency' => $policy->premium_frequency,
 
             ]
         ], 201);
@@ -261,8 +289,8 @@ class PolicyController extends Controller
             'vehicleType' => $policy->vehicle_type,
             'companyName' => $policy->company_name,
             'insuranceType' => $policy->insurance_type,
-            'startDate' => $policy->start_date->format('Y-m-d'),
-            'endDate' => $policy->end_date->format('Y-m-d'),
+            'startDate' => $policy->start_date->format('d-m-Y'),
+            'endDate' => $policy->end_date->format('d-m-Y'),
             'premium' => $policy->premium,
             'payout' => $policy->payout,
             'customerPaidAmount' => $policy->customer_paid_amount,
@@ -270,11 +298,18 @@ class PolicyController extends Controller
             'status' => $policy->status,
             'businessType' => $policy->business_type,
             'agentName' => $policy->agent_name,
-            'createdAt' => $policy->created_at->format('Y-m-d'),
+            'createdAt' => $policy->created_at->format('d-m-Y'),
             'policy_copy_path' => $policy->policy_copy_path,
             'rc_copy_path' => $policy->rc_copy_path,
             'aadhar_copy_path' => $policy->aadhar_copy_path,
             'pan_copy_path' => $policy->pan_copy_path,
+            // Health/Life
+            'customerAge' => $policy->customer_age,
+            'customerGender' => $policy->customer_gender,
+            'sumInsured' => $policy->sum_insured,
+            'sumAssured' => $policy->sum_assured,
+            'policyTerm' => $policy->policy_term,
+            'premiumFrequency' => $policy->premium_frequency,
 
         ]]);
     }
@@ -328,6 +363,18 @@ class PolicyController extends Controller
             $rules['vehicleType'] = 'required|string|max:50';
             $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'; // 5MB max
         }
+        if ($policyType === 'Health') {
+            $rules['customerAge'] = 'required|integer|min:0|max:120';
+            $rules['customerGender'] = 'required|in:Male,Female,Other';
+            $rules['sumInsured'] = 'required|numeric|min:0';
+        }
+        if ($policyType === 'Life') {
+            $rules['customerAge'] = 'required|integer|min:0|max:120';
+            $rules['customerGender'] = 'required|in:Male,Female,Other';
+            $rules['sumAssured'] = 'required|numeric|min:0';
+            $rules['policyTerm'] = 'required|string|max:50';
+            $rules['premiumFrequency'] = 'required|string|max:50';
+        }
         
         \Log::info('Validation rules for policy type', [
             'policy_type' => $policyType,
@@ -347,8 +394,8 @@ class PolicyController extends Controller
         $policy = Policy::findOrFail($id);
 
         // Check if policy dates are being changed
-        $startDateChanged = $policy->start_date->format('Y-m-d') !== $request->startDate;
-        $endDateChanged = $policy->end_date->format('Y-m-d') !== $request->endDate;
+        $startDateChanged = $policy->start_date->format('d-m-Y') !== $request->startDate;
+        $endDateChanged = $policy->end_date->format('d-m-Y') !== $request->endDate;
         $datesChanged = $startDateChanged || $endDateChanged;
 
         // Only create version history if dates are changing
@@ -404,6 +451,13 @@ class PolicyController extends Controller
             'status' => $request->status ?? $policy->status,
             'business_type' => $incomingBusinessType,
             'agent_name' => $agentNameResolved,
+            // Health/Life specifics (preserve when null)
+            'customer_age' => $request->customerAge ?? $policy->customer_age,
+            'customer_gender' => $request->customerGender ?? $policy->customer_gender,
+            'sum_insured' => $request->sumInsured ?? $policy->sum_insured,
+            'sum_assured' => $request->sumAssured ?? $policy->sum_assured,
+            'policy_term' => $request->policyTerm ?? $policy->policy_term,
+            'premium_frequency' => $request->premiumFrequency ?? $policy->premium_frequency,
         ]);
         
         \Log::info('Policy updated successfully', [
@@ -453,8 +507,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('Y-m-d'),
-                'endDate' => $policy->end_date->format('Y-m-d'),
+                'startDate' => $policy->start_date->format('d-m-Y'),
+                'endDate' => $policy->end_date->format('d-m-Y'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -462,11 +516,18 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('Y-m-d'),
+                'createdAt' => $policy->created_at->format('d-m-Y'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
+                // Health/Life
+                'customerAge' => $policy->customer_age,
+                'customerGender' => $policy->customer_gender,
+                'sumInsured' => $policy->sum_insured,
+                'sumAssured' => $policy->sum_assured,
+                'policyTerm' => $policy->policy_term,
+                'premiumFrequency' => $policy->premium_frequency,
 
             ]
         ]);
@@ -933,8 +994,8 @@ class PolicyController extends Controller
             'customer_paid_amount' => $policy->customer_paid_amount,
             'revenue' => $policy->revenue,
             'status' => $policy->status,
-            'start_date' => $policy->start_date->format('Y-m-d'),
-            'end_date' => $policy->end_date->format('Y-m-d'),
+            'start_date' => $policy->start_date->format('d-m-Y'),
+            'end_date' => $policy->end_date->format('d-m-Y'),
             'has_documents' => !empty($currentDocuments),
             'documents' => $currentDocuments,
             'notes' => null,
@@ -969,8 +1030,8 @@ class PolicyController extends Controller
                 'customer_paid_amount' => $version->customer_paid_amount,
                 'revenue' => $version->revenue,
                 'status' => $version->status,
-                'start_date' => $version->start_date->format('Y-m-d'),
-                'end_date' => $version->end_date->format('Y-m-d'),
+                'start_date' => $version->start_date->format('d-m-Y'),
+                'end_date' => $version->end_date->format('d-m-Y'),
                 'has_documents' => !empty($availableDocuments),
                 'documents' => $availableDocuments,
                 'notes' => $version->notes,
@@ -1179,8 +1240,8 @@ class PolicyController extends Controller
                 'company_name' => $policy->company_name,
                 'insurance_type' => $policy->insurance_type,
                 'policy_type' => $policy->policy_type,
-                'start_date' => $policy->start_date->format('Y-m-d'),
-                'end_date' => $policy->end_date->format('Y-m-d'),
+                'start_date' => $policy->start_date->format('d-m-Y'),
+                'end_date' => $policy->end_date->format('d-m-Y'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customer_paid_amount' => $policy->customer_paid_amount,
@@ -1188,7 +1249,7 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'business_type' => $policy->business_type,
                 'agent_name' => $policy->agent_name,
-                'created_at' => $policy->created_at->format('Y-m-d')
+                'created_at' => $policy->created_at->format('d-m-Y')
             ];
         })->values();
 
@@ -1224,7 +1285,7 @@ class PolicyController extends Controller
         }
 
         $format = $request->get('format', 'xlsx'); // Default to Excel
-        $filename = 'policies_export_' . date('Y-m-d_H-i-s');
+        $filename = 'policies_export_' . date('d-m-Y_H-i-s');
         
         if ($format === 'csv') {
             return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);

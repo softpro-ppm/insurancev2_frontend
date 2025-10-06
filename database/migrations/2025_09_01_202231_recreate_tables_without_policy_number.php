@@ -35,6 +35,13 @@ return new class extends Migration
             $table->string('status')->default('Active');
             $table->string('business_type');
             $table->string('agent_name');
+            // Health/Life specific fields
+            $table->unsignedSmallInteger('customer_age')->nullable();
+            $table->string('customer_gender')->nullable();
+            $table->decimal('sum_insured', 12, 2)->nullable(); // Health
+            $table->decimal('sum_assured', 12, 2)->nullable(); // Life
+            $table->string('policy_term')->nullable(); // Life
+            $table->string('premium_frequency')->nullable(); // Life
             $table->text('policy_copy_path')->nullable();
             $table->text('rc_copy_path')->nullable();
             $table->text('aadhar_copy_path')->nullable();
