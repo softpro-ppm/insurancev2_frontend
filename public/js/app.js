@@ -2043,6 +2043,12 @@ const initializeEventListeners = () => {
             }
         }
     });
+    
+    // Reports page controls
+    $('#generateReportBtn').click(generateReports);
+    $('#exportReportBtn').click(exportReport);
+    $('#reportStartDate, #reportEndDate').change(updateReportDateRange);
+    $('#reportTypeFilter').change(updateReportType);
 };
 
 // Theme toggle
@@ -6462,8 +6468,37 @@ const generatePoliciesReport = () => {
     const tbody = $('#policiesReportTableBody');
     tbody.empty();
     
-    // Filter policies based on date range if needed
-    const filteredPolicies = allPolicies || [];
+    // Filter policies based on date range
+    const startDate = reportDateRange.start;
+    const endDate = reportDateRange.end;
+    
+    let filteredPolicies = allPolicies || [];
+    
+    // Apply date filtering if date range is set
+    if (startDate && endDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        
+        filteredPolicies = allPolicies.filter(policy => {
+            // Use startDate (policy start date) as the filter
+            const policyStartDate = policy.startDate ? new Date(policy.startDate) : null;
+            
+            if (!policyStartDate) {
+                // If no startDate, try created_at
+                const createdDate = policy.created_at ? new Date(policy.created_at) : null;
+                if (!createdDate) {
+                    return false;
+                }
+                return createdDate >= start && createdDate <= end;
+            }
+            
+            return policyStartDate >= start && policyStartDate <= end;
+        });
+    }
+    
+    console.log('Reports: Showing', filteredPolicies.length, 'policies out of', allPolicies.length, 'for date range', startDate, 'to', endDate);
     
     filteredPolicies.forEach(policy => {
         // Use the correct property names from the API response with fallbacks
