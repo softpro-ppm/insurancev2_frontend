@@ -773,6 +773,10 @@ const loadDashboardData = async () => {
         const recentPolicies = await fetchRecentPolicies();
         if (recentPolicies.length > 0) {
             updateRecentPoliciesTable(recentPolicies);
+            // If we're on dashboard, also update the main table to use recent policies
+            if ($('#dashboard').hasClass('active')) {
+                console.log('Dashboard: Using recent policies data for main table');
+            }
         }
         
         const expiringPolicies = await fetchExpiringPolicies();
@@ -1234,6 +1238,16 @@ const initializeCharts = () => {
 
 // Initialize data table
 const initializeTable = () => {
+    // Check if we're on the dashboard page
+    if ($('#dashboard').hasClass('active')) {
+        // On dashboard, use recent policies data if available
+        if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
+            updateRecentPoliciesTable(window.recentPoliciesData);
+            return;
+        }
+    }
+    
+    // For other pages or if no recent policies data, use main table
     renderTable();
     updatePagination();
 };
@@ -3615,19 +3629,21 @@ const exportPoliciesData = () => {
 };
 
 const generatePoliciesCSV = () => {
-    const headers = ['Sl. No', 'Policy Type', 'Customer Name', 'Phone', 'Insurance Company', 'End Date', 'Premium', 'Status'];
+    const headers = ['Sl. No', 'Policy Type', 'Customer Name', 'Phone', 'Insurance Company', 'Start Date', 'End Date', 'Premium', 'Status'];
     const csvRows = [headers.join(',')];
+    const source = Array.isArray(window.reportsPoliciesData) ? window.reportsPoliciesData : policiesFilteredData;
     
-    policiesFilteredData.forEach(policy => {
+    source.forEach((policy, idx) => {
         const row = [
-            policy.id,
-            policy.type,
-            policy.owner,
-            policy.phone,
-            getShortCompanyName(policy.company),
-            policy.endDate,
-            policy.premium,
-            policy.status
+            idx + 1,
+            (policy.policyType || policy.type || ''),
+            (policy.customerName || policy.owner || ''),
+            (policy.phone || ''),
+            getShortCompanyName(policy.companyName || policy.company || ''),
+            (policy.startDate || ''),
+            (policy.endDate || ''),
+            (policy.premium || 0),
+            (policy.status || '')
         ];
         csvRows.push(row.join(','));
     });
@@ -5629,53 +5645,33 @@ const initializeReportTabs = () => {
     });
 };
 
-const generateReports = () => {
-    // Check if data is available before generating reports
-    if (!allPolicies && !allAgents && !allRenewals && !allFollowups) {
-        console.log('Data not yet loaded, skipping report generation');
-        return;
+const generateReports = async () => {
+    try {
+        const start = $('#reportStartDate').val();
+        const end = $('#reportEndDate').val();
+        const params = new URLSearchParams();
+        if (start) params.append('start', start);
+        if (end) params.append('end', end);
+        const data = await apiCall(`/api/reports/policies?${params.toString()}`);
+        window.reportsPoliciesData = (data && data.policies) ? data.policies : [];
+        
+        // Update KPIs and render tables using server-filtered data
+        updateKPIs({ policies: window.reportsPoliciesData, renewals: [], followups: [], agents: [] });
+        generatePoliciesReport();
+        generateRenewalsReport();
+        generateFollowupsReport();
+        generateAgentsReport();
+    } catch (e) {
+        console.error('Failed to generate reports:', e);
     }
-    
-    updateKPIs();
-    generatePoliciesReport();
-    generateRenewalsReport();
-    generateFollowupsReport();
-    generateAgentsReport();
 };
 
 const generatePoliciesReport = () => {
     const tbody = $('#policiesReportTableBody');
     tbody.empty();
     
-    // Filter policies based on date range
-    const startDate = reportDateRange.start;
-    const endDate = reportDateRange.end;
-    
-    let filteredPolicies = allPolicies || [];
-    
-    // Apply date filtering if date range is set
-    if (startDate && endDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        
-        filteredPolicies = allPolicies.filter(policy => {
-            // Use startDate (policy start date) as the filter
-            const policyStartDate = policy.startDate ? new Date(policy.startDate) : null;
-            
-            if (!policyStartDate) {
-                // If no startDate, try created_at
-                const createdDate = policy.created_at ? new Date(policy.created_at) : null;
-                if (!createdDate) {
-                    return false;
-                }
-                return createdDate >= start && createdDate <= end;
-            }
-            
-            return policyStartDate >= start && policyStartDate <= end;
-        });
-    }
+    // Use server-filtered dataset when available
+    const filteredPolicies = Array.isArray(window.reportsPoliciesData) ? window.reportsPoliciesData : (allPolicies || []);
     
     console.log('Reports: Showing', filteredPolicies.length, 'policies out of', allPolicies.length, 'for date range', startDate, 'to', endDate);
     

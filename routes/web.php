@@ -105,6 +105,9 @@ Route::get('/reports/{id}', [ReportController::class, 'show'])->name('reports.sh
 Route::put('/reports/{id}', [ReportController::class, 'update'])->name('reports.update');
 Route::delete('/reports/{id}', [ReportController::class, 'destroy'])->name('reports.destroy');
 
+// Reports - Policies filtered by start_date range (server-side enforced)
+Route::get('/api/reports/policies', [PolicyController::class, 'listByStartDateRange'])->name('reports.policies.by-date')->middleware(['auth', 'verified']);
+
 // Agents routes
 Route::get('/agents', function () {
     return view('agents.index');

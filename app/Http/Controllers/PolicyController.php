@@ -13,6 +13,7 @@ use App\Exports\PoliciesCSVExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class PolicyController extends Controller
 {
@@ -50,6 +51,59 @@ class PolicyController extends Controller
             ];
         });
         
+        return response()->json(['policies' => $policies]);
+    }
+
+    /**
+     * List policies filtered by start_date between provided start and end (inclusive)
+     * This is used by the Reports page and must NEVER use created_at for filtering.
+     */
+    public function listByStartDateRange(Request $request)
+    {
+        // Validate inputs; default to last 30 days when not provided
+        $validated = $request->validate([
+            'start' => 'nullable|date',
+            'end' => 'nullable|date'
+        ]);
+
+        $end = isset($validated['end'])
+            ? Carbon::parse($validated['end'])->endOfDay()
+            : Carbon::now()->endOfDay();
+        $start = isset($validated['start'])
+            ? Carbon::parse($validated['start'])->startOfDay()
+            : $end->copy()->subDays(30)->startOfDay();
+
+        $policies = Policy::whereBetween('start_date', [$start, $end])
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(function ($policy) {
+                return [
+                    'id' => $policy->id,
+                    'customerName' => $policy->customer_name,
+                    'phone' => $policy->phone,
+                    'email' => $policy->email,
+                    'policyType' => $policy->policy_type,
+                    'vehicleNumber' => $policy->vehicle_number,
+                    'vehicleType' => $policy->vehicle_type,
+                    'companyName' => $policy->company_name,
+                    'insuranceType' => $policy->insurance_type,
+                    'startDate' => optional($policy->start_date)->format('Y-m-d'),
+                    'endDate' => optional($policy->end_date)->format('Y-m-d'),
+                    'premium' => $policy->premium,
+                    'payout' => $policy->payout,
+                    'customerPaidAmount' => $policy->customer_paid_amount,
+                    'revenue' => $policy->revenue,
+                    'status' => $policy->status,
+                    'businessType' => $policy->business_type,
+                    'agentName' => $policy->agent_name,
+                    'createdAt' => optional($policy->created_at)->format('Y-m-d'),
+                    'policy_copy_path' => $policy->policy_copy_path,
+                    'rc_copy_path' => $policy->rc_copy_path,
+                    'aadhar_copy_path' => $policy->aadhar_copy_path,
+                    'pan_copy_path' => $policy->pan_copy_path,
+                ];
+            });
+
         return response()->json(['policies' => $policies]);
     }
 
