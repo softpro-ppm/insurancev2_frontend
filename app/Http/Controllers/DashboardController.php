@@ -167,12 +167,15 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
     }
     
     /**
-     * Get recent policies for dashboard
+     * Get recent policies for dashboard (last 30 days)
      */
-    public function getRecentPolicies()
+public function getRecentPolicies()
     {
-        $recentPolicies = Policy::orderBy('start_date', 'desc')
-            ->take(10)
+        // Get policies from the last 30 days only
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        
+        $recentPolicies = Policy::where('start_date', '>=', $thirtyDaysAgo)
+            ->orderBy('start_date', 'desc')
             ->get()
             ->map(function ($policy) {
                 return [
