@@ -23,8 +23,8 @@ class PolicyController extends Controller
      */
     public function index()
     {
-        // Optimize query with caching and minimal data loading
-        $cacheKey = 'policies_list_' . md5('all');
+        // Simple caching for policies list
+        $cacheKey = 'policies_list_all';
         $cached = cache()->get($cacheKey);
         if ($cached) {
             return response()->json(['policies' => $cached]);

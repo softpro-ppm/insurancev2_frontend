@@ -32,40 +32,31 @@ class DashboardController extends Controller
             : Carbon::create($now->year - 1, 4, 1)->startOfDay();
         $fyEnd = $fyStart->copy()->addYear()->subDay()->endOfDay();
         
-        // Policy statistics - Optimized single query
-        $policyStats = Policy::selectRaw('
-            COUNT(*) as total_policies,
-            SUM(CASE WHEN status = "Active" THEN 1 ELSE 0 END) as active_policies,
-            SUM(CASE WHEN status = "Expired" THEN 1 ELSE 0 END) as expired_policies,
-            SUM(premium) as total_premium,
-            SUM(revenue) as total_revenue
-        ')->first();
-        
-        $totalPolicies = $policyStats->total_policies ?? 0;
-        $activePolicies = $policyStats->active_policies ?? 0;
-        $expiredPolicies = $policyStats->expired_policies ?? 0;
+        // Policy statistics - Simple and compatible queries
+        $totalPolicies = Policy::count();
+        $activePolicies = Policy::where('status', 'Active')->count();
+        $expiredPolicies = Policy::where('status', 'Expired')->count();
         $pendingRenewals = Schema::hasTable('renewals')
             ? Renewal::where('status', 'Pending')->count()
             : 0;
         
-        // Monthly statistics (based on policy START DATE) - Optimized single query
-        $monthlyStats = Policy::whereMonth('start_date', $currentMonth->month)
+        // Monthly statistics (based on policy START DATE)
+        $monthlyPolicies = Policy::whereMonth('start_date', $currentMonth->month)
             ->whereYear('start_date', $currentMonth->year)
-            ->selectRaw('COUNT(*) as monthly_policies, SUM(premium) as monthly_premium, SUM(revenue) as monthly_revenue')
-            ->first();
+            ->count();
         
-        $monthlyPolicies = $monthlyStats->monthly_policies ?? 0;
-        $monthlyPremium = $monthlyStats->monthly_premium ?? 0;
-        $monthlyRevenue = $monthlyStats->monthly_revenue ?? 0;
+        $monthlyPremium = Policy::whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
+            ->sum('premium');
         
-        // Financial Year statistics (based on policy START DATE) - Optimized single query
-        $yearlyStats = Policy::whereBetween('start_date', [$fyStart, $fyEnd])
-            ->selectRaw('COUNT(*) as yearly_policies, SUM(premium) as yearly_premium, SUM(revenue) as yearly_revenue')
-            ->first();
+        $monthlyRevenue = Policy::whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
+            ->sum('revenue');
         
-        $yearlyPolicies = $yearlyStats->yearly_policies ?? 0;
-        $yearlyPremium = $yearlyStats->yearly_premium ?? 0;
-        $yearlyRevenue = $yearlyStats->yearly_revenue ?? 0;
+        // Financial Year statistics (based on policy START DATE)
+        $yearlyPolicies = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->count();
+        $yearlyPremium = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->sum('premium');
+        $yearlyRevenue = Policy::whereBetween('start_date', [$fyStart, $fyEnd])->sum('revenue');
         
         // Monthly renewals (based on policy END DATE)
         $monthlyRenewals = Policy::whereMonth('end_date', $currentMonth->month)
@@ -116,9 +107,9 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
                 'yearlyPolicies' => $yearlyPolicies,
                 'yearlyPremium' => $yearlyPremium,
                 'yearlyRevenue' => $yearlyRevenue,
-                // Add total counts for main dashboard cards (use pre-calculated values)
-                'totalPremium' => $policyStats->total_premium ?? 0,
-                'totalRevenue' => $policyStats->total_revenue ?? 0,
+                // Add total counts for main dashboard cards
+                'totalPremium' => Policy::sum('premium'),
+                'totalRevenue' => Policy::sum('revenue'),
                 'totalRenewals' => Policy::where('end_date', '<=', $now->copy()->addDays(30))
                     ->where('end_date', '>=', $now->toDateString())
                     ->where('status', 'Active')
