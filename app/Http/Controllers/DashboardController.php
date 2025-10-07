@@ -17,12 +17,10 @@ class DashboardController extends Controller
     public function getStats(Request $request)
     {
         // Simple cache to reduce DB hits on shared hosting
-        if (function_exists('cache')) {
-            $cacheKey = 'dashboard_stats_' . ($request->get('period', 'financial_year'));
-            $cached = cache()->get($cacheKey);
-            if ($cached) {
-                return response()->json($cached);
-            }
+        $cacheKey = 'dashboard_stats_' . ($request->get('period', 'financial_year'));
+        $cached = cache()->get($cacheKey);
+        if ($cached) {
+            return response()->json($cached);
         }
         $now = Carbon::now();
         $currentMonth = $now->copy()->startOfMonth();
@@ -118,9 +116,7 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
             'policyTypes' => $policyTypes,
             'chartData' => $chartData
         ];
-        if (function_exists('cache')) {
-            cache()->put($cacheKey, $payload, 60); // cache 60 seconds
-        }
+        cache()->put($cacheKey, $payload, 60); // cache 60 seconds
         return response()->json($payload);
     }
 

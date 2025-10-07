@@ -23,13 +23,6 @@ class PolicyController extends Controller
      */
     public function index()
     {
-        // Simple caching for policies list
-        $cacheKey = 'policies_list_all';
-        $cached = cache()->get($cacheKey);
-        if ($cached) {
-            return response()->json(['policies' => $cached]);
-        }
-        
         $hasVersionsTable = Schema::hasTable('policy_versions');
         $policies = Policy::select('*')->get()->map(function ($policy) use ($hasVersionsTable) {
             return [
@@ -59,9 +52,6 @@ class PolicyController extends Controller
                 'hasRenewal' => $hasVersionsTable ? $policy->versions()->exists() : false,
             ];
         });
-        
-        // Cache the results for 5 minutes
-        cache()->put($cacheKey, $policies, 300);
         
         return response()->json(['policies' => $policies]);
     }
