@@ -206,12 +206,18 @@ const apiCall = async (endpoint, options = {}) => {
 // Dashboard API calls
 const fetchDashboardStats = async () => {
     try {
+        console.log('🔄 fetchDashboardStats: Making API call to /api/dashboard/stats');
         // Add cache-busting parameter to force fresh data
         const timestamp = new Date().getTime();
-        const data = await apiCall(`/api/dashboard/stats?t=${timestamp}`);
+        const url = `/api/dashboard/stats?t=${timestamp}`;
+        console.log('🔄 fetchDashboardStats: URL:', url);
+
+        const data = await apiCall(url);
+        console.log('✅ fetchDashboardStats: Success, received data:', data);
         return data;
     } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
+        console.error('❌ fetchDashboardStats: Failed to fetch dashboard stats:', error);
+        console.error('❌ fetchDashboardStats: Error details:', error.message);
         return null;
     }
 };
@@ -241,10 +247,14 @@ const fetchExpiringPolicies = async () => {
 // Policies API calls
 const fetchPolicies = async () => {
     try {
+        console.log('📋 fetchPolicies: Making API call to /api/policies');
         const data = await apiCall('/api/policies');
+        console.log('📋 fetchPolicies: Success, received data:', data);
+        console.log('📋 fetchPolicies: Policies count:', data.policies ? data.policies.length : 0);
         return data.policies || [];
     } catch (error) {
-        console.error('Failed to fetch policies:', error);
+        console.error('❌ fetchPolicies: Failed to fetch policies:', error);
+        console.error('❌ fetchPolicies: Error details:', error.message);
         return [];
     }
 };
@@ -848,6 +858,8 @@ const initializeApplication = async () => {
         console.log('🚀 Current path:', window.location.pathname);
         console.log('🚀 Dashboard element exists:', $('#dashboard').length);
         console.log('🚀 Policies element exists:', $('#policies').length);
+        console.log('🚀 jQuery available:', typeof $ !== 'undefined');
+        console.log('🚀 jQuery version:', $.fn ? $.fn.jquery : 'unknown');
         
         // Initialize charts first so they're ready for data
         initializeCharts();
@@ -1036,31 +1048,45 @@ const loadFollowupsData = async () => {
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
     console.log('🔧 updateDashboardStats called with:', stats);
-    if (stats.stats) {
+    console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
+
+    if (stats && stats.stats) {
+        console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
-        
+
         // Use total counts for main dashboard cards instead of monthly counts
         const totalPremium = stats.stats.totalPremium || stats.stats.monthlyPremium;
         const totalPolicies = stats.stats.totalPolicies || stats.stats.monthlyPolicies || 0;
         const totalRevenue = stats.stats.totalRevenue || stats.stats.monthlyRevenue;
         const totalRenewals = stats.stats.totalRenewals || stats.stats.monthlyRenewals || 0;
+
+        console.log('🔧 updateDashboardStats: Calculated values:', {
+            totalPremium, totalPolicies, totalRevenue, totalRenewals
+        });
         
         console.log('📊 Setting dashboard values:', {
             totalPremium, totalPolicies, totalRevenue, totalRenewals
         });
         
+        console.log('📝 Updating DOM elements...');
         $('#monthlyPremium').text(fmtINR(totalPremium));
         $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(totalPolicies);
         $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
-        
+
         // Use total renewals for main card, but keep monthly breakdown for detailed view
         const renewed = stats.stats.monthlyRenewed || 0;
         $('#monthlyRenewals').text(totalRenewals);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
         $('#monthlyRevenue').text(fmtINR(totalRevenue));
-        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
-        
+        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)'));
+
+        console.log('📝 DOM elements updated, checking current values:');
+        console.log('  monthlyPremium:', $('#monthlyPremium').text());
+        console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
+        console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
+        console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
+
         console.log('✅ Dashboard stats updated successfully');
     }
     
@@ -4113,20 +4139,33 @@ const goToPoliciesPage = (page) => {
 };
 
 const updatePoliciesStats = () => {
+    console.log('📊 updatePoliciesStats called');
+    console.log('📊 Current allPolicies length:', allPolicies.length);
+
     // Prevent cross-page override: do not touch renewals counters on Renewals page
     const currentPathForPolicies = window.location && window.location.pathname ? window.location.pathname : '';
     if (currentPathForPolicies === '/renewals' || currentPathForPolicies.startsWith('/renewals')) {
+        console.log('📊 updatePoliciesStats: Skipping for renewals page');
         return; // The Renewals page owns these counters via its own script
     }
+
     const activeCount = allPolicies.filter(p => p.status === 'Active').length;
     const expiredCount = allPolicies.filter(p => p.status === 'Expired').length;
     const pendingCount = allPolicies.filter(p => p.status === 'Pending').length;
     const totalCount = allPolicies.length;
-    
+
+    console.log('📊 updatePoliciesStats: Calculated counts:', {
+        activeCount, expiredCount, pendingCount, totalCount
+    });
+
     $('#activePoliciesCount').text(activeCount);
     $('#expiredPoliciesCount').text(expiredCount);
     $('#pendingRenewalsCount').text(pendingCount);
     $('#totalPoliciesCount').text(totalCount);
+
+    console.log('📊 updatePoliciesStats: DOM elements updated');
+    console.log('  activePoliciesCount:', $('#activePoliciesCount').text());
+    console.log('  totalPoliciesCount:', $('#totalPoliciesCount').text());
 };
 
 const handlePoliciesSearch = () => {

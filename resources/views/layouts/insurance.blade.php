@@ -174,13 +174,13 @@
             <div class="profile-dropdown">
                 <button class="profile-btn" id="profileBtn">
                     <i class="fas fa-user-circle"></i>
-                    <span>{{ Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin') }}</span>
+                    <span>{{ Auth::check() && Auth::user() ? (Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin')) : 'Admin' }}</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="dropdown-menu" id="profileDropdown">
                     <div class="dropdown-item">
                         <i class="fas fa-user"></i>
-                        <span>{{ Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin') }}</span>
+                        <span>{{ Auth::check() && Auth::user() ? (Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin')) : 'Admin' }}</span>
                     </div>
                     <div class="dropdown-divider"></div>
                     <a href="{{ route('profile.edit') }}" class="dropdown-item">
@@ -292,7 +292,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ microtime(true) }}&history_update={{ time() }}&chart_fix={{ time() }}&renewal_fix={{ time() }}&final_fix={{ time() }}&conflict_fix={{ time() }}&renewals_conflict_fix={{ time() }}&debug_fix={{ time() }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>
