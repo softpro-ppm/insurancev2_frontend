@@ -248,7 +248,29 @@ const fetchExpiringPolicies = async () => {
 const fetchPolicies = async () => {
     try {
         console.log('📋 fetchPolicies: Making API call to /api/policies');
-        const data = await apiCall('/api/policies');
+        console.log('📋 fetchPolicies: Full URL will be:', window.location.origin + '/api/policies');
+
+        // Try direct fetch call for debugging
+        const response = await fetch('/api/policies', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        console.log('📋 fetchPolicies: Response status:', response.status);
+        console.log('📋 fetchPolicies: Response ok:', response.ok);
+
+        if (!response.ok) {
+            console.error('📋 fetchPolicies: API call failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('📋 fetchPolicies: Error response:', errorText);
+            return [];
+        }
+
+        const data = await response.json();
         console.log('📋 fetchPolicies: Success, received data:', data);
         console.log('📋 fetchPolicies: Policies count:', data.policies ? data.policies.length : 0);
         return data.policies || [];
@@ -866,6 +888,7 @@ const initializeApplication = async () => {
         
         // Load only the data needed for the current page to reduce initial load
         const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
+        console.log('🔍 Current path detected:', currentPath);
         const loads = [];
         if (currentPath === '/' || currentPath === '/dashboard') {
             console.log('🚀 Loading dashboard data...');
@@ -910,7 +933,6 @@ const initializeApplication = async () => {
         initializeAgents();
         initializePoliciesPage();
         // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
-        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
         if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
             initializeRenewalsPage();
         }
