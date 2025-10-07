@@ -845,6 +845,9 @@ $(document).ready(function() {
 const initializeApplication = async () => {
     try {
         console.log('🚀 Starting application initialization...');
+        console.log('🚀 Current path:', window.location.pathname);
+        console.log('🚀 Dashboard element exists:', $('#dashboard').length);
+        console.log('🚀 Policies element exists:', $('#policies').length);
         
         // Initialize charts first so they're ready for data
         initializeCharts();
@@ -853,9 +856,11 @@ const initializeApplication = async () => {
         const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
         const loads = [];
         if (currentPath === '/' || currentPath === '/dashboard') {
+            console.log('🚀 Loading dashboard data...');
             loads.push(loadDashboardData());
         }
         if (currentPath === '/policies') {
+            console.log('🚀 Loading policies data...');
             loads.push(loadPoliciesData());
             loads.push(loadAgentsData());
         }
@@ -925,6 +930,9 @@ const initializeApplication = async () => {
 // Load dashboard data
 const loadDashboardData = async () => {
     try {
+        console.log('🎯 loadDashboardData called - Dashboard element:', $('#dashboard').length);
+        console.log('🎯 Dashboard has active class:', $('#dashboard').hasClass('active'));
+        
         // Show loading indicators for cards
         $('.card-value').text('Loading...');
         
@@ -972,7 +980,11 @@ const loadDashboardData = async () => {
 // Load policies data
 const loadPoliciesData = async () => {
     try {
+        console.log('📋 loadPoliciesData called - Policies element:', $('#policies').length);
+        console.log('📋 Policies has active class:', $('#policies').hasClass('active'));
+        
         allPolicies = await fetchPolicies();
+        console.log('📋 Policies loaded:', allPolicies.length);
         filteredData = [...allPolicies];
         updatePoliciesStats();
     } catch (error) {
