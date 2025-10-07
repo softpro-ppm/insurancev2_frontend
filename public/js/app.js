@@ -1101,7 +1101,7 @@ const updateDashboardStats = (stats) => {
         $('#monthlyRenewals').text(totalRenewals);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
         $('#monthlyRevenue').text(fmtINR(totalRevenue));
-        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)'));
+        $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
 
         console.log('📝 DOM elements updated, checking current values:');
         console.log('  monthlyPremium:', $('#monthlyPremium').text());
