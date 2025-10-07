@@ -357,10 +357,14 @@ const deletePolicy = async (id) => {
 // Agents API calls
 const fetchAgents = async () => {
     try {
+        console.log('👥 fetchAgents: Making API call to /api/agents');
         const data = await apiCall('/api/agents');
+        console.log('👥 fetchAgents: Success, received data:', data);
+        console.log('👥 fetchAgents: Agents count:', data.agents ? data.agents.length : 0);
         return data.agents || [];
     } catch (error) {
-        console.error('Failed to fetch agents:', error);
+        console.error('❌ fetchAgents: Failed to fetch agents:', error);
+        console.error('❌ fetchAgents: Error details:', error.message);
         return [];
     }
 };
@@ -899,6 +903,10 @@ const initializeApplication = async () => {
             loads.push(loadPoliciesData());
             loads.push(loadAgentsData());
         }
+        if (currentPath === '/agents') {
+            console.log('🚀 Loading agents data...');
+            loads.push(loadAgentsData());
+        }
         if (currentPath === '/renewals') {
             loads.push(loadRenewalsData());
         }
@@ -1031,9 +1039,12 @@ const loadPoliciesData = async () => {
 // Load agents data
 const loadAgentsData = async () => {
     try {
+        console.log('👥 loadAgentsData called');
         allAgents = await fetchAgents();
+        console.log('👥 Agents loaded:', allAgents.length);
+        console.log('👥 Agents data:', allAgents);
     } catch (error) {
-        console.error('Failed to load agents data:', error);
+        console.error('❌ Failed to load agents data:', error);
         allAgents = [];
     }
 };
@@ -6951,19 +6962,29 @@ const goToAgentsPage = (page) => {
 };
 
 const updateAgentsStats = () => {
+    console.log('👥 updateAgentsStats called');
+    console.log('👥 Current allAgents length:', allAgents.length);
+    console.log('👥 Current allPolicies length:', allPolicies.length);
+    
     $('#totalAgentsCount').text(allAgents.length);
     $('#activeAgentsCount').text(allAgents.length);
     
     const totalPolicies = allPolicies.length;
     $('#totalPoliciesCount').text(totalPolicies);
     
-    const avgPerformance = allAgents.reduce((sum, agent) => {
+    const avgPerformance = allAgents.length > 0 ? allAgents.reduce((sum, agent) => {
         const policies = allPolicies.filter(p => p.assignedTo === agent.name).length;
         const performance = Math.floor(Math.random() * 40) + 60;
         return sum + performance;
-    }, 0) / allAgents.length;
+    }, 0) / allAgents.length : 0;
     
     $('#avgPerformanceCount').text(`${avgPerformance.toFixed(1)}%`);
+    
+    console.log('👥 updateAgentsStats: Updated DOM elements');
+    console.log('  totalAgentsCount:', $('#totalAgentsCount').text());
+    console.log('  activeAgentsCount:', $('#activeAgentsCount').text());
+    console.log('  totalPoliciesCount:', $('#totalPoliciesCount').text());
+    console.log('  avgPerformanceCount:', $('#avgPerformanceCount').text());
 };
 
 const handleAgentsSearch = () => {
