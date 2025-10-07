@@ -13,6 +13,7 @@ use App\Exports\PoliciesCSVExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class PolicyController extends Controller
@@ -23,7 +24,8 @@ class PolicyController extends Controller
     public function index()
     {
         // Avoid eager-loading heavy relations for listing; fetch minimal fields
-        $policies = Policy::select('*')->get()->map(function ($policy) {
+        $hasVersionsTable = Schema::hasTable('policy_versions');
+        $policies = Policy::select('*')->get()->map(function ($policy) use ($hasVersionsTable) {
             return [
                 'id' => $policy->id,
                 'customerName' => $policy->customer_name,
@@ -48,7 +50,7 @@ class PolicyController extends Controller
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                'hasRenewal' => $policy->versions()->count() > 0, // Check if policy has been renewed
+                'hasRenewal' => $hasVersionsTable ? $policy->versions()->exists() : false,
             ];
         });
         

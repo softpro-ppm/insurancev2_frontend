@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Policy;
 use App\Models\Renewal;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Agent;
 use Carbon\Carbon;
 
@@ -35,7 +36,9 @@ class DashboardController extends Controller
         $totalPolicies = Policy::count();
         $activePolicies = Policy::where('status', 'Active')->count();
         $expiredPolicies = Policy::where('status', 'Expired')->count();
-        $pendingRenewals = Renewal::where('status', 'Pending')->count();
+        $pendingRenewals = Schema::hasTable('renewals')
+            ? Renewal::where('status', 'Pending')->count()
+            : 0;
         
         // Monthly statistics (based on policy START DATE)
         $monthlyPolicies = Policy::whereMonth('start_date', $currentMonth->month)
@@ -104,6 +107,13 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
                 'yearlyPolicies' => $yearlyPolicies,
                 'yearlyPremium' => $yearlyPremium,
                 'yearlyRevenue' => $yearlyRevenue,
+                // Add total counts for main dashboard cards
+                'totalPremium' => Policy::sum('premium'),
+                'totalRevenue' => Policy::sum('revenue'),
+                'totalRenewals' => Policy::where('end_date', '<=', $now->copy()->addDays(30))
+                    ->where('end_date', '>=', $now->toDateString())
+                    ->where('status', 'Active')
+                    ->count(),
             ],
             'policyTypes' => $policyTypes,
             'chartData' => $chartData

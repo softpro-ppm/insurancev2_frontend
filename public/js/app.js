@@ -1024,15 +1024,19 @@ const loadFollowupsData = async () => {
 const updateDashboardStats = (stats) => {
     if (stats.stats) {
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
-        $('#monthlyPremium').text(fmtINR(stats.stats.monthlyPremium));
+        
+        // Use total counts for main dashboard cards instead of monthly counts
+        $('#monthlyPremium').text(fmtINR(stats.stats.totalPremium || stats.stats.monthlyPremium));
         $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
-        $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
+        $('#monthlyPolicies').text(stats.stats.totalPolicies || stats.stats.monthlyPolicies || 0);
         $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
+        
+        // Use total renewals for main card, but keep monthly breakdown for detailed view
+        const totalRenewals = stats.stats.totalRenewals || stats.stats.monthlyRenewals || 0;
         const renewed = stats.stats.monthlyRenewed || 0;
-        const totalRenewals = stats.stats.monthlyRenewals || 0;
-        $('#monthlyRenewals').text(`${renewed}/${totalRenewals}`);
+        $('#monthlyRenewals').text(totalRenewals);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
-        $('#monthlyRevenue').text(fmtINR(stats.stats.monthlyRevenue));
+        $('#monthlyRevenue').text(fmtINR(stats.stats.totalRevenue || stats.stats.monthlyRevenue));
         $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
     }
     

@@ -18,7 +18,7 @@
                 <div class="card-value" id="monthlyPremium">₹0</div>
             </div>
             <div class="card-content">
-                <h3>Premium (Current Month)</h3>
+                <h3>Total Premium</h3>
             </div>
         </div>
         <div class="card glass-effect">
@@ -29,7 +29,7 @@
                 <div class="card-value" id="monthlyPolicies">0</div>
             </div>
             <div class="card-content">
-                <h3>Policies (Current Month)</h3>
+                <h3>Total Policies</h3>
             </div>
         </div>
         <div class="card glass-effect">
@@ -40,7 +40,7 @@
                 <div class="card-value" id="monthlyRenewals">0</div>
             </div>
             <div class="card-content">
-                <h3>Renewals (Current Month)</h3>
+                <h3>Upcoming Renewals</h3>
             </div>
         </div>
         <div class="card glass-effect">
@@ -51,7 +51,7 @@
                 <div class="card-value" id="monthlyRevenue">₹0</div>
             </div>
             <div class="card-content">
-                <h3>Revenue (Current Month)</h3>
+                <h3>Total Revenue</h3>
             </div>
         </div>
     </div>
