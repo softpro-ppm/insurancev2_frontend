@@ -6,7 +6,7 @@
 <div class="page active" id="agent-followups">
     <div class="page-header">
         <h1>My Follow-ups</h1>
-        <p class="text-gray-600">Agent: {{ Auth::guard('agent')->user()->name }}</p>
+        <p class="text-gray-600">Agent: {{ Auth::guard('agent')->user()->name ?? 'Unknown Agent' }}</p>
     </div>
     
     <div class="page-content">

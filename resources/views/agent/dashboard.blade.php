@@ -5,7 +5,7 @@
 @section('content')
 <div class="page active" id="agent-dashboard">
     <div class="page-header">
-        <h1>Welcome, {{ Auth::guard('agent')->user()->name }}</h1>
+        <h1>Welcome, {{ Auth::guard('agent')->user()->name ?? 'Agent' }}</h1>
         <p class="text-gray-600">Agent Dashboard</p>
     </div>
     
@@ -823,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('viewVehicleNumber').textContent = vehicleNumber || '-';
             document.getElementById('viewVehicleType').textContent = vehicleType || '-';
             document.getElementById('viewChassisNumber').textContent = chassis || '-';
-            document.getElementById('viewAgentName').textContent = '{{ Auth::guard("agent")->user()->name }}';
+            document.getElementById('viewAgentName').textContent = '{{ Auth::guard("agent")->user()->name ?? "Unknown Agent" }}';
             document.getElementById('viewCompanyName').textContent = insuranceCompany || '-';
             document.getElementById('viewInsuranceType').textContent = policyType || '-';
             document.getElementById('viewStartDate').textContent = startDate ? new Date(startDate).toLocaleDateString('en-GB') : '-';
