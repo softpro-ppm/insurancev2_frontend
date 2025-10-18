@@ -189,7 +189,7 @@
             <div class="logo-icon">
                 <i class="fas fa-shield-alt"></i>
             </div>
-            <h2 class="auth-title">Welcome Back</h2>
+            <h2 class="auth-title">Hi Welcome Back</h2>
             <p class="auth-subtitle">Sign in to your account</p>
         </div>
 
