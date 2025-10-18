@@ -299,7 +299,7 @@
                 </div>
 
                 <!-- Health Insurance Form -->
-                <div class="policy-form" id="healthForm" style="display: none;">
+                <div class="policy-form" id="healthForm">
                     <div class="form-section">
                         <h3><i class="fas fa-user"></i> Customer Information</h3>
                         <div class="form-row">
@@ -425,7 +425,7 @@
                 </div>
 
                 <!-- Life Insurance Form -->
-                <div class="policy-form" id="lifeForm" style="display: none;">
+                <div class="policy-form" id="lifeForm">
                     <div class="form-section">
                         <h3><i class="fas fa-user"></i> Customer Information</h3>
                         <div class="form-row">
