@@ -4483,7 +4483,7 @@ const exportPoliciesData = async () => {
         const filters = {
             policy_type: $('#policyTypeFilter').val(),
             status: $('#statusFilter').val(),
-            format: 'xlsx' // Default to Excel
+            format: 'csv' // Default to CSV for better compatibility
         };
         
         console.log('Filters:', filters);

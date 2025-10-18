@@ -1292,15 +1292,23 @@ class PolicyController extends Controller
             $filename = 'policies_export_' . date('d-m-Y_H-i-s');
             
             \Log::info('Export filters:', $filters);
-            \Log::info('Export format:', $format);
+            \Log::info('Export format: ' . $format);
             
+            // Set proper headers for file download
             if ($format === 'csv') {
                 return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
             } else {
-                return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx');
+                // Try Excel first, fallback to CSV if there's an issue
+                try {
+                    return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+                } catch (\Exception $excelError) {
+                    \Log::warning('Excel export failed, falling back to CSV: ' . $excelError->getMessage());
+                    return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+                }
             }
         } catch (\Exception $e) {
             \Log::error('Export error: ' . $e->getMessage());
+            \Log::error('Export error trace: ' . $e->getTraceAsString());
             return response()->json(['error' => 'Export failed: ' . $e->getMessage()], 500);
         }
     }
