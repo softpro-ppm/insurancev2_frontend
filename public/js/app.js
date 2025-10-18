@@ -4061,7 +4061,7 @@ const renderPoliciesTable = () => {
         const customerName = policy.customerName || policy.owner || 'Unknown';
         const phone = policy.phone || 'Unknown';
         const companyName = policy.companyName || policy.company || 'Unknown';
-        const endDate = policy.endDate || 'Unknown';
+        const endDate = policy.endDate || null; // Don't set to 'Unknown' string
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
         
@@ -4084,7 +4084,7 @@ const renderPoliciesTable = () => {
             <td>${customerName}</td>
             <td>${phone}</td>
             <td>${getShortCompanyName(companyName)}</td>
-            <td>${formatDate(endDate)}</td>
+            <td>${endDate ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
