@@ -4056,6 +4056,11 @@ const renderPoliciesTable = () => {
     pageData.forEach((policy, index) => {
         const row = document.createElement('tr');
         
+        // Debug logging for missing dates
+        if (!policy.endDate && policy.id) {
+            console.log('Missing endDate for policy:', policy.id, policy);
+        }
+        
         // Use the correct property names from the API response with fallbacks
         const policyType = policy.policyType || policy.type || 'Unknown';
         const customerName = policy.customerName || policy.owner || 'Unknown';
