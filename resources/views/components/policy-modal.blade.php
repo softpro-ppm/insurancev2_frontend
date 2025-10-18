@@ -305,17 +305,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthCustomerName">Customer Name *</label>
-                                <input type="text" id="healthCustomerName" name="healthCustomerName" required>
+                                <input type="text" id="healthCustomerName" name="customerName" required>
                             </div>
                             <div class="form-group">
                                 <label for="healthCustomerPhone">Phone Number *</label>
-                                <input type="tel" id="healthCustomerPhone" name="healthCustomerPhone" required>
+                                <input type="tel" id="healthCustomerPhone" name="customerPhone" required>
                             </div>
                         </div>
                         <div class="form-row">
                                                     <div class="form-group">
                             <label for="healthCustomerEmail">Email Address</label>
-                            <input type="email" id="healthCustomerEmail" name="healthCustomerEmail" 
+                                <input type="email" id="healthCustomerEmail" name="customerEmail"
                                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
                                    placeholder="Enter valid email address"
                                    onblur="validateEmail(this)">
@@ -323,13 +323,13 @@
                         </div>
                             <div class="form-group">
                                 <label for="healthCustomerAge">Age *</label>
-                                <input type="number" id="healthCustomerAge" name="healthCustomerAge" min="1" max="120" required>
+                                <input type="number" id="healthCustomerAge" name="customerAge" min="1" max="120" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthCustomerGender">Gender *</label>
-                                <select id="healthCustomerGender" name="healthCustomerGender" required>
+                                <select id="healthCustomerGender" name="customerGender" required>
                                     <option value="">Select Gender</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -338,7 +338,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="healthSumInsured">Sum Insured (₹) *</label>
-                                <input type="number" id="healthSumInsured" name="healthSumInsured" step="0.01" required>
+                                <input type="number" id="healthSumInsured" name="sumInsured" step="0.01" required>
                             </div>
                         </div>
                     </div>
@@ -348,7 +348,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthCompanyName">Company Name *</label>
-                                <select id="healthCompanyName" name="healthCompanyName" required>
+                                <select id="healthCompanyName" name="companyName" required>
                                     <option value="">Select Company</option>
                                     <!-- Health Insurance Companies -->
                                     <optgroup label="Health Insurance">
@@ -362,7 +362,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="healthPlanType">Plan Type *</label>
-                                <select id="healthPlanType" name="healthPlanType" required>
+                                <select id="healthPlanType" name="insuranceType" required>
                                     <option value="">Select Plan Type</option>
                                     <option value="Individual">Individual</option>
                                     <option value="Family Floater">Family Floater</option>
@@ -374,31 +374,31 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthStartDate">Start Date *</label>
-                                <input type="date" id="healthStartDate" name="healthStartDate" required>
+                                <input type="date" id="healthStartDate" name="startDate" required>
                             </div>
                             <div class="form-group">
                                 <label for="healthEndDate">End Date *</label>
-                                <input type="date" id="healthEndDate" name="healthEndDate" required>
+                                <input type="date" id="healthEndDate" name="endDate" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPremium">Premium Amount (₹) *</label>
-                                <input type="number" id="healthPremium" name="healthPremium" step="0.01" required>
+                                <input type="number" id="healthPremium" name="premium" step="0.01" required>
                             </div>
                             <div class="form-group">
                                 <label for="healthPayout">Payout Amount (₹)</label>
-                                <input type="number" id="healthPayout" name="healthPayout" step="0.01">
+                                <input type="number" id="healthPayout" name="payout" step="0.01">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthCustomerPaid">Customer Paid (₹) *</label>
-                                <input type="number" id="healthCustomerPaid" name="healthCustomerPaid" step="0.01" required>
+                                <input type="number" id="healthCustomerPaid" name="customerPaidAmount" step="0.01" required>
                             </div>
                             <div class="form-group">
                                 <label for="healthRevenue">Revenue (₹) *</label>
-                                <input type="number" id="healthRevenue" name="healthRevenue" step="0.01" required readonly>
+                                <input type="number" id="healthRevenue" name="revenue" step="0.01" required readonly>
                             </div>
                         </div>
                     </div>
@@ -408,17 +408,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPolicyCopy">Policy Copy</label>
-                                <input type="file" id="healthPolicyCopy" name="healthPolicyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="healthPolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                             <div class="form-group">
                                 <label for="healthAadharCopy">Aadhar Copy</label>
-                                <input type="file" id="healthAadharCopy" name="healthAadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="healthAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPanCopy">PAN Copy</label>
-                                <input type="file" id="healthPanCopy" name="healthPanCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="healthPanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                         </div>
                     </div>
@@ -431,17 +431,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeCustomerName">Customer Name *</label>
-                                <input type="text" id="lifeCustomerName" name="lifeCustomerName" required>
+                                <input type="text" id="lifeCustomerName" name="customerName" required>
                             </div>
                             <div class="form-group">
                                 <label for="lifeCustomerPhone">Phone Number *</label>
-                                <input type="tel" id="lifeCustomerPhone" name="lifeCustomerPhone" required>
+                                <input type="tel" id="lifeCustomerPhone" name="customerPhone" required>
                             </div>
                         </div>
                         <div class="form-row">
                                                     <div class="form-group">
                             <label for="lifeCustomerEmail">Email Address</label>
-                            <input type="email" id="lifeCustomerEmail" name="lifeCustomerEmail" 
+                                <input type="email" id="lifeCustomerEmail" name="customerEmail"
                                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
                                    placeholder="Enter valid email address"
                                    onblur="validateEmail(this)">
@@ -449,13 +449,13 @@
                         </div>
                             <div class="form-group">
                                 <label for="lifeCustomerAge">Age *</label>
-                                <input type="number" id="lifeCustomerAge" name="lifeCustomerAge" min="1" max="120" required>
+                                <input type="number" id="lifeCustomerAge" name="customerAge" min="1" max="120" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeCustomerGender">Gender *</label>
-                                <select id="lifeCustomerGender" name="lifeCustomerGender" required>
+                                <select id="lifeCustomerGender" name="customerGender" required>
                                     <option value="">Select Gender</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -464,17 +464,17 @@
                             </div>
                             <div class="form-group">
                                 <label for="lifeSumAssured">Sum Assured (₹) *</label>
-                                <input type="number" id="lifeSumAssured" name="lifeSumAssured" step="0.01" required>
+                                <input type="number" id="lifeSumAssured" name="sumAssured" step="0.01" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePolicyTerm">Policy Term (Years) *</label>
-                                <input type="number" id="lifePolicyTerm" name="lifePolicyTerm" min="1" max="50" required>
+                                <input type="number" id="lifePolicyTerm" name="policyTerm" min="1" max="50" required>
                             </div>
                             <div class="form-group">
                                 <label for="lifePremiumFrequency">Premium Frequency *</label>
-                                <select id="lifePremiumFrequency" name="lifePremiumFrequency" required>
+                                <select id="lifePremiumFrequency" name="premiumFrequency" required>
                                     <option value="">Select Frequency</option>
                                     <option value="Monthly">Monthly</option>
                                     <option value="Quarterly">Quarterly</option>
@@ -490,7 +490,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeCompanyName">Company Name *</label>
-                                <select id="lifeCompanyName" name="lifeCompanyName" required>
+                                <select id="lifeCompanyName" name="companyName" required>
                                     <option value="">Select Company</option>
                                     <!-- Life Insurance Companies -->
                                     <optgroup label="Life Insurance">
@@ -509,7 +509,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="lifePlanType">Plan Type *</label>
-                                <select id="lifePlanType" name="lifePlanType" required>
+                                <select id="lifePlanType" name="insuranceType" required>
                                     <option value="">Select Plan Type</option>
                                     <option value="Term Life">Term Life</option>
                                     <option value="Whole Life">Whole Life</option>
@@ -522,31 +522,31 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeStartDate">Start Date *</label>
-                                <input type="date" id="lifeStartDate" name="lifeStartDate" required>
+                                <input type="date" id="lifeStartDate" name="startDate" required>
                             </div>
                             <div class="form-group">
                                 <label for="lifeEndDate">End Date *</label>
-                                <input type="date" id="lifeEndDate" name="lifeEndDate" required>
+                                <input type="date" id="lifeEndDate" name="endDate" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePremium">Premium Amount (₹) *</label>
-                                <input type="number" id="lifePremium" name="lifePremium" step="0.01" required>
+                                <input type="number" id="lifePremium" name="premium" step="0.01" required>
                             </div>
                             <div class="form-group">
                                 <label for="lifePayout">Payout Amount (₹)</label>
-                                <input type="number" id="lifePayout" name="lifePayout" step="0.01">
+                                <input type="number" id="lifePayout" name="payout" step="0.01">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifeCustomerPaid">Customer Paid (₹) *</label>
-                                <input type="number" id="lifeCustomerPaid" name="lifeCustomerPaid" step="0.01" required>
+                                <input type="number" id="lifeCustomerPaid" name="customerPaidAmount" step="0.01" required>
                             </div>
                             <div class="form-group">
                                 <label for="lifeRevenue">Revenue (₹) *</label>
-                                <input type="number" id="lifeRevenue" name="lifeRevenue" step="0.01" required readonly>
+                                <input type="number" id="lifeRevenue" name="revenue" step="0.01" required readonly>
                             </div>
                         </div>
                     </div>
@@ -556,17 +556,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePolicyCopy">Policy Copy</label>
-                                <input type="file" id="lifePolicyCopy" name="lifePolicyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="lifePolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                             <div class="form-group">
                                 <label for="lifeAadharCopy">Aadhar Copy</label>
-                                <input type="file" id="lifeAadharCopy" name="lifeAadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="lifeAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePanCopy">PAN Copy</label>
-                                <input type="file" id="lifePanCopy" name="lifePanCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                <input type="file" id="lifePanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
                         </div>
                     </div>
