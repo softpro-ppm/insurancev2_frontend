@@ -35,8 +35,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('d-m-Y'),
-                'endDate' => $policy->end_date->format('d-m-Y'),
+                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -247,8 +247,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('d-m-Y'),
-                'endDate' => $policy->end_date->format('d-m-Y'),
+                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -290,8 +290,8 @@ class PolicyController extends Controller
             'vehicleType' => $policy->vehicle_type,
             'companyName' => $policy->company_name,
             'insuranceType' => $policy->insurance_type,
-            'startDate' => $policy->start_date->format('d-m-Y'),
-            'endDate' => $policy->end_date->format('d-m-Y'),
+            'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+            'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
             'premium' => $policy->premium,
             'payout' => $policy->payout,
             'customerPaidAmount' => $policy->customer_paid_amount,
@@ -395,8 +395,8 @@ class PolicyController extends Controller
         $policy = Policy::findOrFail($id);
 
         // Check if policy dates are being changed
-        $startDateChanged = $policy->start_date->format('d-m-Y') !== $request->startDate;
-        $endDateChanged = $policy->end_date->format('d-m-Y') !== $request->endDate;
+        $startDateChanged = $policy->start_date ? $policy->start_date->format('d-m-Y') : null !== $request->startDate;
+        $endDateChanged = $policy->end_date ? $policy->end_date->format('d-m-Y') : null !== $request->endDate;
         $datesChanged = $startDateChanged || $endDateChanged;
 
         // Only create version history if dates are changing
@@ -508,8 +508,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date->format('d-m-Y'),
-                'endDate' => $policy->end_date->format('d-m-Y'),
+                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -995,8 +995,8 @@ class PolicyController extends Controller
             'customer_paid_amount' => $policy->customer_paid_amount,
             'revenue' => $policy->revenue,
             'status' => $policy->status,
-            'start_date' => $policy->start_date->format('d-m-Y'),
-            'end_date' => $policy->end_date->format('d-m-Y'),
+            'start_date' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+            'end_date' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
             'has_documents' => !empty($currentDocuments),
             'documents' => $currentDocuments,
             'notes' => null,
@@ -1241,8 +1241,8 @@ class PolicyController extends Controller
                 'company_name' => $policy->company_name,
                 'insurance_type' => $policy->insurance_type,
                 'policy_type' => $policy->policy_type,
-                'start_date' => $policy->start_date->format('d-m-Y'),
-                'end_date' => $policy->end_date->format('d-m-Y'),
+                'start_date' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                'end_date' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customer_paid_amount' => $policy->customer_paid_amount,

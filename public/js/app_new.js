@@ -3591,8 +3591,8 @@ const populatePolicyModal = async (policy) => {
     }
     
     // Dates
-    $modal.find('#viewStartDate').text(formatDate(normalizedPolicy.startDate));
-    $modal.find('#viewEndDate').text(formatDate(normalizedPolicy.endDate));
+    $modal.find('#viewStartDate').text(normalizedPolicy.startDate ? formatDate(normalizedPolicy.startDate) : 'Not set');
+    $modal.find('#viewEndDate').text(normalizedPolicy.endDate ? formatDate(normalizedPolicy.endDate) : 'Not set');
     
     // Financial Information
     $modal.find('#viewPremium').text(`₹${normalizedPolicy.premium.toLocaleString()}`);
