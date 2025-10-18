@@ -47,7 +47,7 @@ Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policie
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
 // Policy export and bulk upload routes
-Route::get('/api/policies/export', [PolicyController::class, 'exportPolicies'])->name('policies.export')->middleware(['auth', 'verified']);
+Route::get('/api/policies/export', [PolicyController::class, 'exportPolicies'])->name('policies.export');
 Route::get('/api/policies/template/download', [PolicyController::class, 'downloadTemplate'])->name('policies.template.download')->middleware(['auth', 'verified']);
 Route::get('/api/policies/template/download-csv', [PolicyController::class, 'downloadCSVTemplate'])->name('policies.template.download-csv')->middleware(['auth', 'verified']);
 Route::post('/api/policies/bulk-upload', [PolicyController::class, 'bulkUpload'])->name('policies.bulk-upload')->middleware(['auth', 'verified']);

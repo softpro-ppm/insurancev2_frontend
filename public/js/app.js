@@ -4472,6 +4472,8 @@ const populatePolicyModal = async (policy) => {
 
 const exportPoliciesData = async () => {
     try {
+        console.log('Export function called');
+        
         // Show loading state
         const exportBtn = $('#exportPoliciesBtn');
         const originalText = exportBtn.html();
@@ -4484,6 +4486,8 @@ const exportPoliciesData = async () => {
             format: 'xlsx' // Default to Excel
         };
         
+        console.log('Filters:', filters);
+        
         // Build URL with filters
         const params = new URLSearchParams();
         Object.keys(filters).forEach(key => {
@@ -4493,6 +4497,7 @@ const exportPoliciesData = async () => {
         });
         
         const url = '/api/policies/export?' + params.toString();
+        console.log('Export URL:', url);
         
         // Create temporary link to download file
         const link = document.createElement('a');
@@ -4502,6 +4507,7 @@ const exportPoliciesData = async () => {
         link.click();
         document.body.removeChild(link);
         
+        console.log('Download link clicked');
         showNotification('Export started! Your download will begin shortly.', 'success');
         
     } catch (error) {

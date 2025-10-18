@@ -1266,32 +1266,42 @@ class PolicyController extends Controller
      */
     public function exportPolicies(Request $request)
     {
-        // Get filters from request
-        $filters = [];
+        \Log::info('Export function called with request:', $request->all());
         
-        if ($request->has('policy_type') && !empty($request->policy_type)) {
-            $filters['policy_type'] = $request->policy_type;
-        }
-        
-        if ($request->has('status') && !empty($request->status)) {
-            $filters['status'] = $request->status;
-        }
-        
-        if ($request->has('start_date') && !empty($request->start_date)) {
-            $filters['start_date'] = $request->start_date;
-        }
-        
-        if ($request->has('end_date') && !empty($request->end_date)) {
-            $filters['end_date'] = $request->end_date;
-        }
+        try {
+            // Get filters from request
+            $filters = [];
+            
+            if ($request->has('policy_type') && !empty($request->policy_type)) {
+                $filters['policy_type'] = $request->policy_type;
+            }
+            
+            if ($request->has('status') && !empty($request->status)) {
+                $filters['status'] = $request->status;
+            }
+            
+            if ($request->has('start_date') && !empty($request->start_date)) {
+                $filters['start_date'] = $request->start_date;
+            }
+            
+            if ($request->has('end_date') && !empty($request->end_date)) {
+                $filters['end_date'] = $request->end_date;
+            }
 
-        $format = $request->get('format', 'xlsx'); // Default to Excel
-        $filename = 'policies_export_' . date('d-m-Y_H-i-s');
-        
-        if ($format === 'csv') {
-            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
-        } else {
-            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx');
+            $format = $request->get('format', 'xlsx'); // Default to Excel
+            $filename = 'policies_export_' . date('d-m-Y_H-i-s');
+            
+            \Log::info('Export filters:', $filters);
+            \Log::info('Export format:', $format);
+            
+            if ($format === 'csv') {
+                return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            } else {
+                return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Export error: ' . $e->getMessage());
+            return response()->json(['error' => 'Export failed: ' . $e->getMessage()], 500);
         }
     }
 }
