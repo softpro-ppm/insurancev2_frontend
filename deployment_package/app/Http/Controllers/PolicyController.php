@@ -844,6 +844,46 @@ class PolicyController extends Controller
         $policy = Policy::findOrFail($id);
         $versions = $policy->versions()->with('policy')->get();
 
+        // If no historical versions exist, show only current policy data as a single version
+        if ($versions->isEmpty()) {
+            $currentDocuments = [];
+            if ($policy->policy_copy_path) $currentDocuments['policy_copy'] = $policy->policy_copy_path;
+            if ($policy->rc_copy_path) $currentDocuments['rc_copy'] = $policy->rc_copy_path;
+            if ($policy->aadhar_copy_path) $currentDocuments['aadhar_copy'] = $policy->aadhar_copy_path;
+            if ($policy->pan_copy_path) $currentDocuments['pan_copy'] = $policy->pan_copy_path;
+            
+            $currentVersion = [
+                'id' => 'current_' . $policy->id,
+                'version_number' => 1,
+                'version_label' => 'Version 1 (' . $policy->updated_at->format('M Y') . ')',
+                'policy_period' => $policy->start_date->format('M d, Y') . ' - ' . $policy->end_date->format('M d, Y'),
+                'company_name' => $policy->company_name,
+                'insurance_type' => $policy->insurance_type,
+                'premium' => $policy->premium,
+                'payout' => $policy->payout,
+                'customer_paid_amount' => $policy->customer_paid_amount,
+                'revenue' => $policy->revenue,
+                'status' => $policy->status,
+                'start_date' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                'end_date' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+                'has_documents' => !empty($currentDocuments),
+                'documents' => $currentDocuments,
+                'notes' => null,
+                'created_by' => null,
+                'version_created_at' => $policy->updated_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
+            ];
+
+            return response()->json([
+                'policy' => [
+                    'id' => $policy->id,
+                    'customer_name' => $policy->customer_name,
+                    'vehicle_number' => $policy->vehicle_number,
+                    'policy_type' => $policy->policy_type,
+                ],
+                'versions' => [$currentVersion]
+            ]);
+        }
+
         return response()->json([
             'policy' => [
                 'id' => $policy->id,
@@ -864,8 +904,8 @@ class PolicyController extends Controller
                     'customer_paid_amount' => $version->customer_paid_amount,
                     'revenue' => $version->revenue,
                     'status' => $version->status,
-                    'start_date' => $version->start_date->format('Y-m-d'),
-                    'end_date' => $version->end_date->format('Y-m-d'),
+                    'start_date' => $version->start_date->format('d-m-Y'),
+                    'end_date' => $version->end_date->format('d-m-Y'),
                     'has_documents' => $version->hasDocuments(),
                     'documents' => $version->getDocuments(),
                     'notes' => $version->notes,
