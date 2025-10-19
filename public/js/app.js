@@ -1767,12 +1767,16 @@ const renderTable = () => {
             }
         }
 
+        // Ensure we extract string values, not HTML elements
+        const safeVehicleNumber = typeof vehicleNumber === 'string' ? vehicleNumber : (vehicleNumber?.value || 'N/A');
+        const safeVehicleType = typeof vehicleType === 'string' ? vehicleType : (vehicleType?.value || 'N/A');
+        
         row.innerHTML = `
             <td>${startIndex + idx + 1}</td>
-            <td>${vehicleNumber || 'N/A'}</td>
+            <td>${safeVehicleNumber}</td>
             <td>${customerName}</td>
             <td>${phone}</td>
-            <td>${vehicleType || 'N/A'}</td>
+            <td>${safeVehicleType}</td>
             <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
@@ -4182,12 +4186,16 @@ const renderPoliciesTable = () => {
             }
         }
 
+        // Ensure we extract string values, not HTML elements
+        const safeVehicleNumber = typeof vehicleNumber === 'string' ? vehicleNumber : (vehicleNumber?.value || 'N/A');
+        const safeVehicleType = typeof vehicleType === 'string' ? vehicleType : (vehicleType?.value || 'N/A');
+        
         row.innerHTML = `
             <td>${startIndex + index + 1}</td>
-            <td>${vehicleNumber || 'N/A'}</td>
+            <td>${safeVehicleNumber}</td>
             <td>${customerName}</td>
             <td>${phone}</td>
-            <td>${vehicleType || 'N/A'}</td>
+            <td>${safeVehicleType}</td>
             <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>

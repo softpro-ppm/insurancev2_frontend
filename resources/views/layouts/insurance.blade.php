@@ -292,7 +292,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}&dates_fix={{ time() }}&empty_string_fix={{ time() }}&table_layout_fix={{ time() }}&policy_update_fix={{ time() }}&policy_history_fix={{ time() }}&table_simplify_fix={{ time() }}&policies_data_fix={{ time() }}&debug_fix={{ time() }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}&dates_fix={{ time() }}&empty_string_fix={{ time() }}&table_layout_fix={{ time() }}&policy_update_fix={{ time() }}&policy_history_fix={{ time() }}&table_simplify_fix={{ time() }}&policies_data_fix={{ time() }}&debug_fix={{ time() }}&html_object_fix={{ time() }}"></script>
     
     <!-- Fix loading overlay issue -->
     <script>
