@@ -72,10 +72,10 @@ Route::get('/api/policies/{policyId}/download/{documentType}', [PolicyController
 Route::delete('/api/policies/{policyId}/document/{documentType}', [PolicyController::class, 'deleteDocument'])->name('policies.delete-document')->middleware(['auth', 'verified']);
 
 // Policy history route
-Route::get('/api/policies/{id}/history', [PolicyController::class, 'getHistory'])->name('policies.history')->middleware(['auth', 'verified']);
+Route::get('/api/policies/{id}/history', [PolicyController::class, 'getHistory'])->name('policies.history');
 
 // Vehicle number search route
-Route::get('/api/policies/search/vehicle/{vehicleNumber}', [PolicyController::class, 'searchByVehicleNumber'])->name('policies.search-vehicle')->middleware(['auth', 'verified']);
+Route::get('/api/policies/search/vehicle/{vehicleNumber}', [PolicyController::class, 'searchByVehicleNumber'])->name('policies.search-vehicle');
 
 
 // Policy version document download route
