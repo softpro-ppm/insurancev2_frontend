@@ -206,12 +206,18 @@ const apiCall = async (endpoint, options = {}) => {
 // Dashboard API calls
 const fetchDashboardStats = async () => {
     try {
+        console.log('🔄 fetchDashboardStats: Making API call to /api/dashboard/stats');
         // Add cache-busting parameter to force fresh data
         const timestamp = new Date().getTime();
-        const data = await apiCall(`/api/dashboard/stats?t=${timestamp}`);
+        const url = `/api/dashboard/stats?t=${timestamp}`;
+        console.log('🔄 fetchDashboardStats: URL:', url);
+
+        const data = await apiCall(url);
+        console.log('✅ fetchDashboardStats: Success, received data:', data);
         return data;
     } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
+        console.error('❌ fetchDashboardStats: Failed to fetch dashboard stats:', error);
+        console.error('❌ fetchDashboardStats: Error details:', error.message);
         return null;
     }
 };
@@ -241,10 +247,45 @@ const fetchExpiringPolicies = async () => {
 // Policies API calls
 const fetchPolicies = async () => {
     try {
-        const data = await apiCall('/api/policies');
-        return data.policies || [];
+        console.log('📋 fetchPolicies: Making API call to /api/policies');
+        console.log('📋 fetchPolicies: Full URL will be:', window.location.origin + '/api/policies');
+
+        // Try direct fetch call for debugging
+        const response = await fetch('/api/policies', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        console.log('📋 fetchPolicies: Response status:', response.status);
+        console.log('📋 fetchPolicies: Response ok:', response.ok);
+
+        if (!response.ok) {
+            console.error('📋 fetchPolicies: API call failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('📋 fetchPolicies: Error response:', errorText);
+            showNotification('Failed to load policies data: ' + response.status, 'error');
+            return [];
+        }
+
+        const data = await response.json();
+        console.log('📋 fetchPolicies: Success, received data:', data);
+        console.log('📋 fetchPolicies: Policies count:', data.policies ? data.policies.length : 0);
+        
+        if (!data.policies || !Array.isArray(data.policies)) {
+            console.error('📋 fetchPolicies: Invalid data format:', data);
+            showNotification('Invalid policies data format received', 'error');
+            return [];
+        }
+        
+        return data.policies;
     } catch (error) {
-        console.error('Failed to fetch policies:', error);
+        console.error('❌ fetchPolicies: Failed to fetch policies:', error);
+        console.error('❌ fetchPolicies: Error details:', error.message);
+        showNotification('Failed to load policies: ' + error.message, 'error');
         return [];
     }
 };
@@ -325,10 +366,14 @@ const deletePolicy = async (id) => {
 // Agents API calls
 const fetchAgents = async () => {
     try {
+        console.log('👥 fetchAgents: Making API call to /api/agents');
         const data = await apiCall('/api/agents');
+        console.log('👥 fetchAgents: Success, received data:', data);
+        console.log('👥 fetchAgents: Agents count:', data.agents ? data.agents.length : 0);
         return data.agents || [];
     } catch (error) {
-        console.error('Failed to fetch agents:', error);
+        console.error('❌ fetchAgents: Failed to fetch agents:', error);
+        console.error('❌ fetchAgents: Error details:', error.message);
         return [];
     }
 };
@@ -845,18 +890,40 @@ $(document).ready(function() {
 const initializeApplication = async () => {
     try {
         console.log('🚀 Starting application initialization...');
+        console.log('🚀 Current path:', window.location.pathname);
+        console.log('🚀 Dashboard element exists:', $('#dashboard').length);
+        console.log('🚀 Policies element exists:', $('#policies').length);
+        console.log('🚀 jQuery available:', typeof $ !== 'undefined');
+        console.log('🚀 jQuery version:', $.fn ? $.fn.jquery : 'unknown');
         
         // Initialize charts first so they're ready for data
         initializeCharts();
         
-        // Load all data from APIs
-        await Promise.all([
-            loadDashboardData(),
-            loadPoliciesData(),
-            loadAgentsData(),
-            loadRenewalsData(), // Now safe - skips old API call on renewals page
-            loadFollowupsData()
-        ]);
+        // Load all essential data to ensure pages work properly
+        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
+        console.log('🔍 Current path detected:', currentPath);
+        const loads = [];
+        
+        // Always load dashboard data (needed for stats)
+        console.log('🚀 Loading dashboard data...');
+        loads.push(loadDashboardData());
+        
+        // Always load policies data (needed for policies page and other features)
+        console.log('🚀 Loading policies data...');
+        loads.push(loadPoliciesData());
+        
+        // Load other data based on current page
+        if (currentPath === '/agents') {
+            console.log('🚀 Loading agents data...');
+            loads.push(loadAgentsData());
+        }
+        if (currentPath === '/renewals') {
+            loads.push(loadRenewalsData());
+        }
+        if (currentPath === '/followups') {
+            loads.push(loadFollowupsData());
+        }
+        await Promise.allSettled(loads);
         
         console.log('📊 Data loaded, ensuring charts have data...');
         
@@ -874,15 +941,16 @@ const initializeApplication = async () => {
             }, 300);
         }
         
-    // Build renewals VM from policies before initializing components
-    await buildRenewalsFromPoliciesAsync();
+    // Build renewals VM only when needed
+    if (currentPath === '/policies' || currentPath === '/renewals') {
+        await buildRenewalsFromPoliciesAsync();
+    }
 
     // Initialize other components
         initializeTable();
         initializeAgents();
         initializePoliciesPage();
         // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
-        const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
         if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
             initializeRenewalsPage();
         }
@@ -914,6 +982,9 @@ const initializeApplication = async () => {
 // Load dashboard data
 const loadDashboardData = async () => {
     try {
+        console.log('🎯 loadDashboardData called - Dashboard element:', $('#dashboard').length);
+        console.log('🎯 Dashboard has active class:', $('#dashboard').hasClass('active'));
+        
         // Show loading indicators for cards
         $('.card-value').text('Loading...');
         
@@ -926,9 +997,10 @@ const loadDashboardData = async () => {
 
         // Handle stats
         if (stats.status === 'fulfilled' && stats.value) {
+            console.log('🎯 Dashboard stats loaded successfully:', stats.value);
             updateDashboardStats(stats.value);
         } else {
-            console.warn('Failed to load dashboard stats:', stats.reason);
+            console.warn('❌ Failed to load dashboard stats:', stats.reason);
             // Reset loading indicators
             $('.card-value').text('0');
         }
@@ -936,6 +1008,10 @@ const loadDashboardData = async () => {
         // Handle recent policies
         if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
             updateRecentPoliciesTable(recentPolicies.value);
+            // If we're on dashboard, also update the main table to use recent policies
+            if ($('#dashboard').hasClass('active')) {
+                console.log('Dashboard: Using recent policies data for main table');
+            }
         } else {
             console.warn('Failed to load recent policies:', recentPolicies.reason);
         }
@@ -956,11 +1032,32 @@ const loadDashboardData = async () => {
 // Load policies data
 const loadPoliciesData = async () => {
     try {
+        console.log('📋 loadPoliciesData called - Policies element:', $('#policies').length);
+        console.log('📋 Policies has active class:', $('#policies').hasClass('active'));
+        
         allPolicies = await fetchPolicies();
+        console.log('📋 Policies loaded:', allPolicies.length);
+        
+        if (!allPolicies || allPolicies.length === 0) {
+            console.warn('📋 No policies data received');
+            showNotification('No policies data found', 'warning');
+            allPolicies = [];
+            filteredData = [];
+            return;
+        }
+        
         filteredData = [...allPolicies];
         updatePoliciesStats();
+        
+        // Initialize policies page if we're on the policies page
+        if ($('#policies').hasClass('active')) {
+            initializePoliciesPage();
+        }
+        
+        console.log('📋 Policies data loaded successfully');
     } catch (error) {
         console.error('Failed to load policies data:', error);
+        showNotification('Failed to load policies data: ' + error.message, 'error');
         allPolicies = [];
         filteredData = [];
     }
@@ -969,9 +1066,12 @@ const loadPoliciesData = async () => {
 // Load agents data
 const loadAgentsData = async () => {
     try {
+        console.log('👥 loadAgentsData called');
         allAgents = await fetchAgents();
+        console.log('👥 Agents loaded:', allAgents.length);
+        console.log('👥 Agents data:', allAgents);
     } catch (error) {
-        console.error('Failed to load agents data:', error);
+        console.error('❌ Failed to load agents data:', error);
         allAgents = [];
     }
 };
@@ -1007,18 +1107,47 @@ const loadFollowupsData = async () => {
 
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
-    if (stats.stats) {
+    console.log('🔧 updateDashboardStats called with:', stats);
+    console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
+
+    if (stats && stats.stats) {
+        console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
-        $('#monthlyPremium').text(fmtINR(stats.stats.monthlyPremium));
-        $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
-        $('#monthlyPolicies').text(stats.stats.monthlyPolicies || 0);
-        $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
-        const renewed = stats.stats.monthlyRenewed || 0;
+
+        // Use CURRENT MONTH counts for the 4 dashboard cards
+        const totalPremium = stats.stats.monthlyPremium || 0;
+        const totalPolicies = stats.stats.monthlyPolicies || 0;
+        const totalRevenue = stats.stats.monthlyRevenue || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
-        $('#monthlyRenewals').text(`${renewed}/${totalRenewals}`);
+
+        console.log('🔧 updateDashboardStats: Calculated values:', {
+            totalPremium, totalPolicies, totalRevenue, totalRenewals
+        });
+        
+        console.log('📊 Setting dashboard values:', {
+            totalPremium, totalPolicies, totalRevenue, totalRenewals
+        });
+        
+        console.log('📝 Updating DOM elements...');
+        $('#monthlyPremium').text(fmtINR(totalPremium));
+        $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
+        $('#monthlyPolicies').text(totalPolicies);
+        $('#yearlyPolicies').text(stats.stats.yearlyPolicies || 0 + ' (FY)');
+
+        // Use total renewals for main card, but keep monthly breakdown for detailed view
+        const renewed = stats.stats.monthlyRenewed || 0;
+        $('#monthlyRenewals').text(totalRenewals);
         $('#pendingRenewals').text(stats.stats.pendingRenewals || 0 + ' Pending');
-        $('#monthlyRevenue').text(fmtINR(stats.stats.monthlyRevenue));
+        $('#monthlyRevenue').text(fmtINR(totalRevenue));
         $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
+
+        console.log('📝 DOM elements updated, checking current values:');
+        console.log('  monthlyPremium:', $('#monthlyPremium').text());
+        console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
+        console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
+        console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
+
+        console.log('✅ Dashboard stats updated successfully');
     }
     
     if (stats.chartData) {
@@ -1582,6 +1711,16 @@ window.forceChartRefresh = () => {
 
 // Initialize data table
 const initializeTable = () => {
+    // Check if we're on the dashboard page
+    if ($('#dashboard').hasClass('active')) {
+        // On dashboard, use recent policies data if available
+        if (window.recentPoliciesData && window.recentPoliciesData.length > 0) {
+            updateRecentPoliciesTable(window.recentPoliciesData);
+            return;
+        }
+    }
+    
+    // For other pages or if no recent policies data, use main table
     renderTable();
     updatePagination();
 };
@@ -1605,20 +1744,55 @@ const renderTable = () => {
         const customerName = policy.customerName || policy.owner || 'Unknown';
         const phone = policy.phone || 'Unknown';
         const companyName = policy.companyName || policy.company || 'Unknown';
-        const startDate = policy.startDate || 'Unknown';
+        const endDate = policy.endDate && policy.endDate.trim() !== '' ? policy.endDate : null;
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
         
+        // Extract vehicle information based on policy type
+        let vehicleNumber = 'N/A';
+        let vehicleType = 'N/A';
+        
+        if (policyType === 'Motor') {
+            vehicleNumber = policy.vehicleNumber || policy.vehicle_number || 'N/A';
+            vehicleType = policy.vehicleType || policy.vehicle_type || 'N/A';
+        } else if (policyType === 'Health') {
+            vehicleNumber = 'Health Policy';
+            vehicleType = policy.insuranceType || 'Health Insurance';
+        } else if (policyType === 'Life') {
+            vehicleNumber = 'Life Policy';
+            vehicleType = policy.insuranceType || 'Life Insurance';
+        }
+        
+        // Format vehicle/details info based on policy type
+        let vehicleDetails = '';
+        if (policyType === 'Motor') {
+            vehicleDetails = policy.vehicleType || policy.vehicle_type || 'N/A';
+            if (policy.vehicleNumber || policy.vehicle_number) {
+                vehicleDetails += `<br><small style="color: #666;">${policy.vehicleNumber || policy.vehicle_number}</small>`;
+            }
+        } else if (policyType === 'Health') {
+            vehicleDetails = policy.insuranceType || 'Health Insurance';
+            if (policy.sumInsured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumInsured.toLocaleString()}</small>`;
+            }
+        } else if (policyType === 'Life') {
+            vehicleDetails = policy.insuranceType || 'Life Insurance';
+            if (policy.sumAssured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumAssured.toLocaleString()}</small>`;
+            }
+        }
+
+        // Ensure we extract string values, not HTML elements
+        const safeVehicleNumber = typeof vehicleNumber === 'string' ? vehicleNumber : (vehicleNumber?.value || 'N/A');
+        const safeVehicleType = typeof vehicleType === 'string' ? vehicleType : (vehicleType?.value || 'N/A');
+        
         row.innerHTML = `
             <td>${startIndex + idx + 1}</td>
-            <td>
-                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
-            </td>
+            <td>${safeVehicleNumber}</td>
             <td>${customerName}</td>
             <td>${phone}</td>
-            <td>${getShortCompanyName(companyName)}</td>
-            <td>${formatDate(startDate)}</td>
+            <td>${safeVehicleType}</td>
+            <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
@@ -2043,6 +2217,12 @@ const initializeEventListeners = () => {
             }
         }
     });
+    
+    // Reports page controls
+    $('#generateReportBtn').click(generateReports);
+    $('#exportReportBtn').click(exportReport);
+    $('#reportStartDate, #reportEndDate').change(updateReportDateRange);
+    $('#reportTypeFilter').change(updateReportType);
 };
 
 // Theme toggle
@@ -2445,16 +2625,168 @@ window.removeDocument = (documentType) => {
         return response.json();
     })
     .then(() => {
+        // Update the local policy data
+        const policyId = $('#viewPolicyModal').data('policy-id');
+        const policy = allPolicies.find(p => p.id === policyId);
+        if (policy) {
+            const pathField = `${documentType}_copy_path`;
+            policy[pathField] = null; // Clear the document path
+        }
+        
         // Disable the buttons for this doc type
         const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
         $(`#download${cap}Btn`).prop('disabled', true).addClass('disabled');
         $(`#remove${cap}Btn`).prop('disabled', true).addClass('disabled');
+        
+        // Update the status badge
+        const statusBadge = $(`#${documentType}Status .status-badge`);
+        statusBadge.removeClass('available').addClass('not-available').text('Not Available');
+        
         showNotification('Document removed successfully', 'success');
     })
     .catch((err) => {
         console.error('Remove document failed:', err);
         showNotification(err.message || 'Failed to remove document', 'error');
     });
+};
+
+// Download existing document from edit modal
+window.downloadExistingDocument = (documentType) => {
+    const policyId = $('#policyForm').data('edit-id');
+    console.log('Download existing document - Policy ID:', policyId, 'Document Type:', documentType);
+    
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+    
+    // Create a temporary link element for download
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`;
+    console.log('Download URL:', downloadUrl);
+    
+    // Create a temporary anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${documentType}_document.pdf`;
+    link.target = '_blank';
+    
+    // Add to DOM, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`Downloading ${documentType} document...`, 'info');
+};
+
+// Remove existing document from edit modal
+window.removeExistingDocument = (documentType) => {
+    const policyId = $('#policyForm').data('edit-id');
+    if (!policyId) {
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+
+    if (!confirm('Remove this document? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/api/policies/${policyId}/document/${documentType}`, {
+        method: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to remove document');
+        }
+        return response.json();
+    })
+    .then(() => {
+        // Update the local policy data
+        const policyId = $('#policyForm').data('edit-id');
+        const policy = allPolicies.find(p => p.id === policyId);
+        if (policy) {
+            const pathField = `${documentType}_copy_path`;
+            policy[pathField] = null; // Clear the document path
+        }
+        
+        // Hide the existing document item
+        const cap = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+        $(`#existing${cap}Copy`).hide();
+        
+        // Check if any existing documents are left
+        const remainingDocs = $('.existing-doc-item:visible').length;
+        if (remainingDocs === 0) {
+            $('#existingDocuments').hide();
+        }
+        
+        showNotification('Document removed successfully', 'success');
+    })
+    .catch((err) => {
+        console.error('Remove document failed:', err);
+        showNotification(err.message || 'Failed to remove document', 'error');
+    });
+};
+
+// Setup existing documents display in edit modal
+const setupExistingDocuments = (policy) => {
+    console.log('Setting up existing documents for policy:', policy);
+    
+    // Hide all existing document items first
+    $('.existing-doc-item').hide();
+    $('#existingDocuments, #healthExistingDocuments, #lifeExistingDocuments').hide();
+    
+    // Get the policy type to determine which document sections to show
+    const policyType = policy.policyType || policy.policy_type || 'Motor';
+    
+    // Check which documents exist and show them based on policy type
+    const documentTypes = [
+        { type: 'policy', field: 'policy_copy_path' },
+        { type: 'rc', field: 'rc_copy_path' },
+        { type: 'aadhar', field: 'aadhar_copy_path' },
+        { type: 'pan', field: 'pan_copy_path' }
+    ];
+    
+    let hasExistingDocs = false;
+    
+    documentTypes.forEach(doc => {
+        const path = policy[doc.field];
+        if (path && path.trim() !== '') {
+            const cap = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
+            
+            // Show document in the appropriate form based on policy type
+            if (policyType === 'Motor') {
+                $(`#existing${cap}Copy`).show();
+                hasExistingDocs = true;
+            } else if (policyType === 'Health') {
+                $(`#healthExisting${cap}Copy`).show();
+                hasExistingDocs = true;
+            } else if (policyType === 'Life') {
+                $(`#lifeExisting${cap}Copy`).show();
+                hasExistingDocs = true;
+            }
+        }
+    });
+    
+    // Show the existing documents section if any documents exist
+    if (hasExistingDocs) {
+        if (policyType === 'Motor') {
+            $('#existingDocuments').show();
+        } else if (policyType === 'Health') {
+            $('#healthExistingDocuments').show();
+        } else if (policyType === 'Life') {
+            $('#lifeExistingDocuments').show();
+        }
+    }
+    
+    // Also setup document download buttons for the specific policy
+    setupDocumentDownloadButtons(policy);
+    
+    // Store policy data in modal for document functions
+    $('#policyModal').data('policy-data', policy);
 };
 
 const setupDocumentDownloadButtons = (policy) => {
@@ -2467,22 +2799,31 @@ const setupDocumentDownloadButtons = (policy) => {
         'rc': policy.rc_copy_path || policy.rcCopyPath,
         'aadhar': policy.aadhar_copy_path || policy.aadharCopyPath,
         'pan': policy.pan_copy_path || policy.panCopyPath,
-
     };
     
     Object.keys(documents).forEach(docType => {
         const button = $(`#download${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
         const removeButton = $(`#remove${docType.charAt(0).toUpperCase() + docType.slice(1)}Btn`);
+        const statusBadge = $(`#${docType}Status .status-badge`);
+        
         if (documents[docType] && documents[docType].trim() !== '') {
+            // Enable buttons
             button.prop('disabled', false).removeClass('disabled');
             button.attr('title', `Download ${docType} document`);
             removeButton.prop('disabled', false).removeClass('disabled');
             removeButton.attr('title', `Remove ${docType} document`);
+            
+            // Update status badge
+            statusBadge.removeClass('not-available').addClass('available').text('Available');
         } else {
+            // Disable buttons
             button.prop('disabled', true).addClass('disabled');
             button.attr('title', `${docType} document not available`);
             removeButton.prop('disabled', true).addClass('disabled');
             removeButton.attr('title', `${docType} document not available`);
+            
+            // Update status badge
+            statusBadge.removeClass('available').addClass('not-available').text('Not Available');
         }
     });
 };
@@ -2495,9 +2836,25 @@ const handlePolicySubmit = async (e) => {
     // Prepare form for submission to prevent validation errors on hidden fields
     prepareFormForSubmission();
     
-    // Determine which policy type is currently active
-    const activePolicyType = $('#hiddenPolicyType').val() || 'Motor';
-    const businessType = $('#hiddenBusinessType').val() || 'Self';
+    // Determine which policy type is currently active (robust)
+    const resolveActivePolicyType = () => {
+        const hidden = $('#hiddenPolicyType').val();
+        if (hidden) return hidden;
+        if ($('#healthForm').hasClass('active')) return 'Health';
+        if ($('#lifeForm').hasClass('active')) return 'Life';
+        if ($('#motorForm').hasClass('active')) return 'Motor';
+        const selected = $('#policyTypeSelect').val();
+        return selected || 'Motor';
+    };
+    const resolveBusinessType = () => {
+        const hidden = $('#hiddenBusinessType').val();
+        if (hidden) return hidden;
+        const selected = $('#businessTypeSelect').val();
+        return selected || 'Self';
+    };
+
+    const activePolicyType = resolveActivePolicyType();
+    const businessType = resolveBusinessType();
     
     // Explicitly ensure Agent Name field is hidden if Self is selected
     if (businessType === 'Self') {
@@ -2515,6 +2872,16 @@ const handlePolicySubmit = async (e) => {
     console.log('HandlePolicySubmit: Active policy type:', activePolicyType, 'Business type:', businessType);
     console.log('HandlePolicySubmit: Hidden policy type field value:', $('#hiddenPolicyType').val());
     console.log('HandlePolicySubmit: Hidden business type field value:', $('#hiddenBusinessType').val());
+    
+    // Debug form visibility
+    console.log('HandlePolicySubmit: Form visibility check:', {
+        motorFormVisible: $('#motorForm').is(':visible'),
+        healthFormVisible: $('#healthForm').is(':visible'),
+        lifeFormVisible: $('#lifeForm').is(':visible'),
+        motorFormActive: $('#motorForm').hasClass('active'),
+        healthFormActive: $('#healthForm').hasClass('active'),
+        lifeFormActive: $('#lifeForm').hasClass('active')
+    });
     
     // Build policy data based on the active policy type
     let policyData = {
@@ -2545,12 +2912,8 @@ const handlePolicySubmit = async (e) => {
         hiddenBusinessType
     });
     
-    if (hiddenPolicyType) {
-        policyData.policyType = hiddenPolicyType;
-    }
-    if (hiddenBusinessType) {
-        policyData.businessType = hiddenBusinessType;
-    }
+    if (!policyData.policyType) policyData.policyType = activePolicyType;
+    if (!policyData.businessType) policyData.businessType = businessType;
     
     // Get data based on active policy type
     if (activePolicyType === 'Motor') {
@@ -2792,19 +3155,30 @@ const handlePolicySubmit = async (e) => {
         if (editId) {
             // Update existing policy
             console.log('HandlePolicySubmit: Updating policy with ID:', editId);
+            console.log('HandlePolicySubmit: Policy data being sent:', policyData);
+            
             // Laravel requires method spoofing for multipart PUT
             formData.append('_method', 'PUT');
-            const response = await updatePolicyWithFiles(editId, formData);
             
-            // Update local data
-            const index = allPolicies.findIndex(p => p.id === editId);
-            if (index !== -1) {
-                allPolicies[index] = { ...allPolicies[index], ...response.policy };
+            try {
+                const response = await updatePolicyWithFiles(editId, formData);
+                console.log('HandlePolicySubmit: Update response received:', response);
+                
+                // Update local data
+                const index = allPolicies.findIndex(p => p.id === editId);
+                if (index !== -1) {
+                    allPolicies[index] = { ...allPolicies[index], ...response.policy };
+                }
+                
+                console.log('Showing policy update notification - should only appear once');
+                showNotification('Policy updated successfully!', 'success');
+                // Redirect to dashboard after update
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error('HandlePolicySubmit: Update failed with error:', error);
+                showNotification('Failed to update policy: ' + (error.message || 'Unknown error'), 'error');
+                return;
             }
-            
-            showNotification('Policy updated successfully!', 'success');
-            // Redirect to dashboard after update
-            window.location.href = '/dashboard';
         } else {
             // Create new policy
             console.log('Creating new policy with data and files');
@@ -3336,6 +3710,9 @@ const editPolicy = async (id) => {
     $('#policyModal').addClass('show');
     $('#step2, #step3').hide();
     $('#step1').show();
+    
+    // Setup existing documents display
+    setupExistingDocuments(policy);
         
     // Enable Next buttons based on pre-filled selections
     $('#nextStep1').prop('disabled', !selectedPolicyType);
@@ -3344,12 +3721,16 @@ const editPolicy = async (id) => {
     // Sync hidden fields for submit logic
     updateHiddenFields();
         
-    // Prepare the correct form so when user reaches step 3 it's ready
-    showPolicyForm(policyType);
+        // Prepare the correct form so when user reaches step 3 it's ready
+        showPolicyForm(policyType);
         
         // Ensure all form sections within the active form are visible
         const $activeForm = $(`#${policyType.toLowerCase()}Form`);
         $activeForm.find('.form-section').show();
+        
+        // Force the form to be visible and active
+        $activeForm.removeClass('d-none').addClass('active').show();
+        $activeForm.css('display', 'block');
         
         console.log('EditPolicy: After showPolicyForm call');
         console.log('EditPolicy: Motor form visibility:', $('#motorForm').is(':visible'));
@@ -3493,16 +3874,8 @@ const editPolicy = async (id) => {
         $('.step-indicator').removeClass('active');
         $('.step-indicator[data-step="3"]').addClass('active');
         
-        // Add event listener for form submission if not already added
-        if (!$('#policyForm').data('edit-listener-added')) {
-            $('#savePolicyBtn').off('click').on('click', (e) => {
-                // Add a small delay to ensure form is populated
-                setTimeout(() => {
-                    handlePolicySubmit(e);
-                }, 50);
-            });
-            $('#policyForm').data('edit-listener-added', true);
-        }
+        // Form submission is already handled globally - no need for duplicate handlers
+        // $('#policyForm').data('edit-listener-added', true);
         
         // Ensure all required fields are visible and populated
         console.log('EditPolicy: Form populated, checking required fields...');
@@ -3576,11 +3949,74 @@ const deletePolicyHandler = async (id) => {
 
 // Utility functions
 const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const raw = String(dateString).trim();
+    if (raw === '') return '';
+
+    // If already looks like dd-mm-yyyy, return as-is (normalize zeros)
+    const ddmmyyyy = /^(\d{1,2})[-\/](\d{1,2})[-\/]?(\d{2,4})$/;
+    const ddmmyyyyMatch = raw.match(ddmmyyyy);
+    if (ddmmyyyyMatch) {
+        const dd = ddmmyyyyMatch[1].padStart(2, '0');
+        const mm = ddmmyyyyMatch[2].padStart(2, '0');
+        let yyyy = ddmmyyyyMatch[3];
+        if (yyyy.length === 2) {
+            // Assume 20xx for two-digit years
+            yyyy = `20${yyyy}`;
+        }
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    // Try parsing common formats safely (yyyy-mm-dd, ISO)
+    const isoLike = /^(\d{4})[-\/](\d{1,2})[-\/]?(\d{1,2})/;
+    const isoMatch = raw.match(isoLike);
+    if (isoMatch) {
+        const yyyy = isoMatch[1];
+        const mm = isoMatch[2].padStart(2, '0');
+        const dd = isoMatch[3].padStart(2, '0');
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    // Fallback to Date parser; if invalid, return raw
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+};
+
+const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN');
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+    
+    // Format with IST timezone (UTC+5:30)
+    try {
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    } catch (error) {
+        console.error('Date formatting error:', error);
+        // Fallback to basic formatting
+        return date.toLocaleString('en-IN');
+    }
 };
 
 const showNotification = (message, type = 'info') => {
+    console.log('showNotification called:', message, type);
+    
     // Escape HTML to prevent XSS
     const escapeHtml = (str) => String(str)
         .replace(/&/g, '&amp;')
@@ -3771,14 +4207,34 @@ const renderPoliciesTable = () => {
     pageData.forEach((policy, index) => {
         const row = document.createElement('tr');
         
+        // Debug logging for missing dates
+        if (!policy.endDate && policy.id) {
+            console.log('Missing endDate for policy:', policy.id, policy);
+        }
+        
         // Use the correct property names from the API response with fallbacks
         const policyType = policy.policyType || policy.type || 'Unknown';
         const customerName = policy.customerName || policy.owner || 'Unknown';
         const phone = policy.phone || 'Unknown';
         const companyName = policy.companyName || policy.company || 'Unknown';
-        const endDate = policy.endDate || 'Unknown';
+        const endDate = policy.endDate && policy.endDate.trim() !== '' ? policy.endDate : null;
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
+        
+        // Extract vehicle information based on policy type
+        let vehicleNumber = 'N/A';
+        let vehicleType = 'N/A';
+        
+        if (policyType === 'Motor') {
+            vehicleNumber = policy.vehicleNumber || policy.vehicle_number || 'N/A';
+            vehicleType = policy.vehicleType || policy.vehicle_type || 'N/A';
+        } else if (policyType === 'Health') {
+            vehicleNumber = 'Health Policy';
+            vehicleType = policy.insuranceType || 'Health Insurance';
+        } else if (policyType === 'Life') {
+            vehicleNumber = 'Life Policy';
+            vehicleType = policy.insuranceType || 'Life Insurance';
+        }
         
         // Format additional info based on policy type
         let additionalInfo = '';
@@ -3790,16 +4246,36 @@ const renderPoliciesTable = () => {
             additionalInfo = `Sum: ₹${policy.sumAssured.toLocaleString()}`;
         }
         
+        // Format vehicle/details info based on policy type
+        let vehicleDetails = '';
+        if (policyType === 'Motor') {
+            vehicleDetails = policy.vehicleType || policy.vehicle_type || 'N/A';
+            if (policy.vehicleNumber || policy.vehicle_number) {
+                vehicleDetails += `<br><small style="color: #666;">${policy.vehicleNumber || policy.vehicle_number}</small>`;
+            }
+        } else if (policyType === 'Health') {
+            vehicleDetails = policy.insuranceType || 'Health Insurance';
+            if (policy.sumInsured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumInsured.toLocaleString()}</small>`;
+            }
+        } else if (policyType === 'Life') {
+            vehicleDetails = policy.insuranceType || 'Life Insurance';
+            if (policy.sumAssured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumAssured.toLocaleString()}</small>`;
+            }
+        }
+
+        // Ensure we extract string values, not HTML elements
+        const safeVehicleNumber = typeof vehicleNumber === 'string' ? vehicleNumber : (vehicleNumber?.value || 'N/A');
+        const safeVehicleType = typeof vehicleType === 'string' ? vehicleType : (vehicleType?.value || 'N/A');
+        
         row.innerHTML = `
             <td>${startIndex + index + 1}</td>
-            <td>
-                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
-            </td>
+            <td>${safeVehicleNumber}</td>
             <td>${customerName}</td>
             <td>${phone}</td>
-            <td>${getShortCompanyName(companyName)}</td>
-            <td>${formatDate(endDate)}</td>
+            <td>${safeVehicleType}</td>
+            <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
@@ -3887,20 +4363,33 @@ const goToPoliciesPage = (page) => {
 };
 
 const updatePoliciesStats = () => {
+    console.log('📊 updatePoliciesStats called');
+    console.log('📊 Current allPolicies length:', allPolicies.length);
+
     // Prevent cross-page override: do not touch renewals counters on Renewals page
     const currentPathForPolicies = window.location && window.location.pathname ? window.location.pathname : '';
     if (currentPathForPolicies === '/renewals' || currentPathForPolicies.startsWith('/renewals')) {
+        console.log('📊 updatePoliciesStats: Skipping for renewals page');
         return; // The Renewals page owns these counters via its own script
     }
+
     const activeCount = allPolicies.filter(p => p.status === 'Active').length;
     const expiredCount = allPolicies.filter(p => p.status === 'Expired').length;
     const pendingCount = allPolicies.filter(p => p.status === 'Pending').length;
     const totalCount = allPolicies.length;
-    
+
+    console.log('📊 updatePoliciesStats: Calculated counts:', {
+        activeCount, expiredCount, pendingCount, totalCount
+    });
+
     $('#activePoliciesCount').text(activeCount);
     $('#expiredPoliciesCount').text(expiredCount);
     $('#pendingRenewalsCount').text(pendingCount);
     $('#totalPoliciesCount').text(totalCount);
+
+    console.log('📊 updatePoliciesStats: DOM elements updated');
+    console.log('  activePoliciesCount:', $('#activePoliciesCount').text());
+    console.log('  totalPoliciesCount:', $('#totalPoliciesCount').text());
 };
 
 const handlePoliciesSearch = () => {
@@ -4174,6 +4663,8 @@ const populatePolicyModal = async (policy) => {
 
 const exportPoliciesData = async () => {
     try {
+        console.log('Export function called');
+        
         // Show loading state
         const exportBtn = $('#exportPoliciesBtn');
         const originalText = exportBtn.html();
@@ -4183,8 +4674,10 @@ const exportPoliciesData = async () => {
         const filters = {
             policy_type: $('#policyTypeFilter').val(),
             status: $('#statusFilter').val(),
-            format: 'xlsx' // Default to Excel
+            format: 'csv' // Default to CSV for better compatibility
         };
+        
+        console.log('Filters:', filters);
         
         // Build URL with filters
         const params = new URLSearchParams();
@@ -4195,6 +4688,7 @@ const exportPoliciesData = async () => {
         });
         
         const url = '/api/policies/export?' + params.toString();
+        console.log('Export URL:', url);
         
         // Create temporary link to download file
         const link = document.createElement('a');
@@ -4204,6 +4698,7 @@ const exportPoliciesData = async () => {
         link.click();
         document.body.removeChild(link);
         
+        console.log('Download link clicked');
         showNotification('Export started! Your download will begin shortly.', 'success');
         
     } catch (error) {
@@ -4217,19 +4712,21 @@ const exportPoliciesData = async () => {
 };
 
 const generatePoliciesCSV = () => {
-    const headers = ['Sl. No', 'Policy Type', 'Customer Name', 'Phone', 'Insurance Company', 'End Date', 'Premium', 'Status'];
+    const headers = ['Sl. No', 'Policy Type', 'Customer Name', 'Phone', 'Insurance Company', 'Start Date', 'End Date', 'Premium', 'Status'];
     const csvRows = [headers.join(',')];
+    const source = Array.isArray(window.reportsPoliciesData) ? window.reportsPoliciesData : policiesFilteredData;
     
-    policiesFilteredData.forEach(policy => {
+    source.forEach((policy, idx) => {
         const row = [
-            policy.id,
-            policy.type,
-            policy.owner,
-            policy.phone,
-            getShortCompanyName(policy.company),
-            policy.endDate,
-            policy.premium,
-            policy.status
+            idx + 1,
+            (policy.policyType || policy.type || ''),
+            (policy.customerName || policy.owner || ''),
+            (policy.phone || ''),
+            getShortCompanyName(policy.companyName || policy.company || ''),
+            (policy.startDate || ''),
+            (policy.endDate || ''),
+            (policy.premium || 0),
+            (policy.status || '')
         ];
         csvRows.push(row.join(','));
     });
@@ -5064,6 +5561,8 @@ const showPolicyForm = (policyType) => {
     const $selectedForm = $(`#${policyType.toLowerCase()}Form`);
     console.log('showPolicyForm: Selected form element:', $selectedForm);
     console.log('showPolicyForm: Form exists:', $selectedForm.length > 0);
+    console.log('showPolicyForm: Total policy forms found:', $('.policy-form').length);
+    console.log('showPolicyForm: All policy form IDs:', $('.policy-form').map(function() { return this.id; }).get());
     
     $selectedForm.addClass('active');
     console.log('showPolicyForm: Form should now be visible');
@@ -6282,26 +6781,40 @@ const initializeReportTabs = () => {
     });
 };
 
-const generateReports = () => {
-    // Check if data is available before generating reports
-    if (!allPolicies && !allAgents && !allRenewals && !allFollowups) {
-        console.log('Data not yet loaded, skipping report generation');
-        return;
+const generateReports = async () => {
+    try {
+        // Always fetch policies filtered by start_date from server for the selected range
+        const start = $('#reportStartDate').val();
+        const end = $('#reportEndDate').val();
+        const params = new URLSearchParams();
+        if (start) params.append('start', start);
+        if (end) params.append('end', end);
+        const url = `/api/reports/policies?${params.toString()}`;
+        const data = await apiCall(url);
+        // Cache filtered dataset for Reports usage and export
+        window.reportsPoliciesData = (data && data.policies) ? data.policies : [];
+        
+        // Update KPIs using server-filtered data
+        updateKPIs({ policies: window.reportsPoliciesData, renewals: [], followups: [], agents: [] });
+        
+        // Render tables based on server-filtered data
+        generatePoliciesReport();
+        generateRenewalsReport();
+        generateFollowupsReport();
+        generateAgentsReport();
+    } catch (e) {
+        console.error('Failed to generate reports:', e);
     }
-    
-    updateKPIs();
-    generatePoliciesReport();
-    generateRenewalsReport();
-    generateFollowupsReport();
-    generateAgentsReport();
 };
 
 const generatePoliciesReport = () => {
     const tbody = $('#policiesReportTableBody');
     tbody.empty();
     
-    // Filter policies based on date range if needed
-    const filteredPolicies = allPolicies || [];
+    // Use server-filtered dataset when available
+    const filteredPolicies = Array.isArray(window.reportsPoliciesData) ? window.reportsPoliciesData : (allPolicies || []);
+    
+    console.log('Reports: Showing', filteredPolicies.length, 'policies out of', allPolicies.length, 'for date range', startDate, 'to', endDate);
     
     filteredPolicies.forEach(policy => {
         // Use the correct property names from the API response with fallbacks
@@ -6648,19 +7161,29 @@ const goToAgentsPage = (page) => {
 };
 
 const updateAgentsStats = () => {
+    console.log('👥 updateAgentsStats called');
+    console.log('👥 Current allAgents length:', allAgents.length);
+    console.log('👥 Current allPolicies length:', allPolicies.length);
+    
     $('#totalAgentsCount').text(allAgents.length);
     $('#activeAgentsCount').text(allAgents.length);
     
     const totalPolicies = allPolicies.length;
     $('#totalPoliciesCount').text(totalPolicies);
     
-    const avgPerformance = allAgents.reduce((sum, agent) => {
+    const avgPerformance = allAgents.length > 0 ? allAgents.reduce((sum, agent) => {
         const policies = allPolicies.filter(p => p.assignedTo === agent.name).length;
         const performance = Math.floor(Math.random() * 40) + 60;
         return sum + performance;
-    }, 0) / allAgents.length;
+    }, 0) / allAgents.length : 0;
     
     $('#avgPerformanceCount').text(`${avgPerformance.toFixed(1)}%`);
+    
+    console.log('👥 updateAgentsStats: Updated DOM elements');
+    console.log('  totalAgentsCount:', $('#totalAgentsCount').text());
+    console.log('  activeAgentsCount:', $('#activeAgentsCount').text());
+    console.log('  totalPoliciesCount:', $('#totalPoliciesCount').text());
+    console.log('  avgPerformanceCount:', $('#avgPerformanceCount').text());
 };
 
 const handleAgentsSearch = () => {
@@ -7875,7 +8398,8 @@ const initializeModals = () => {
         console.log('All buttons with "policy" in ID:', $('[id*="policy"]').map(function() { return this.id; }).get());
     }
     $('#closePolicyModal, #cancelPolicy').off('click').on('click', closePolicyModal);
-    $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
+    // Remove this duplicate handler - already handled in form submission
+    // $('#savePolicyBtn').off('click').on('click', handlePolicySubmit);
     
     // Followup Modal
     $('#addFollowupBtn').off('click').on('click', openFollowupModal);
@@ -8589,6 +9113,7 @@ const initializeBulkUpload = () => {
 // Policy History Functions
 function openPolicyHistoryModal(policyId) {
     console.log('Opening policy history modal for ID:', policyId);
+    console.log('Current timestamp:', new Date().toISOString());
     const modal = document.getElementById('policyHistoryModal');
     const content = document.getElementById('policyHistoryContent');
     
@@ -8611,13 +9136,18 @@ function openPolicyHistoryModal(policyId) {
     console.log('Modal after style change:', modal.getAttribute('style'));
     content.innerHTML = '<div class="loading">Loading policy history...</div>';
     
-    // Fetch policy history
-    fetch(`/api/policies/${policyId}/history?t=${Date.now()}`, {
+    // Fetch policy history with aggressive cache busting
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(7);
+    fetch(`/api/policies/${policyId}/history?t=${timestamp}&r=${randomId}&cache_bust=${timestamp}&version_cleanup_fix=${timestamp}`, {
         method: 'GET',
         credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
         }
     })
         .then(response => {
@@ -8629,6 +9159,8 @@ function openPolicyHistoryModal(policyId) {
         })
         .then(data => {
             console.log('Policy history data:', data);
+            console.log('Number of versions received:', data.versions ? data.versions.length : 0);
+            console.log('First version details:', data.versions && data.versions[0] ? data.versions[0] : 'No versions');
             if (data.policy && data.versions) {
                 renderPolicyHistory(data);
             } else {
@@ -8660,6 +9192,12 @@ function renderPolicyHistory(data) {
         return;
     }
     
+    // Sort versions by version_created_at in descending order (newest first)
+    // This ensures the latest version appears first and is marked as "Current"
+    const sortedVersions = [...versions].sort((a, b) => {
+        return new Date(b.version_created_at) - new Date(a.version_created_at);
+    });
+    
     let html = `
         <div class="policy-info">
             <h3>${policy.customer_name} - ${policy.vehicle_number || 'N/A'}</h3>
@@ -8668,7 +9206,7 @@ function renderPolicyHistory(data) {
         <div class="history-timeline">
     `;
     
-    versions.forEach((version, index) => {
+    sortedVersions.forEach((version, index) => {
         const isLatest = index === 0;
         html += `
             <div class="history-item ${isLatest ? 'latest' : ''}">
@@ -8678,7 +9216,7 @@ function renderPolicyHistory(data) {
                 <div class="history-content">
                     <div class="history-header">
                         <h4>${version.version_label} ${isLatest ? '(Current)' : ''}</h4>
-                        <span class="history-date">${version.version_created_at}</span>
+                        <span class="history-date">${formatDateTime(version.version_created_at)}</span>
                     </div>
                     <div class="history-details">
                         <div class="detail-grid">
@@ -8716,13 +9254,30 @@ function renderPolicyHistory(data) {
                             </div>
                         </div>
                         <div class="documents-section">
-                            <h5>Documents:</h5>
+                            <h5>📄 Documents Available:</h5>
                             <div class="document-list">
                                 ${version.has_documents ? 
-                                    Object.entries(version.documents).map(([type, path]) => 
-                                        path ? `<a href="/api/policy-versions/${version.id}/download/${type.replace('_copy', '')}" class="document-item downloadable" target="_blank" title="Download ${type.replace('_', ' ').toUpperCase()}">${type.replace('_', ' ').toUpperCase()} <i class="fas fa-download"></i></a>` : ''
-                                    ).filter(Boolean).join('') || '<span class="document-item no-docs">No documents available for this version</span>'
-                                    : '<span class="document-item no-docs">No documents available for this version</span>'
+                                    Object.entries(version.documents).map(([type, path]) => {
+                                        if (path) {
+                                            const documentType = type.replace('_copy', '');
+                                            const displayName = documentType.charAt(0).toUpperCase() + documentType.slice(1);
+                                            return `
+                                                <div class="document-item downloadable">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                    <span class="doc-name">${displayName}</span>
+                                                    <a href="/api/policy-versions/${version.id}/download/${documentType}" 
+                                                       class="download-btn" 
+                                                       target="_blank" 
+                                                       title="Download ${displayName}">
+                                                        <i class="fas fa-download"></i>
+                                                        Download
+                                                    </a>
+                                                </div>
+                                            `;
+                                        }
+                                        return '';
+                                    }).filter(Boolean).join('') || '<div class="document-item no-docs"><i class="fas fa-exclamation-circle"></i> No documents available for this version</div>'
+                                    : '<div class="document-item no-docs"><i class="fas fa-exclamation-circle"></i> No documents available for this version</div>'
                                 }
                             </div>
                         </div>
