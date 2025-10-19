@@ -2848,6 +2848,16 @@ const handlePolicySubmit = async (e) => {
     console.log('HandlePolicySubmit: Hidden policy type field value:', $('#hiddenPolicyType').val());
     console.log('HandlePolicySubmit: Hidden business type field value:', $('#hiddenBusinessType').val());
     
+    // Debug form visibility
+    console.log('HandlePolicySubmit: Form visibility check:', {
+        motorFormVisible: $('#motorForm').is(':visible'),
+        healthFormVisible: $('#healthForm').is(':visible'),
+        lifeFormVisible: $('#lifeForm').is(':visible'),
+        motorFormActive: $('#motorForm').hasClass('active'),
+        healthFormActive: $('#healthForm').hasClass('active'),
+        lifeFormActive: $('#lifeForm').hasClass('active')
+    });
+    
     // Build policy data based on the active policy type
     let policyData = {
         policyType: activePolicyType,
@@ -3120,20 +3130,30 @@ const handlePolicySubmit = async (e) => {
         if (editId) {
             // Update existing policy
             console.log('HandlePolicySubmit: Updating policy with ID:', editId);
+            console.log('HandlePolicySubmit: Policy data being sent:', policyData);
+            
             // Laravel requires method spoofing for multipart PUT
             formData.append('_method', 'PUT');
-            const response = await updatePolicyWithFiles(editId, formData);
             
-            // Update local data
-            const index = allPolicies.findIndex(p => p.id === editId);
-            if (index !== -1) {
-                allPolicies[index] = { ...allPolicies[index], ...response.policy };
+            try {
+                const response = await updatePolicyWithFiles(editId, formData);
+                console.log('HandlePolicySubmit: Update response received:', response);
+                
+                // Update local data
+                const index = allPolicies.findIndex(p => p.id === editId);
+                if (index !== -1) {
+                    allPolicies[index] = { ...allPolicies[index], ...response.policy };
+                }
+                
+                console.log('Showing policy update notification - should only appear once');
+                showNotification('Policy updated successfully!', 'success');
+                // Redirect to dashboard after update
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error('HandlePolicySubmit: Update failed with error:', error);
+                showNotification('Failed to update policy: ' + (error.message || 'Unknown error'), 'error');
+                return;
             }
-            
-            console.log('Showing policy update notification - should only appear once');
-            showNotification('Policy updated successfully!', 'success');
-            // Redirect to dashboard after update
-            window.location.href = '/dashboard';
         } else {
             // Create new policy
             console.log('Creating new policy with data and files');
@@ -3676,12 +3696,16 @@ const editPolicy = async (id) => {
     // Sync hidden fields for submit logic
     updateHiddenFields();
         
-    // Prepare the correct form so when user reaches step 3 it's ready
-    showPolicyForm(policyType);
+        // Prepare the correct form so when user reaches step 3 it's ready
+        showPolicyForm(policyType);
         
         // Ensure all form sections within the active form are visible
         const $activeForm = $(`#${policyType.toLowerCase()}Form`);
         $activeForm.find('.form-section').show();
+        
+        // Force the form to be visible and active
+        $activeForm.removeClass('d-none').addClass('active').show();
+        $activeForm.css('display', 'block');
         
         console.log('EditPolicy: After showPolicyForm call');
         console.log('EditPolicy: Motor form visibility:', $('#motorForm').is(':visible'));
