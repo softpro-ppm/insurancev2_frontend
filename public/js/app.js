@@ -267,16 +267,25 @@ const fetchPolicies = async () => {
             console.error('📋 fetchPolicies: API call failed with status:', response.status);
             const errorText = await response.text();
             console.error('📋 fetchPolicies: Error response:', errorText);
+            showNotification('Failed to load policies data: ' + response.status, 'error');
             return [];
         }
 
         const data = await response.json();
         console.log('📋 fetchPolicies: Success, received data:', data);
         console.log('📋 fetchPolicies: Policies count:', data.policies ? data.policies.length : 0);
-        return data.policies || [];
+        
+        if (!data.policies || !Array.isArray(data.policies)) {
+            console.error('📋 fetchPolicies: Invalid data format:', data);
+            showNotification('Invalid policies data format received', 'error');
+            return [];
+        }
+        
+        return data.policies;
     } catch (error) {
         console.error('❌ fetchPolicies: Failed to fetch policies:', error);
         console.error('❌ fetchPolicies: Error details:', error.message);
+        showNotification('Failed to load policies: ' + error.message, 'error');
         return [];
     }
 };
@@ -1028,10 +1037,27 @@ const loadPoliciesData = async () => {
         
         allPolicies = await fetchPolicies();
         console.log('📋 Policies loaded:', allPolicies.length);
+        
+        if (!allPolicies || allPolicies.length === 0) {
+            console.warn('📋 No policies data received');
+            showNotification('No policies data found', 'warning');
+            allPolicies = [];
+            filteredData = [];
+            return;
+        }
+        
         filteredData = [...allPolicies];
         updatePoliciesStats();
+        
+        // Initialize policies page if we're on the policies page
+        if ($('#policies').hasClass('active')) {
+            initializePoliciesPage();
+        }
+        
+        console.log('📋 Policies data loaded successfully');
     } catch (error) {
         console.error('Failed to load policies data:', error);
+        showNotification('Failed to load policies data: ' + error.message, 'error');
         allPolicies = [];
         filteredData = [];
     }
