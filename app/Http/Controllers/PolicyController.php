@@ -220,7 +220,8 @@ class PolicyController extends Controller
             ? 'Self' 
             : ($request->agent_name ?? $request->agentName ?? 'Agent');
 
-        $policy = Policy::create([
+        // Build base attributes that always exist
+        $policyData = [
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
             'email' => $request->customerEmail,
@@ -238,14 +239,22 @@ class PolicyController extends Controller
             'status' => 'Active',
             'business_type' => $request->businessType,
             'agent_name' => $agentNameResolved,
-            // Health/Life specifics
-            'customer_age' => $request->customerAge,
-            'customer_gender' => $request->customerGender,
-            'sum_insured' => $request->sumInsured,
-            'sum_assured' => $request->sumAssured,
-            'policy_term' => $request->policyTerm,
-            'premium_frequency' => $request->premiumFrequency,
-        ]);
+        ];
+
+        // Conditionally add Health/Life columns only if present in DB schema
+        $maybe = function(string $column, $value) use (&$policyData) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('policies', $column) && $value !== null && $value !== '') {
+                $policyData[$column] = $value;
+            }
+        };
+        $maybe('customer_age', $request->customerAge);
+        $maybe('customer_gender', $request->customerGender);
+        $maybe('sum_insured', $request->sumInsured);
+        $maybe('sum_assured', $request->sumAssured);
+        $maybe('policy_term', $request->policyTerm);
+        $maybe('premium_frequency', $request->premiumFrequency);
+
+        $policy = Policy::create($policyData);
 
         // Handle file uploads
         $documentPaths = [];
