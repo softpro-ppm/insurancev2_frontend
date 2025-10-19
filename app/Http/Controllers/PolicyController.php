@@ -417,16 +417,16 @@ class PolicyController extends Controller
             $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'; // 5MB max
         }
         if ($policyType === 'Health') {
-            $rules['customerAge'] = 'required|integer|min:0|max:120';
-            $rules['customerGender'] = 'required|in:Male,Female,Other';
-            $rules['sumInsured'] = 'required|numeric|min:0';
+            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
+            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
+            $rules['sumInsured'] = 'nullable|numeric|min:0';
         }
         if ($policyType === 'Life') {
-            $rules['customerAge'] = 'required|integer|min:0|max:120';
-            $rules['customerGender'] = 'required|in:Male,Female,Other';
-            $rules['sumAssured'] = 'required|numeric|min:0';
-            $rules['policyTerm'] = 'required|string|max:50';
-            $rules['premiumFrequency'] = 'required|string|max:50';
+            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
+            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
+            $rules['sumAssured'] = 'nullable|numeric|min:0';
+            $rules['policyTerm'] = 'nullable|string|max:50';
+            $rules['premiumFrequency'] = 'nullable|string|max:50';
         }
         
         \Log::info('Validation rules for policy type', [
