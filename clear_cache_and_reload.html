@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Cache and Reload</title>
+</head>
+<body>
+    <h1>Clearing cache and reloading...</h1>
+    <p>This page will clear all caches and redirect to the policies page.</p>
+    
+    <script>
+        // Clear all possible caches
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                }
+                console.log('All caches cleared');
+            });
+        }
+        
+        // Clear localStorage and sessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear any service worker caches
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        
+        console.log('Cache clearing completed');
+        
+        // Redirect to policies page with cache busting
+        setTimeout(() => {
+            window.location.href = '/policies?cache_bust=' + Date.now() + '&version_cleanup_fix=' + Date.now();
+        }, 2000);
+    </script>
+</body>
+</html>

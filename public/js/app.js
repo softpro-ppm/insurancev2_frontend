@@ -9113,6 +9113,7 @@ const initializeBulkUpload = () => {
 // Policy History Functions
 function openPolicyHistoryModal(policyId) {
     console.log('Opening policy history modal for ID:', policyId);
+    console.log('Current timestamp:', new Date().toISOString());
     const modal = document.getElementById('policyHistoryModal');
     const content = document.getElementById('policyHistoryContent');
     
@@ -9135,13 +9136,18 @@ function openPolicyHistoryModal(policyId) {
     console.log('Modal after style change:', modal.getAttribute('style'));
     content.innerHTML = '<div class="loading">Loading policy history...</div>';
     
-    // Fetch policy history
-    fetch(`/api/policies/${policyId}/history?t=${Date.now()}`, {
+    // Fetch policy history with aggressive cache busting
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(7);
+    fetch(`/api/policies/${policyId}/history?t=${timestamp}&r=${randomId}&cache_bust=${timestamp}&version_cleanup_fix=${timestamp}`, {
         method: 'GET',
         credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
         }
     })
         .then(response => {
@@ -9153,6 +9159,8 @@ function openPolicyHistoryModal(policyId) {
         })
         .then(data => {
             console.log('Policy history data:', data);
+            console.log('Number of versions received:', data.versions ? data.versions.length : 0);
+            console.log('First version details:', data.versions && data.versions[0] ? data.versions[0] : 'No versions');
             if (data.policy && data.versions) {
                 renderPolicyHistory(data);
             } else {

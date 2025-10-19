@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Policy History Test</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>Policy History Test</h1>
+    <button onclick="testPolicyHistory()">Test Policy History</button>
+    <div id="result"></div>
+
+    <script>
+        async function testPolicyHistory() {
+            const timestamp = Date.now();
+            const randomId = Math.random().toString(36).substring(7);
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/policies/515/history?t=${timestamp}&r=${randomId}&cache_bust=${timestamp}&version_cleanup_fix=${timestamp}`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                document.getElementById('result').innerHTML = `
+                    <h3>API Response:</h3>
+                    <p><strong>Number of versions:</strong> ${data.versions ? data.versions.length : 0}</p>
+                    <p><strong>First version:</strong> ${data.versions && data.versions[0] ? data.versions[0].version_label : 'No versions'}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
