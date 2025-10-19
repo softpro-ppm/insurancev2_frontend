@@ -2749,9 +2749,25 @@ const handlePolicySubmit = async (e) => {
     // Prepare form for submission to prevent validation errors on hidden fields
     prepareFormForSubmission();
     
-    // Determine which policy type is currently active
-    const activePolicyType = $('#hiddenPolicyType').val() || 'Motor';
-    const businessType = $('#hiddenBusinessType').val() || 'Self';
+    // Determine which policy type is currently active (robust)
+    const resolveActivePolicyType = () => {
+        const hidden = $('#hiddenPolicyType').val();
+        if (hidden) return hidden;
+        if ($('#healthForm').hasClass('active')) return 'Health';
+        if ($('#lifeForm').hasClass('active')) return 'Life';
+        if ($('#motorForm').hasClass('active')) return 'Motor';
+        const selected = $('#policyTypeSelect').val();
+        return selected || 'Motor';
+    };
+    const resolveBusinessType = () => {
+        const hidden = $('#hiddenBusinessType').val();
+        if (hidden) return hidden;
+        const selected = $('#businessTypeSelect').val();
+        return selected || 'Self';
+    };
+
+    const activePolicyType = resolveActivePolicyType();
+    const businessType = resolveBusinessType();
     
     // Explicitly ensure Agent Name field is hidden if Self is selected
     if (businessType === 'Self') {
@@ -2799,12 +2815,8 @@ const handlePolicySubmit = async (e) => {
         hiddenBusinessType
     });
     
-    if (hiddenPolicyType) {
-        policyData.policyType = hiddenPolicyType;
-    }
-    if (hiddenBusinessType) {
-        policyData.businessType = hiddenBusinessType;
-    }
+    if (!policyData.policyType) policyData.policyType = activePolicyType;
+    if (!policyData.businessType) policyData.businessType = businessType;
     
     // Get data based on active policy type
     if (activePolicyType === 'Motor') {

@@ -115,6 +115,34 @@ class PolicyController extends Controller
      */
     public function store(Request $request)
     {
+        // Normalize incoming dates to Y-m-d to accept dd-mm-yyyy and dd/mm/yyyy as well
+        $normalizeDate = function ($value) {
+            if (!$value) return $value;
+            $raw = trim((string) $value);
+            // dd-mm-yyyy or dd/mm/yyyy
+            if (preg_match('/^(\d{1,2})[\-\/]([\d]{1,2})[\-\/]([\d]{2,4})$/', $raw, $m)) {
+                $dd = str_pad($m[1], 2, '0', STR_PAD_LEFT);
+                $mm = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+                $yy = $m[3];
+                if (strlen($yy) === 2) { $yy = '20' . $yy; }
+                return sprintf('%s-%s-%s', $yy, $mm, $dd);
+            }
+            // yyyy-mm-dd or yyyy/mm/dd
+            if (preg_match('/^(\d{4})[\-\/]([\d]{1,2})[\-\/]([\d]{1,2})$/', $raw, $m)) {
+                $yy = $m[1];
+                $mm = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+                $dd = str_pad($m[3], 2, '0', STR_PAD_LEFT);
+                return sprintf('%s-%s-%s', $yy, $mm, $dd);
+            }
+            // Fallback: let Laravel handle if it's a valid date string
+            return $raw;
+        };
+
+        $request->merge([
+            'startDate' => $normalizeDate($request->input('startDate')),
+            'endDate' => $normalizeDate($request->input('endDate')),
+        ]);
+
         $rules = [
             'policyType' => 'required|in:Motor,Health,Life',
             // Business Type now supports only Self or Agent
