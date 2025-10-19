@@ -490,7 +490,8 @@ class PolicyController extends Controller
             ? 'Self' 
             : ($request->agent_name ?? $request->agentName ?? $policy->agent_name ?? 'Agent');
 
-        $policy->update([
+        // Build update array with base fields
+        $updateData = [
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
             'email' => $request->customerEmail,
@@ -508,14 +509,29 @@ class PolicyController extends Controller
             'status' => $request->status ?? $policy->status,
             'business_type' => $incomingBusinessType,
             'agent_name' => $agentNameResolved,
-            // Health/Life specifics (preserve when null)
-            'customer_age' => $request->customerAge ?? $policy->customer_age,
-            'customer_gender' => $request->customerGender ?? $policy->customer_gender,
-            'sum_insured' => $request->sumInsured ?? $policy->sum_insured,
-            'sum_assured' => $request->sumAssured ?? $policy->sum_assured,
-            'policy_term' => $request->policyTerm ?? $policy->policy_term,
-            'premium_frequency' => $request->premiumFrequency ?? $policy->premium_frequency,
-        ]);
+        ];
+
+        // Only add Health/Life specific fields if the columns exist in the database
+        if (\Schema::hasColumn('policies', 'customer_age')) {
+            $updateData['customer_age'] = $request->customerAge ?? $policy->customer_age;
+        }
+        if (\Schema::hasColumn('policies', 'customer_gender')) {
+            $updateData['customer_gender'] = $request->customerGender ?? $policy->customer_gender;
+        }
+        if (\Schema::hasColumn('policies', 'sum_insured')) {
+            $updateData['sum_insured'] = $request->sumInsured ?? $policy->sum_insured;
+        }
+        if (\Schema::hasColumn('policies', 'sum_assured')) {
+            $updateData['sum_assured'] = $request->sumAssured ?? $policy->sum_assured;
+        }
+        if (\Schema::hasColumn('policies', 'policy_term')) {
+            $updateData['policy_term'] = $request->policyTerm ?? $policy->policy_term;
+        }
+        if (\Schema::hasColumn('policies', 'premium_frequency')) {
+            $updateData['premium_frequency'] = $request->premiumFrequency ?? $policy->premium_frequency;
+        }
+
+        $policy->update($updateData);
         
         \Log::info('Policy updated successfully', [
             'policy_id' => $id,
