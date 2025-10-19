@@ -93,11 +93,11 @@
                 <thead>
                     <tr>
                         <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
-                        <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
+                        <th data-sort="vehicleNumber">Vehicle Number <i class="fas fa-sort"></i></th>
                         <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
-                        <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
-                        <th data-sort="vehicleType">Vehicle/Details <i class="fas fa-sort"></i></th>
-                        <th data-sort="startDate">Start Date <i class="fas fa-sort"></i></th>
+                        <th data-sort="phone">Phone Number <i class="fas fa-sort"></i></th>
+                        <th data-sort="vehicleType">Vehicle Type <i class="fas fa-sort"></i></th>
+                        <th data-sort="endDate">End Date <i class="fas fa-sort"></i></th>
                         <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
                         <th data-sort="status">Status <i class="fas fa-sort"></i></th>
                         <th>Actions</th>

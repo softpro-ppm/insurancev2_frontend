@@ -1742,16 +1742,11 @@ const renderTable = () => {
 
         row.innerHTML = `
             <td>${startIndex + idx + 1}</td>
-            <td>
-                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-            </td>
-            <td>
-                <div>${customerName}</div>
-                <div style="font-size: 12px; color: #666; margin-top: 2px;">${phone}</div>
-            </td>
-            <td>${getShortCompanyName(companyName)}</td>
-            <td>${vehicleDetails}</td>
-            <td style="white-space: nowrap;">${formatDate(startDate)}</td>
+            <td>${vehicleNumber || 'N/A'}</td>
+            <td>${customerName}</td>
+            <td>${phone}</td>
+            <td>${vehicleType || 'N/A'}</td>
+            <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
@@ -4162,15 +4157,10 @@ const renderPoliciesTable = () => {
 
         row.innerHTML = `
             <td>${startIndex + index + 1}</td>
-            <td>
-                <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-            </td>
-            <td>
-                <div>${customerName}</div>
-                <div style="font-size: 12px; color: #666; margin-top: 2px;">${phone}</div>
-            </td>
-            <td>${getShortCompanyName(companyName)}</td>
-            <td>${vehicleDetails}</td>
+            <td>${vehicleNumber || 'N/A'}</td>
+            <td>${customerName}</td>
+            <td>${phone}</td>
+            <td>${vehicleType || 'N/A'}</td>
             <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
