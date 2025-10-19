@@ -1721,16 +1721,37 @@ const renderTable = () => {
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
         
+        // Format vehicle/details info based on policy type
+        let vehicleDetails = '';
+        if (policyType === 'Motor') {
+            vehicleDetails = policy.vehicleType || policy.vehicle_type || 'N/A';
+            if (policy.vehicleNumber || policy.vehicle_number) {
+                vehicleDetails += `<br><small style="color: #666;">${policy.vehicleNumber || policy.vehicle_number}</small>`;
+            }
+        } else if (policyType === 'Health') {
+            vehicleDetails = policy.insuranceType || 'Health Insurance';
+            if (policy.sumInsured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumInsured.toLocaleString()}</small>`;
+            }
+        } else if (policyType === 'Life') {
+            vehicleDetails = policy.insuranceType || 'Life Insurance';
+            if (policy.sumAssured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumAssured.toLocaleString()}</small>`;
+            }
+        }
+
         row.innerHTML = `
             <td>${startIndex + idx + 1}</td>
             <td>
                 <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
             </td>
-            <td>${customerName}</td>
-            <td>${phone}</td>
+            <td>
+                <div>${customerName}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">${phone}</div>
+            </td>
             <td>${getShortCompanyName(companyName)}</td>
-            <td>${formatDate(startDate)}</td>
+            <td>${vehicleDetails}</td>
+            <td style="white-space: nowrap;">${formatDate(startDate)}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>
@@ -4120,16 +4141,37 @@ const renderPoliciesTable = () => {
             additionalInfo = `Sum: ₹${policy.sumAssured.toLocaleString()}`;
         }
         
+        // Format vehicle/details info based on policy type
+        let vehicleDetails = '';
+        if (policyType === 'Motor') {
+            vehicleDetails = policy.vehicleType || policy.vehicle_type || 'N/A';
+            if (policy.vehicleNumber || policy.vehicle_number) {
+                vehicleDetails += `<br><small style="color: #666;">${policy.vehicleNumber || policy.vehicle_number}</small>`;
+            }
+        } else if (policyType === 'Health') {
+            vehicleDetails = policy.insuranceType || 'Health Insurance';
+            if (policy.sumInsured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumInsured.toLocaleString()}</small>`;
+            }
+        } else if (policyType === 'Life') {
+            vehicleDetails = policy.insuranceType || 'Life Insurance';
+            if (policy.sumAssured) {
+                vehicleDetails += `<br><small style="color: #666;">Sum: ₹${policy.sumAssured.toLocaleString()}</small>`;
+            }
+        }
+
         row.innerHTML = `
             <td>${startIndex + index + 1}</td>
             <td>
                 <span class="policy-type-badge ${policyType.toLowerCase()}">${policyType}</span>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || policy.vehicle_number || ''}</div>
             </td>
-            <td>${customerName}</td>
-            <td>${phone}</td>
+            <td>
+                <div>${customerName}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">${phone}</div>
+            </td>
             <td>${getShortCompanyName(companyName)}</td>
-            <td>${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
+            <td>${vehicleDetails}</td>
+            <td style="white-space: nowrap;">${endDate && endDate.trim() !== '' ? formatDate(endDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
             <td>₹${premium.toLocaleString()}</td>
             <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             <td>

@@ -5015,3 +5015,30 @@ body.dark-theme .download-btn:hover {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Table layout improvements */
+.data-table {
+    table-layout: auto;
+}
+
+.data-table th:nth-child(3) { /* Customer Name column */
+    min-width: 150px;
+}
+
+.data-table th:nth-child(5) { /* Vehicle/Details column */
+    min-width: 120px;
+}
+
+.data-table th:nth-child(6) { /* End Date column */
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.data-table td:nth-child(6) { /* End Date column */
+    white-space: nowrap;
+}
+
+/* Ensure phone numbers don't wrap */
+.data-table td:nth-child(3) div:last-child {
+    white-space: nowrap;
+}
