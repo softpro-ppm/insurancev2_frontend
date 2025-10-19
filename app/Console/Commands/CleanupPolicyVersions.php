@@ -17,7 +17,8 @@ class CleanupPolicyVersions extends Command
      */
     protected $signature = 'policy:cleanup-versions 
                             {--dry-run : Show what would be deleted without actually deleting}
-                            {--force : Skip confirmation prompt}';
+                            {--force : Skip confirmation prompt}
+                            {--all : Delete ALL policy versions (keep only current policy data)}';
 
     /**
      * The console command description.
@@ -37,29 +38,48 @@ class CleanupPolicyVersions extends Command
         // Get statistics
         $totalPolicies = Policy::count();
         $totalVersions = PolicyVersion::count();
-        $policiesWithMultipleVersions = Policy::has('versions', '>', 1)->with('versions')->get();
+        
+        if ($this->option('all')) {
+            $policiesWithVersions = Policy::has('versions')->with('versions')->get();
+        } else {
+            $policiesWithVersions = Policy::has('versions', '>', 1)->with('versions')->get();
+        }
 
         $this->info("BEFORE CLEANUP:");
         $this->line("  Total policies: {$totalPolicies}");
         $this->line("  Total policy versions: {$totalVersions}");
-        $this->line("  Policies with multiple versions: " . $policiesWithMultipleVersions->count());
+        if ($this->option('all')) {
+            $this->line("  Policies with versions: " . $policiesWithVersions->count());
+        } else {
+            $this->line("  Policies with multiple versions: " . $policiesWithVersions->count());
+        }
         $this->newLine();
 
-        if ($policiesWithMultipleVersions->isEmpty()) {
-            $this->info('No policies with multiple versions found. Nothing to clean up.');
+        if ($policiesWithVersions->isEmpty()) {
+            if ($this->option('all')) {
+                $this->info('No policies with versions found. Nothing to clean up.');
+            } else {
+                $this->info('No policies with multiple versions found. Nothing to clean up.');
+            }
             return 0;
         }
 
         // Show what will be deleted
         $this->info('POLICIES TO BE PROCESSED:');
-        foreach ($policiesWithMultipleVersions as $policy) {
+        foreach ($policiesWithVersions as $policy) {
             $versions = $policy->versions()->orderBy('version_number', 'desc')->get();
-            $latestVersion = $versions->first();
-            $versionsToDelete = $versions->skip(1);
             
-            $this->line("  Policy ID: {$policy->id} ({$policy->customer_name})");
-            $this->line("    Keeping: Version {$latestVersion->version_number}");
-            $this->line("    Deleting: " . $versionsToDelete->count() . " older versions");
+            if ($this->option('all')) {
+                $this->line("  Policy ID: {$policy->id} ({$policy->customer_name})");
+                $this->line("    Deleting: " . $versions->count() . " versions (keeping only current policy data)");
+            } else {
+                $latestVersion = $versions->first();
+                $versionsToDelete = $versions->skip(1);
+                
+                $this->line("  Policy ID: {$policy->id} ({$policy->customer_name})");
+                $this->line("    Keeping: Version {$latestVersion->version_number}");
+                $this->line("    Deleting: " . $versionsToDelete->count() . " older versions");
+            }
         }
         $this->newLine();
 
