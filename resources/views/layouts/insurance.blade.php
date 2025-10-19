@@ -39,90 +39,7 @@
             opacity: 1 !important;
             visibility: visible !important;
         }
-        
-        /* Profile dropdown styles */
-        .profile-dropdown {
-            position: relative;
-        }
-        
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.2s ease;
-        }
-        
-        .dropdown-menu.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            color: #374151;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        
-        .dropdown-item:hover {
-            background-color: #f3f4f6;
-        }
-        
-        .dropdown-item i {
-            margin-right: 8px;
-            width: 16px;
-        }
-        
-        .dropdown-divider {
-            height: 1px;
-            background-color: #e5e7eb;
-            margin: 4px 0;
-        }
     </style>
-    
-    <!-- Inline dropdown functionality -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Layout script loaded');
-            const profileBtn = document.getElementById('profileBtn');
-            const dropdown = document.getElementById('profileDropdown');
-            
-            console.log('Profile button found:', !!profileBtn);
-            console.log('Dropdown found:', !!dropdown);
-            
-            if (profileBtn && dropdown) {
-                profileBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log('Profile button clicked');
-                    dropdown.classList.toggle('show');
-                    console.log('Dropdown toggled, has show class:', dropdown.classList.contains('show'));
-                });
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!profileBtn.contains(e.target) && !dropdown.contains(e.target)) {
-                        dropdown.classList.remove('show');
-                    }
-                });
-            } else {
-                console.log('Profile button or dropdown not found');
-            }
-        });
-    </script>
     
     @stack('styles')
 </head>
@@ -177,13 +94,13 @@
             <div class="profile-dropdown">
                 <button class="profile-btn" id="profileBtn">
                     <i class="fas fa-user-circle"></i>
-                    <span>{{ Auth::check() && Auth::user() ? (Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin')) : 'Admin' }}</span>
+                    <span>{{ Auth::user()->name ?? 'Admin' }}</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="dropdown-menu" id="profileDropdown">
                     <div class="dropdown-item">
                         <i class="fas fa-user"></i>
-                        <span>{{ Auth::check() && Auth::user() ? (Auth::user()->name === 'Test' ? 'Admin' : (Auth::user()->name ?? 'Admin')) : 'Admin' }}</span>
+                        <span>{{ Auth::user()->name ?? 'Admin' }}</span>
                     </div>
                     <div class="dropdown-divider"></div>
                     <a href="{{ route('profile.edit') }}" class="dropdown-item">
@@ -295,7 +212,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}&dates_fix={{ time() }}&empty_string_fix={{ time() }}&table_layout_fix={{ time() }}&policy_update_fix={{ time() }}&policy_history_fix={{ time() }}&table_simplify_fix={{ time() }}&policies_data_fix={{ time() }}&debug_fix={{ time() }}&html_object_fix={{ time() }}&vehicle_data_fix={{ time() }}&validation_fix={{ time() }}&edit_form_fix={{ time() }}&database_schema_fix={{ time() }}&document_display_fix={{ time() }}&form_debug_fix={{ time() }}&version_cleanup_fix={{ time() }}&final_version_fix={{ time() }}&browser_cache_bust={{ microtime(true) }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ microtime(true) }}&history_update={{ time() }}&version_cleanup_fix={{ time() }}&final_version_fix={{ time() }}&browser_cache_bust={{ microtime(true) }}"></script>
     
     <!-- Force cache clear script -->
     <script>

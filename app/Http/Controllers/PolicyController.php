@@ -13,8 +13,6 @@ use App\Exports\PoliciesCSVExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon;
 
 class PolicyController extends Controller
 {
@@ -23,8 +21,7 @@ class PolicyController extends Controller
      */
     public function index()
     {
-        $hasVersionsTable = Schema::hasTable('policy_versions');
-        $policies = Policy::select('*')->get()->map(function ($policy) use ($hasVersionsTable) {
+        $policies = Policy::with('versions')->get()->map(function ($policy) {
             return [
                 'id' => $policy->id,
                 'customerName' => $policy->customer_name,
@@ -35,8 +32,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+                'startDate' => $policy->start_date->format('Y-m-d'),
+                'endDate' => $policy->end_date->format('Y-m-d'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -44,69 +41,15 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('d-m-Y'),
+                'createdAt' => $policy->created_at->format('Y-m-d'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                'hasRenewal' => $hasVersionsTable ? $policy->versions()->exists() : false,
+                'hasRenewal' => $policy->versions()->count() > 0, // Check if policy has been renewed
             ];
         });
         
-        return response()->json(['policies' => $policies]);
-    }
-
-    /**
-     * List policies filtered by start_date between provided start and end (inclusive)
-     * This is used by the Reports page and must NEVER use created_at for filtering.
-     */
-    public function listByStartDateRange(Request $request)
-    {
-        // Validate inputs; default to last 30 days when not provided
-        $validated = $request->validate([
-            'start' => 'nullable|date',
-            'end' => 'nullable|date'
-        ]);
-
-        $end = isset($validated['end'])
-            ? Carbon::parse($validated['end'])->endOfDay()
-            : Carbon::now()->endOfDay();
-        $start = isset($validated['start'])
-            ? Carbon::parse($validated['start'])->startOfDay()
-            : $end->copy()->subDays(30)->startOfDay();
-
-        // Index-friendly query by date range and sort
-        $policies = Policy::whereBetween('start_date', [$start, $end])
-            ->orderBy('start_date', 'desc')
-            ->get()
-            ->map(function ($policy) {
-                return [
-                    'id' => $policy->id,
-                    'customerName' => $policy->customer_name,
-                    'phone' => $policy->phone,
-                    'email' => $policy->email,
-                    'policyType' => $policy->policy_type,
-                    'vehicleNumber' => $policy->vehicle_number,
-                    'vehicleType' => $policy->vehicle_type,
-                    'companyName' => $policy->company_name,
-                    'insuranceType' => $policy->insurance_type,
-                    'startDate' => optional($policy->start_date)->format('d-m-Y'),
-                    'endDate' => optional($policy->end_date)->format('d-m-Y'),
-                    'premium' => $policy->premium,
-                    'payout' => $policy->payout,
-                    'customerPaidAmount' => $policy->customer_paid_amount,
-                    'revenue' => $policy->revenue,
-                    'status' => $policy->status,
-                    'businessType' => $policy->business_type,
-                    'agentName' => $policy->agent_name,
-                    'createdAt' => optional($policy->created_at)->format('d-m-Y'),
-                    'policy_copy_path' => $policy->policy_copy_path,
-                    'rc_copy_path' => $policy->rc_copy_path,
-                    'aadhar_copy_path' => $policy->aadhar_copy_path,
-                    'pan_copy_path' => $policy->pan_copy_path,
-                ];
-            });
-
         return response()->json(['policies' => $policies]);
     }
 
@@ -115,43 +58,6 @@ class PolicyController extends Controller
      */
     public function store(Request $request)
     {
-        \Log::info('PolicyController@store called', [
-            'policyType' => $request->input('policyType'),
-            'businessType' => $request->input('businessType'),
-            'path' => $request->path(),
-            'headers' => [
-                'accept' => $request->header('accept'),
-                'x-requested-with' => $request->header('X-Requested-With'),
-            ],
-        ]);
-        // Normalize incoming dates to Y-m-d to accept dd-mm-yyyy and dd/mm/yyyy as well
-        $normalizeDate = function ($value) {
-            if (!$value) return $value;
-            $raw = trim((string) $value);
-            // dd-mm-yyyy or dd/mm/yyyy
-            if (preg_match('/^(\d{1,2})[\-\/]([\d]{1,2})[\-\/]([\d]{2,4})$/', $raw, $m)) {
-                $dd = str_pad($m[1], 2, '0', STR_PAD_LEFT);
-                $mm = str_pad($m[2], 2, '0', STR_PAD_LEFT);
-                $yy = $m[3];
-                if (strlen($yy) === 2) { $yy = '20' . $yy; }
-                return sprintf('%s-%s-%s', $yy, $mm, $dd);
-            }
-            // yyyy-mm-dd or yyyy/mm/dd
-            if (preg_match('/^(\d{4})[\-\/]([\d]{1,2})[\-\/]([\d]{1,2})$/', $raw, $m)) {
-                $yy = $m[1];
-                $mm = str_pad($m[2], 2, '0', STR_PAD_LEFT);
-                $dd = str_pad($m[3], 2, '0', STR_PAD_LEFT);
-                return sprintf('%s-%s-%s', $yy, $mm, $dd);
-            }
-            // Fallback: let Laravel handle if it's a valid date string
-            return $raw;
-        };
-
-        $request->merge([
-            'startDate' => $normalizeDate($request->input('startDate')),
-            'endDate' => $normalizeDate($request->input('endDate')),
-        ]);
-
         $rules = [
             'policyType' => 'required|in:Motor,Health,Life',
             // Business Type now supports only Self or Agent
@@ -182,27 +88,10 @@ class PolicyController extends Controller
             $rules['vehicleNumber'] = 'required|string|max:20';
             $rules['vehicleType'] = 'required|string|max:50';
         }
-        if ($request->policyType === 'Health') {
-            // Relaxed: allow optional fields for faster data entry; backend stores when provided
-            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
-            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
-            $rules['sumInsured'] = 'nullable|numeric|min:0';
-        }
-        if ($request->policyType === 'Life') {
-            // Relaxed: allow optional fields for faster data entry; backend stores when provided
-            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
-            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
-            $rules['sumAssured'] = 'nullable|numeric|min:0';
-            $rules['policyTerm'] = 'nullable|string|max:50';
-            $rules['premiumFrequency'] = 'nullable|string|max:50';
-        }
 
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            \Log::warning('PolicyController@store validation failed', [
-                'errors' => $validator->errors()->toArray()
-            ]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -220,8 +109,7 @@ class PolicyController extends Controller
             ? 'Self' 
             : ($request->agent_name ?? $request->agentName ?? 'Agent');
 
-        // Build base attributes that always exist
-        $policyData = [
+        $policy = Policy::create([
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
             'email' => $request->customerEmail,
@@ -239,22 +127,7 @@ class PolicyController extends Controller
             'status' => 'Active',
             'business_type' => $request->businessType,
             'agent_name' => $agentNameResolved,
-        ];
-
-        // Conditionally add Health/Life columns only if present in DB schema
-        $maybe = function(string $column, $value) use (&$policyData) {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('policies', $column) && $value !== null && $value !== '') {
-                $policyData[$column] = $value;
-            }
-        };
-        $maybe('customer_age', $request->customerAge);
-        $maybe('customer_gender', $request->customerGender);
-        $maybe('sum_insured', $request->sumInsured);
-        $maybe('sum_assured', $request->sumAssured);
-        $maybe('policy_term', $request->policyTerm);
-        $maybe('premium_frequency', $request->premiumFrequency);
-
-        $policy = Policy::create($policyData);
+        ]);
 
         // Handle file uploads
         $documentPaths = [];
@@ -286,7 +159,6 @@ class PolicyController extends Controller
             $policy->update($documentPaths);
         }
 
-        \Log::info('PolicyController@store success', ['policy_id' => $policy->id]);
         return response()->json([
             'message' => 'Policy created successfully!',
             'policy' => [
@@ -299,8 +171,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+                'startDate' => $policy->start_date->format('Y-m-d'),
+                'endDate' => $policy->end_date->format('Y-m-d'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -308,18 +180,11 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('d-m-Y'),
+                'createdAt' => $policy->created_at->format('Y-m-d'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                // Health/Life
-                'customerAge' => $policy->customer_age,
-                'customerGender' => $policy->customer_gender,
-                'sumInsured' => $policy->sum_insured,
-                'sumAssured' => $policy->sum_assured,
-                'policyTerm' => $policy->policy_term,
-                'premiumFrequency' => $policy->premium_frequency,
 
             ]
         ], 201);
@@ -342,8 +207,8 @@ class PolicyController extends Controller
             'vehicleType' => $policy->vehicle_type,
             'companyName' => $policy->company_name,
             'insuranceType' => $policy->insurance_type,
-            'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-            'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+            'startDate' => $policy->start_date->format('Y-m-d'),
+            'endDate' => $policy->end_date->format('Y-m-d'),
             'premium' => $policy->premium,
             'payout' => $policy->payout,
             'customerPaidAmount' => $policy->customer_paid_amount,
@@ -351,18 +216,11 @@ class PolicyController extends Controller
             'status' => $policy->status,
             'businessType' => $policy->business_type,
             'agentName' => $policy->agent_name,
-            'createdAt' => $policy->created_at->format('d-m-Y'),
+            'createdAt' => $policy->created_at->format('Y-m-d'),
             'policy_copy_path' => $policy->policy_copy_path,
             'rc_copy_path' => $policy->rc_copy_path,
             'aadhar_copy_path' => $policy->aadhar_copy_path,
             'pan_copy_path' => $policy->pan_copy_path,
-            // Health/Life
-            'customerAge' => $policy->customer_age,
-            'customerGender' => $policy->customer_gender,
-            'sumInsured' => $policy->sum_insured,
-            'sumAssured' => $policy->sum_assured,
-            'policyTerm' => $policy->policy_term,
-            'premiumFrequency' => $policy->premium_frequency,
 
         ]]);
     }
@@ -416,18 +274,6 @@ class PolicyController extends Controller
             $rules['vehicleType'] = 'required|string|max:50';
             $rules['rcCopy'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'; // 5MB max
         }
-        if ($policyType === 'Health') {
-            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
-            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
-            $rules['sumInsured'] = 'nullable|numeric|min:0';
-        }
-        if ($policyType === 'Life') {
-            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
-            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
-            $rules['sumAssured'] = 'nullable|numeric|min:0';
-            $rules['policyTerm'] = 'nullable|string|max:50';
-            $rules['premiumFrequency'] = 'nullable|string|max:50';
-        }
         
         \Log::info('Validation rules for policy type', [
             'policy_type' => $policyType,
@@ -447,8 +293,8 @@ class PolicyController extends Controller
         $policy = Policy::findOrFail($id);
 
         // Check if policy dates are being changed
-        $startDateChanged = $policy->start_date ? $policy->start_date->format('d-m-Y') : null !== $request->startDate;
-        $endDateChanged = $policy->end_date ? $policy->end_date->format('d-m-Y') : null !== $request->endDate;
+        $startDateChanged = $policy->start_date->format('Y-m-d') !== $request->startDate;
+        $endDateChanged = $policy->end_date->format('Y-m-d') !== $request->endDate;
         $datesChanged = $startDateChanged || $endDateChanged;
 
         // Only create version history if dates are changing
@@ -490,8 +336,7 @@ class PolicyController extends Controller
             ? 'Self' 
             : ($request->agent_name ?? $request->agentName ?? $policy->agent_name ?? 'Agent');
 
-        // Build update array with base fields
-        $updateData = [
+        $policy->update([
             'customer_name' => $request->customerName,
             'phone' => $request->customerPhone,
             'email' => $request->customerEmail,
@@ -509,29 +354,7 @@ class PolicyController extends Controller
             'status' => $request->status ?? $policy->status,
             'business_type' => $incomingBusinessType,
             'agent_name' => $agentNameResolved,
-        ];
-
-        // Only add Health/Life specific fields if the columns exist in the database
-        if (\Schema::hasColumn('policies', 'customer_age')) {
-            $updateData['customer_age'] = $request->customerAge ?? $policy->customer_age;
-        }
-        if (\Schema::hasColumn('policies', 'customer_gender')) {
-            $updateData['customer_gender'] = $request->customerGender ?? $policy->customer_gender;
-        }
-        if (\Schema::hasColumn('policies', 'sum_insured')) {
-            $updateData['sum_insured'] = $request->sumInsured ?? $policy->sum_insured;
-        }
-        if (\Schema::hasColumn('policies', 'sum_assured')) {
-            $updateData['sum_assured'] = $request->sumAssured ?? $policy->sum_assured;
-        }
-        if (\Schema::hasColumn('policies', 'policy_term')) {
-            $updateData['policy_term'] = $request->policyTerm ?? $policy->policy_term;
-        }
-        if (\Schema::hasColumn('policies', 'premium_frequency')) {
-            $updateData['premium_frequency'] = $request->premiumFrequency ?? $policy->premium_frequency;
-        }
-
-        $policy->update($updateData);
+        ]);
         
         \Log::info('Policy updated successfully', [
             'policy_id' => $id,
@@ -580,8 +403,8 @@ class PolicyController extends Controller
                 'vehicleType' => $policy->vehicle_type,
                 'companyName' => $policy->company_name,
                 'insuranceType' => $policy->insurance_type,
-                'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-                'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+                'startDate' => $policy->start_date->format('Y-m-d'),
+                'endDate' => $policy->end_date->format('Y-m-d'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
@@ -589,18 +412,11 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'businessType' => $policy->business_type,
                 'agentName' => $policy->agent_name,
-                'createdAt' => $policy->created_at->format('d-m-Y'),
+                'createdAt' => $policy->created_at->format('Y-m-d'),
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
                 'pan_copy_path' => $policy->pan_copy_path,
-                // Health/Life
-                'customerAge' => $policy->customer_age,
-                'customerGender' => $policy->customer_gender,
-                'sumInsured' => $policy->sum_insured,
-                'sumAssured' => $policy->sum_assured,
-                'policyTerm' => $policy->policy_term,
-                'premiumFrequency' => $policy->premium_frequency,
 
             ]
         ]);
@@ -1068,85 +884,6 @@ class PolicyController extends Controller
             ]);
         }
 
-        // If historical versions exist, show them with current version
-        $latestVersion = $versions->first();
-        $currentDocuments = [];
-        
-        // Compare current documents with latest version to find what's new/changed
-        if ($policy->policy_copy_path && $policy->policy_copy_path !== $latestVersion->policy_copy_path) {
-            $currentDocuments['policy_copy'] = $policy->policy_copy_path;
-        }
-        if ($policy->rc_copy_path && $policy->rc_copy_path !== $latestVersion->rc_copy_path) {
-            $currentDocuments['rc_copy'] = $policy->rc_copy_path;
-        }
-        if ($policy->aadhar_copy_path && $policy->aadhar_copy_path !== $latestVersion->aadhar_copy_path) {
-            $currentDocuments['aadhar_copy'] = $policy->aadhar_copy_path;
-        }
-        if ($policy->pan_copy_path && $policy->pan_copy_path !== $latestVersion->pan_copy_path) {
-            $currentDocuments['pan_copy'] = $policy->pan_copy_path;
-        }
-        
-        $currentVersion = [
-            'id' => 'current_' . $policy->id,
-            'version_number' => $versions->count() + 1,
-            'version_label' => 'Version ' . ($versions->count() + 1) . ' (' . $policy->updated_at->format('M Y') . ')',
-            'policy_period' => $policy->start_date->format('M d, Y') . ' - ' . $policy->end_date->format('M d, Y'),
-            'company_name' => $policy->company_name,
-            'insurance_type' => $policy->insurance_type,
-            'premium' => $policy->premium,
-            'payout' => $policy->payout,
-            'customer_paid_amount' => $policy->customer_paid_amount,
-            'revenue' => $policy->revenue,
-            'status' => $policy->status,
-            'start_date' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-            'end_date' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
-            'has_documents' => !empty($currentDocuments),
-            'documents' => $currentDocuments,
-            'notes' => null,
-            'created_by' => null,
-            'version_created_at' => $policy->updated_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
-        ];
-
-        // Map historical versions
-        $historicalVersions = $versions->map(function ($version) {
-            // Get all document paths from the version (regardless of file existence)
-            $allDocuments = [
-                'policy_copy' => $version->policy_copy_path,
-                'rc_copy' => $version->rc_copy_path,
-                'aadhar_copy' => $version->aadhar_copy_path,
-                'pan_copy' => $version->pan_copy_path,
-            ];
-            
-            // Filter out null/empty documents
-            $availableDocuments = array_filter($allDocuments, function($path) {
-                return !empty($path);
-            });
-            
-            return [
-                'id' => $version->id,
-                'version_number' => $version->version_number,
-                'version_label' => $version->version_label,
-                'policy_period' => $version->policy_period,
-                'company_name' => $version->company_name,
-                'insurance_type' => $version->insurance_type,
-                'premium' => $version->premium,
-                'payout' => $version->payout,
-                'customer_paid_amount' => $version->customer_paid_amount,
-                'revenue' => $version->revenue,
-                'status' => $version->status,
-                'start_date' => $version->start_date->format('d-m-Y'),
-                'end_date' => $version->end_date->format('d-m-Y'),
-                'has_documents' => !empty($availableDocuments),
-                'documents' => $availableDocuments,
-                'notes' => $version->notes,
-                'created_by' => $version->created_by,
-                'version_created_at' => $version->version_created_at->setTimezone('Asia/Kolkata')->format('M d, Y g:i A'),
-            ];
-        });
-
-        // Combine current version with historical versions
-        $allVersions = collect([$currentVersion])->merge($historicalVersions);
-
         return response()->json([
             'policy' => [
                 'id' => $policy->id,
@@ -1154,7 +891,28 @@ class PolicyController extends Controller
                 'vehicle_number' => $policy->vehicle_number,
                 'policy_type' => $policy->policy_type,
             ],
-            'versions' => $allVersions
+            'versions' => $versions->map(function ($version) {
+                return [
+                    'id' => $version->id,
+                    'version_number' => $version->version_number,
+                    'version_label' => $version->version_label,
+                    'policy_period' => $version->policy_period,
+                    'company_name' => $version->company_name,
+                    'insurance_type' => $version->insurance_type,
+                    'premium' => $version->premium,
+                    'payout' => $version->payout,
+                    'customer_paid_amount' => $version->customer_paid_amount,
+                    'revenue' => $version->revenue,
+                    'status' => $version->status,
+                    'start_date' => $version->start_date->format('d-m-Y'),
+                    'end_date' => $version->end_date->format('d-m-Y'),
+                    'has_documents' => $version->hasDocuments(),
+                    'documents' => $version->getDocuments(),
+                    'notes' => $version->notes,
+                    'created_by' => $version->created_by,
+                    'version_created_at' => $version->version_created_at->format('M d, Y g:i A'),
+                ];
+            })
         ]);
     }
 
@@ -1163,69 +921,6 @@ class PolicyController extends Controller
      */
     public function downloadVersionDocument($versionId, $documentType)
     {
-        // Handle current version (format: current_1496)
-        if (strpos($versionId, 'current_') === 0) {
-            $policyId = str_replace('current_', '', $versionId);
-            $policy = Policy::find($policyId);
-            
-            if (!$policy) {
-                return response()->json(['message' => 'Policy not found'], 404);
-            }
-
-            // Map document types to policy fields
-            $documentFieldMap = [
-                'policy' => 'policy_copy_path',
-                'rc' => 'rc_copy_path',
-                'aadhar' => 'aadhar_copy_path',
-                'pan' => 'pan_copy_path',
-            ];
-
-            if (!isset($documentFieldMap[$documentType])) {
-                return response()->json(['message' => 'Invalid document type'], 400);
-            }
-
-            $documentField = $documentFieldMap[$documentType];
-            $filePath = $policy->$documentField;
-
-            if (!$filePath) {
-                return response()->json(['message' => 'Document not found for current version'], 404);
-            }
-
-            // Try multiple possible paths
-            $possiblePaths = [
-                storage_path('app/' . $filePath),
-                storage_path('app/private/' . $filePath),
-                storage_path('app/private/policies/' . $policyId . '/documents/' . basename($filePath)),
-                storage_path('app/policies/' . $policyId . '/documents/' . basename($filePath)),
-            ];
-            
-            $fullPath = null;
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path)) {
-                    $fullPath = $path;
-                    break;
-                }
-            }
-            
-            if (!$fullPath) {
-                \Log::error("Document not found for current policy {$policyId}, tried paths:", $possiblePaths);
-                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath, 'tried_paths' => $possiblePaths], 404);
-            }
-
-            // Get original filename
-            $originalName = basename($filePath);
-            
-            // Create a more user-friendly filename
-            $customerName = $policy->customer_name;
-            $versionCount = $policy->versions()->count() + 1; // Current version number
-            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
-            
-            $friendlyName = "{$customerName}_Version{$versionCount}_{$documentType}.{$extension}";
-
-            return response()->download($fullPath, $friendlyName);
-        }
-
-        // Handle historical versions
         $version = PolicyVersion::find($versionId);
         
         if (!$version) {
@@ -1251,25 +946,12 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Document not found for this version'], 404);
         }
 
-        // Try multiple possible paths for historical versions
-        $possiblePaths = [
-            storage_path('app/' . $filePath),
-            storage_path('app/private/' . $filePath),
-            storage_path('app/versions/' . $versionId . '/' . basename($filePath)),
-            storage_path('app/policy-versions/' . $versionId . '/' . basename($filePath)),
-        ];
+        // Try the standard storage path first
+        $fullPath = storage_path('app/' . $filePath);
         
-        $fullPath = null;
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path)) {
-                $fullPath = $path;
-                break;
-            }
-        }
-        
-        if (!$fullPath) {
-            \Log::error("Document not found for version {$versionId}, tried paths:", $possiblePaths);
-            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath, 'tried_paths' => $possiblePaths], 404);
+        if (!file_exists($fullPath)) {
+            \Log::error("Document not found for version {$versionId}, path: {$fullPath}");
+            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
         }
 
         // Get original filename
@@ -1344,8 +1026,8 @@ class PolicyController extends Controller
                 'company_name' => $policy->company_name,
                 'insurance_type' => $policy->insurance_type,
                 'policy_type' => $policy->policy_type,
-                'start_date' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
-                'end_date' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
+                'start_date' => $policy->start_date->format('Y-m-d'),
+                'end_date' => $policy->end_date->format('Y-m-d'),
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customer_paid_amount' => $policy->customer_paid_amount,
@@ -1353,7 +1035,7 @@ class PolicyController extends Controller
                 'status' => $policy->status,
                 'business_type' => $policy->business_type,
                 'agent_name' => $policy->agent_name,
-                'created_at' => $policy->created_at->format('d-m-Y')
+                'created_at' => $policy->created_at->format('Y-m-d')
             ];
         })->values();
 
@@ -1369,50 +1051,32 @@ class PolicyController extends Controller
      */
     public function exportPolicies(Request $request)
     {
-        \Log::info('Export function called with request:', $request->all());
+        // Get filters from request
+        $filters = [];
         
-        try {
-            // Get filters from request
-            $filters = [];
-            
-            if ($request->has('policy_type') && !empty($request->policy_type)) {
-                $filters['policy_type'] = $request->policy_type;
-            }
-            
-            if ($request->has('status') && !empty($request->status)) {
-                $filters['status'] = $request->status;
-            }
-            
-            if ($request->has('start_date') && !empty($request->start_date)) {
-                $filters['start_date'] = $request->start_date;
-            }
-            
-            if ($request->has('end_date') && !empty($request->end_date)) {
-                $filters['end_date'] = $request->end_date;
-            }
+        if ($request->has('policy_type') && !empty($request->policy_type)) {
+            $filters['policy_type'] = $request->policy_type;
+        }
+        
+        if ($request->has('status') && !empty($request->status)) {
+            $filters['status'] = $request->status;
+        }
+        
+        if ($request->has('start_date') && !empty($request->start_date)) {
+            $filters['start_date'] = $request->start_date;
+        }
+        
+        if ($request->has('end_date') && !empty($request->end_date)) {
+            $filters['end_date'] = $request->end_date;
+        }
 
-            $format = $request->get('format', 'xlsx'); // Default to Excel
-            $filename = 'policies_export_' . date('d-m-Y_H-i-s');
-            
-            \Log::info('Export filters:', $filters);
-            \Log::info('Export format: ' . $format);
-            
-            // Set proper headers for file download
-            if ($format === 'csv') {
-                return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
-            } else {
-                // Try Excel first, fallback to CSV if there's an issue
-                try {
-                    return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
-                } catch (\Exception $excelError) {
-                    \Log::warning('Excel export failed, falling back to CSV: ' . $excelError->getMessage());
-                    return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
-                }
-            }
-        } catch (\Exception $e) {
-            \Log::error('Export error: ' . $e->getMessage());
-            \Log::error('Export error trace: ' . $e->getTraceAsString());
-            return response()->json(['error' => 'Export failed: ' . $e->getMessage()], 500);
+        $format = $request->get('format', 'xlsx'); // Default to Excel
+        $filename = 'policies_export_' . date('Y-m-d_H-i-s');
+        
+        if ($format === 'csv') {
+            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        } else {
+            return Excel::download(new \App\Exports\PoliciesDataExport($filters), $filename . '.xlsx');
         }
     }
 }
