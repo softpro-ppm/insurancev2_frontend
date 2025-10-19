@@ -1,4 +1,6 @@
 // Global variables
+// Performance debug flag (set to false in production)
+const PERF_DEBUG = false;
 let currentPage = 1;
 let rowsPerPage = 10;
 let currentSort = { column: 'id', direction: 'asc' };
@@ -1080,11 +1082,11 @@ const loadFollowupsData = async () => {
 
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
-    console.log('🔧 updateDashboardStats called with:', stats);
-    console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
+    if (PERF_DEBUG) console.log('🔧 updateDashboardStats called with:', stats);
+    if (PERF_DEBUG) console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
 
     if (stats && stats.stats) {
-        console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
+        if (PERF_DEBUG) console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
 
         // Use CURRENT MONTH counts for the 4 dashboard cards
@@ -1093,15 +1095,15 @@ const updateDashboardStats = (stats) => {
         const totalRevenue = stats.stats.monthlyRevenue || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
 
-        console.log('🔧 updateDashboardStats: Calculated values:', {
+        if (PERF_DEBUG) console.log('🔧 updateDashboardStats: Calculated values:', {
             totalPremium, totalPolicies, totalRevenue, totalRenewals
         });
         
-        console.log('📊 Setting dashboard values:', {
+        if (PERF_DEBUG) console.log('📊 Setting dashboard values:', {
             totalPremium, totalPolicies, totalRevenue, totalRenewals
         });
         
-        console.log('📝 Updating DOM elements...');
+        if (PERF_DEBUG) console.log('📝 Updating DOM elements...');
         $('#monthlyPremium').text(fmtINR(totalPremium));
         $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(totalPolicies);
@@ -1114,23 +1116,25 @@ const updateDashboardStats = (stats) => {
         $('#monthlyRevenue').text(fmtINR(totalRevenue));
         $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
 
-        console.log('📝 DOM elements updated, checking current values:');
-        console.log('  monthlyPremium:', $('#monthlyPremium').text());
-        console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
-        console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
-        console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
+        if (PERF_DEBUG) {
+            console.log('📝 DOM elements updated, checking current values:');
+            console.log('  monthlyPremium:', $('#monthlyPremium').text());
+            console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
+            console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
+            console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
+        }
 
-        console.log('✅ Dashboard stats updated successfully');
+        if (PERF_DEBUG) console.log('✅ Dashboard stats updated successfully');
     }
     
     if (stats.chartData) {
-        console.log('📊 Received chart data from API:', stats.chartData);
+        if (PERF_DEBUG) console.log('📊 Received chart data from API:', stats.chartData);
         // Cache the latest chart data in case charts are not yet initialized
         window.latestChartData = stats.chartData;
         window.latestPolicyTypes = stats.policyTypes || {};
         updateDashboardCharts(stats.chartData, stats.policyTypes);
     } else {
-        console.warn('⚠️ No chart data received from API');
+        if (PERF_DEBUG) console.warn('⚠️ No chart data received from API');
     }
 };
 
@@ -1319,8 +1323,20 @@ const updateExpiringPoliciesList = (policies) => {
 };
 
 // Update dashboard charts
+let chartsUpdateScheduled = false;
+let pendingChartData = null;
 const updateDashboardCharts = (chartData, policyTypes) => {
-    console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
+    if (PERF_DEBUG) console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
+    pendingChartData = { chartData, policyTypes };
+    if (chartsUpdateScheduled) return;
+    chartsUpdateScheduled = true;
+    requestAnimationFrame(() => {
+        const payload = pendingChartData;
+        chartsUpdateScheduled = false;
+        if (!payload) return;
+        // original body will run below with payload
+        chartData = payload.chartData;
+        policyTypes = payload.policyTypes;
     
     // Validate chart data
     if (!chartData || !Array.isArray(chartData)) {
