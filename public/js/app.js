@@ -1744,9 +1744,24 @@ const renderTable = () => {
         const customerName = policy.customerName || policy.owner || 'Unknown';
         const phone = policy.phone || 'Unknown';
         const companyName = policy.companyName || policy.company || 'Unknown';
-        const startDate = policy.startDate || 'Unknown';
+        const endDate = policy.endDate && policy.endDate.trim() !== '' ? policy.endDate : null;
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
+        
+        // Extract vehicle information based on policy type
+        let vehicleNumber = 'N/A';
+        let vehicleType = 'N/A';
+        
+        if (policyType === 'Motor') {
+            vehicleNumber = policy.vehicleNumber || policy.vehicle_number || 'N/A';
+            vehicleType = policy.vehicleType || policy.vehicle_type || 'N/A';
+        } else if (policyType === 'Health') {
+            vehicleNumber = 'Health Policy';
+            vehicleType = policy.insuranceType || 'Health Insurance';
+        } else if (policyType === 'Life') {
+            vehicleNumber = 'Life Policy';
+            vehicleType = policy.insuranceType || 'Life Insurance';
+        }
         
         // Format vehicle/details info based on policy type
         let vehicleDetails = '';
@@ -4156,6 +4171,21 @@ const renderPoliciesTable = () => {
         const endDate = policy.endDate && policy.endDate.trim() !== '' ? policy.endDate : null;
         const premium = policy.premium || 0;
         const status = policy.status || 'Active';
+        
+        // Extract vehicle information based on policy type
+        let vehicleNumber = 'N/A';
+        let vehicleType = 'N/A';
+        
+        if (policyType === 'Motor') {
+            vehicleNumber = policy.vehicleNumber || policy.vehicle_number || 'N/A';
+            vehicleType = policy.vehicleType || policy.vehicle_type || 'N/A';
+        } else if (policyType === 'Health') {
+            vehicleNumber = 'Health Policy';
+            vehicleType = policy.insuranceType || 'Health Insurance';
+        } else if (policyType === 'Life') {
+            vehicleNumber = 'Life Policy';
+            vehicleType = policy.insuranceType || 'Life Insurance';
+        }
         
         // Format additional info based on policy type
         let additionalInfo = '';
