@@ -955,7 +955,7 @@ const initializeApplication = async () => {
     // Initialize other components
         initializeTable();
         initializeAgents();
-        initializePoliciesPage();
+        // initializePoliciesPage() - called after data is loaded in loadPoliciesData()
         // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
         if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
             initializeRenewalsPage();
@@ -1051,7 +1051,14 @@ const loadPoliciesData = async () => {
         
         allPolicies = await fetchPolicies();
         console.log('📋 Policies loaded:', allPolicies.length);
+        policiesFilteredData = [...allPolicies];
         filteredData = [...allPolicies];
+        
+        // Initialize policies page after data is loaded
+        if ($('#policies').hasClass('active')) {
+            safeRenderPoliciesTable();
+            updatePoliciesPagination();
+        }
         updatePoliciesStats();
     } catch (error) {
         console.error('Failed to load policies data:', error);
