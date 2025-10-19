@@ -292,7 +292,10 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}&dates_fix={{ time() }}&empty_string_fix={{ time() }}"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ uniqid() }}&cache_bust={{ time() }}&force_reload={{ microtime(true) }}&data_fix={{ time() }}&api_fix={{ time() }}&dashboard_fix={{ time() }}&policies_fix={{ time() }}&js_fix={{ time() }}&zero_fix={{ time() }}&count_fix={{ time() }}&dates_fix={{ time() }}&empty_string_fix={{ time() }}&debug_fix={{ time() }}&zero_count_fix={{ time() }}&perf_fix={{ time() }}"></script>
+    
+    <!-- Page-specific scripts -->
+    @stack('scripts')
     
     <!-- Fix loading overlay issue -->
     <script>

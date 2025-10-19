@@ -2,7 +2,7 @@
 // Performance debug flag (set to false in production)
 const PERF_DEBUG = false;
 let currentPage = 1;
-let rowsPerPage = 10;
+let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage')) || 10;
 let currentSort = { column: 'id', direction: 'asc' };
 let filteredData = [];
 let allPolicies = [];
@@ -115,7 +115,7 @@ const checkVehicleNumberDuplicate = async (vehicleNumber, inputElement) => {
 
 // Policies page variables
 let policiesCurrentPage = 1;
-let policiesRowsPerPage = 10;
+let policiesRowsPerPage = parseInt(localStorage.getItem('policiesRowsPerPage')) || 10;
 let policiesCurrentSort = { column: 'id', direction: 'asc' };
 let policiesFilteredData = [];
 let policiesRenderScheduled = false;
@@ -994,40 +994,45 @@ const loadDashboardData = async () => {
         // Show loading indicators for cards
         $('.card-value').text('Loading...');
         
-        // Load all data in parallel for better performance
-        const [stats, recentPolicies, expiringPolicies] = await Promise.allSettled([
-            fetchDashboardStats(),
-            fetchRecentPolicies(),
-            fetchExpiringPolicies()
-        ]);
-
-        // Handle stats
-        if (stats.status === 'fulfilled' && stats.value) {
-            console.log('🎯 Dashboard stats loaded successfully:', stats.value);
-            updateDashboardStats(stats.value);
+        // Set the rows per page dropdown to the saved value
+        $('#rowsPerPage').val(rowsPerPage);
+        
+        // Load dashboard stats first (priority for first paint)
+        const stats = await fetchDashboardStats();
+        
+        // Handle stats immediately
+        if (stats) {
+            console.log('🎯 Dashboard stats loaded successfully:', stats);
+            updateDashboardStats(stats);
         } else {
-            console.warn('❌ Failed to load dashboard stats:', stats.reason);
-            // Reset loading indicators
+            console.warn('❌ Failed to load dashboard stats');
             $('.card-value').text('0');
         }
-
-        // Handle recent policies
-        if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
-            updateRecentPoliciesTable(recentPolicies.value);
-            // If we're on dashboard, also update the main table to use recent policies
-            if ($('#dashboard').hasClass('active')) {
-                console.log('Dashboard: Using recent policies data for main table');
+        
+        // Lazy-load tables after stats are displayed (improves perceived performance)
+        setTimeout(async () => {
+            const [recentPolicies, expiringPolicies] = await Promise.allSettled([
+                fetchRecentPolicies(),
+                fetchExpiringPolicies()
+            ]);
+            
+            // Handle recent policies
+            if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
+                updateRecentPoliciesTable(recentPolicies.value);
+                if ($('#dashboard').hasClass('active')) {
+                    console.log('Dashboard: Using recent policies data for main table');
+                }
+            } else {
+                console.warn('Failed to load recent policies:', recentPolicies.reason);
             }
-        } else {
-            console.warn('Failed to load recent policies:', recentPolicies.reason);
-        }
 
-        // Handle expiring policies
-        if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
-            updateExpiringPoliciesList(expiringPolicies.value);
-        } else {
-            console.warn('Failed to load expiring policies:', expiringPolicies.reason);
-        }
+            // Handle expiring policies
+            if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
+                updateExpiringPoliciesList(expiringPolicies.value);
+            } else {
+                console.warn('Failed to load expiring policies:', expiringPolicies.reason);
+            }
+        }, 100); // 100ms delay to prioritize card rendering
         
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
@@ -1040,6 +1045,9 @@ const loadPoliciesData = async () => {
     try {
         console.log('📋 loadPoliciesData called - Policies element:', $('#policies').length);
         console.log('📋 Policies has active class:', $('#policies').hasClass('active'));
+        
+        // Set the rows per page dropdown to the saved value
+        $('#policiesRowsPerPage').val(policiesRowsPerPage);
         
         allPolicies = await fetchPolicies();
         console.log('📋 Policies loaded:', allPolicies.length);
@@ -1097,7 +1105,6 @@ const loadFollowupsData = async () => {
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
     if (PERF_DEBUG) console.log('🔧 updateDashboardStats called with:', stats);
-    if (PERF_DEBUG) console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
 
     if (stats && stats.stats) {
         if (PERF_DEBUG) console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
@@ -1108,16 +1115,7 @@ const updateDashboardStats = (stats) => {
         const totalPolicies = stats.stats.monthlyPolicies || 0;
         const totalRevenue = stats.stats.monthlyRevenue || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
-
-        if (PERF_DEBUG) console.log('🔧 updateDashboardStats: Calculated values:', {
-            totalPremium, totalPolicies, totalRevenue, totalRenewals
-        });
         
-        if (PERF_DEBUG) console.log('📊 Setting dashboard values:', {
-            totalPremium, totalPolicies, totalRevenue, totalRenewals
-        });
-        
-        if (PERF_DEBUG) console.log('📝 Updating DOM elements...');
         $('#monthlyPremium').text(fmtINR(totalPremium));
         $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(totalPolicies);
@@ -3322,6 +3320,7 @@ const handleSearch = () => {
 // Rows per page change
 const handleRowsPerPageChange = () => {
     rowsPerPage = parseInt($('#rowsPerPage').val());
+    localStorage.setItem('rowsPerPage', rowsPerPage);
     currentPage = 1;
     renderTable();
     updatePagination();
@@ -4316,8 +4315,9 @@ const applyPoliciesFilters = () => {
 
 const handlePoliciesRowsPerPageChange = () => {
     policiesRowsPerPage = parseInt($('#policiesRowsPerPage').val());
+    localStorage.setItem('policiesRowsPerPage', policiesRowsPerPage);
     policiesCurrentPage = 1;
-    renderPoliciesTable();
+    safeRenderPoliciesTable();
     updatePoliciesPagination();
 };
 
