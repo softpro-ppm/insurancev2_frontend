@@ -1,8 +1,6 @@
 // Global variables
-// Performance debug flag (set to false in production)
-const PERF_DEBUG = false;
 let currentPage = 1;
-let rowsPerPage = parseInt(localStorage.getItem('rowsPerPage')) || 10;
+let rowsPerPage = 10;
 let currentSort = { column: 'id', direction: 'asc' };
 let filteredData = [];
 let allPolicies = [];
@@ -115,23 +113,9 @@ const checkVehicleNumberDuplicate = async (vehicleNumber, inputElement) => {
 
 // Policies page variables
 let policiesCurrentPage = 1;
-let policiesRowsPerPage = parseInt(localStorage.getItem('policiesRowsPerPage')) || 10;
+let policiesRowsPerPage = 10;
 let policiesCurrentSort = { column: 'id', direction: 'asc' };
 let policiesFilteredData = [];
-let policiesRenderScheduled = false;
-
-// Coalesced render for policies table to avoid multiple reflows per frame
-const safeRenderPoliciesTable = () => {
-    if (policiesRenderScheduled) return;
-    policiesRenderScheduled = true;
-    requestAnimationFrame(() => {
-        try {
-            renderPoliciesTable();
-        } finally {
-            policiesRenderScheduled = false;
-        }
-    });
-};
 
 // Renewals page variables
 let renewalsCurrentPage = 1;
@@ -955,7 +939,7 @@ const initializeApplication = async () => {
     // Initialize other components
         initializeTable();
         initializeAgents();
-        // initializePoliciesPage() - called after data is loaded in loadPoliciesData()
+        initializePoliciesPage();
         // Skip legacy renewals initializer on the Renewals page; Blade v2 script owns it
         if (currentPath !== '/renewals' || !window.RENEWALS_V2) {
             initializeRenewalsPage();
@@ -994,45 +978,40 @@ const loadDashboardData = async () => {
         // Show loading indicators for cards
         $('.card-value').text('Loading...');
         
-        // Set the rows per page dropdown to the saved value
-        $('#rowsPerPage').val(rowsPerPage);
-        
-        // Load dashboard stats first (priority for first paint)
-        const stats = await fetchDashboardStats();
-        
-        // Handle stats immediately
-        if (stats) {
-            console.log('🎯 Dashboard stats loaded successfully:', stats);
-            updateDashboardStats(stats);
+        // Load all data in parallel for better performance
+        const [stats, recentPolicies, expiringPolicies] = await Promise.allSettled([
+            fetchDashboardStats(),
+            fetchRecentPolicies(),
+            fetchExpiringPolicies()
+        ]);
+
+        // Handle stats
+        if (stats.status === 'fulfilled' && stats.value) {
+            console.log('🎯 Dashboard stats loaded successfully:', stats.value);
+            updateDashboardStats(stats.value);
         } else {
-            console.warn('❌ Failed to load dashboard stats');
+            console.warn('❌ Failed to load dashboard stats:', stats.reason);
+            // Reset loading indicators
             $('.card-value').text('0');
         }
-        
-        // Lazy-load tables after stats are displayed (improves perceived performance)
-        setTimeout(async () => {
-            const [recentPolicies, expiringPolicies] = await Promise.allSettled([
-                fetchRecentPolicies(),
-                fetchExpiringPolicies()
-            ]);
-            
-            // Handle recent policies
-            if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
-                updateRecentPoliciesTable(recentPolicies.value);
-                if ($('#dashboard').hasClass('active')) {
-                    console.log('Dashboard: Using recent policies data for main table');
-                }
-            } else {
-                console.warn('Failed to load recent policies:', recentPolicies.reason);
-            }
 
-            // Handle expiring policies
-            if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
-                updateExpiringPoliciesList(expiringPolicies.value);
-            } else {
-                console.warn('Failed to load expiring policies:', expiringPolicies.reason);
+        // Handle recent policies
+        if (recentPolicies.status === 'fulfilled' && recentPolicies.value?.length > 0) {
+            updateRecentPoliciesTable(recentPolicies.value);
+            // If we're on dashboard, also update the main table to use recent policies
+            if ($('#dashboard').hasClass('active')) {
+                console.log('Dashboard: Using recent policies data for main table');
             }
-        }, 100); // 100ms delay to prioritize card rendering
+        } else {
+            console.warn('Failed to load recent policies:', recentPolicies.reason);
+        }
+
+        // Handle expiring policies
+        if (expiringPolicies.status === 'fulfilled' && expiringPolicies.value?.length > 0) {
+            updateExpiringPoliciesList(expiringPolicies.value);
+        } else {
+            console.warn('Failed to load expiring policies:', expiringPolicies.reason);
+        }
         
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
@@ -1046,19 +1025,9 @@ const loadPoliciesData = async () => {
         console.log('📋 loadPoliciesData called - Policies element:', $('#policies').length);
         console.log('📋 Policies has active class:', $('#policies').hasClass('active'));
         
-        // Set the rows per page dropdown to the saved value
-        $('#policiesRowsPerPage').val(policiesRowsPerPage);
-        
         allPolicies = await fetchPolicies();
         console.log('📋 Policies loaded:', allPolicies.length);
-        policiesFilteredData = [...allPolicies];
         filteredData = [...allPolicies];
-        
-        // Initialize policies page after data is loaded
-        if ($('#policies').hasClass('active')) {
-            safeRenderPoliciesTable();
-            updatePoliciesPagination();
-        }
         updatePoliciesStats();
     } catch (error) {
         console.error('Failed to load policies data:', error);
@@ -1111,10 +1080,11 @@ const loadFollowupsData = async () => {
 
 // Update dashboard statistics
 const updateDashboardStats = (stats) => {
-    if (PERF_DEBUG) console.log('🔧 updateDashboardStats called with:', stats);
+    console.log('🔧 updateDashboardStats called with:', stats);
+    console.log('🔧 updateDashboardStats: stats.stats exists:', !!stats.stats);
 
     if (stats && stats.stats) {
-        if (PERF_DEBUG) console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
+        console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
 
         // Use CURRENT MONTH counts for the 4 dashboard cards
@@ -1122,7 +1092,16 @@ const updateDashboardStats = (stats) => {
         const totalPolicies = stats.stats.monthlyPolicies || 0;
         const totalRevenue = stats.stats.monthlyRevenue || 0;
         const totalRenewals = stats.stats.monthlyRenewals || 0;
+
+        console.log('🔧 updateDashboardStats: Calculated values:', {
+            totalPremium, totalPolicies, totalRevenue, totalRenewals
+        });
         
+        console.log('📊 Setting dashboard values:', {
+            totalPremium, totalPolicies, totalRevenue, totalRenewals
+        });
+        
+        console.log('📝 Updating DOM elements...');
         $('#monthlyPremium').text(fmtINR(totalPremium));
         $('#yearlyPremium').text(fmtINR(stats.stats.yearlyPremium) + ' (FY)');
         $('#monthlyPolicies').text(totalPolicies);
@@ -1135,25 +1114,23 @@ const updateDashboardStats = (stats) => {
         $('#monthlyRevenue').text(fmtINR(totalRevenue));
         $('#yearlyRevenue').text(fmtINR(stats.stats.yearlyRevenue) + ' (FY)');
 
-        if (PERF_DEBUG) {
-            console.log('📝 DOM elements updated, checking current values:');
-            console.log('  monthlyPremium:', $('#monthlyPremium').text());
-            console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
-            console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
-            console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
-        }
+        console.log('📝 DOM elements updated, checking current values:');
+        console.log('  monthlyPremium:', $('#monthlyPremium').text());
+        console.log('  monthlyPolicies:', $('#monthlyPolicies').text());
+        console.log('  monthlyRenewals:', $('#monthlyRenewals').text());
+        console.log('  monthlyRevenue:', $('#monthlyRevenue').text());
 
-        if (PERF_DEBUG) console.log('✅ Dashboard stats updated successfully');
+        console.log('✅ Dashboard stats updated successfully');
     }
     
     if (stats.chartData) {
-        if (PERF_DEBUG) console.log('📊 Received chart data from API:', stats.chartData);
+        console.log('📊 Received chart data from API:', stats.chartData);
         // Cache the latest chart data in case charts are not yet initialized
         window.latestChartData = stats.chartData;
         window.latestPolicyTypes = stats.policyTypes || {};
         updateDashboardCharts(stats.chartData, stats.policyTypes);
     } else {
-        if (PERF_DEBUG) console.warn('⚠️ No chart data received from API');
+        console.warn('⚠️ No chart data received from API');
     }
 };
 
@@ -1342,20 +1319,8 @@ const updateExpiringPoliciesList = (policies) => {
 };
 
 // Update dashboard charts
-let chartsUpdateScheduled = false;
-let pendingChartData = null;
 const updateDashboardCharts = (chartData, policyTypes) => {
-    if (PERF_DEBUG) console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
-    pendingChartData = { chartData, policyTypes };
-    if (chartsUpdateScheduled) return;
-    chartsUpdateScheduled = true;
-    requestAnimationFrame(() => {
-        const payload = pendingChartData;
-        chartsUpdateScheduled = false;
-        if (!payload) return;
-        // original body will run below with payload
-        chartData = payload.chartData;
-        policyTypes = payload.policyTypes;
+    console.log('🔍 Updating dashboard charts with data:', chartData, policyTypes);
     
     // Validate chart data
     if (!chartData || !Array.isArray(chartData)) {
@@ -1866,7 +1831,7 @@ const initializeAgents = () => {
 // Initialize policies page
 const initializePoliciesPage = () => {
     policiesFilteredData = [...allPolicies];
-    safeRenderPoliciesTable();
+    renderPoliciesTable();
     updatePoliciesPagination();
     updatePoliciesStats();
     
@@ -3133,7 +3098,7 @@ const handlePolicySubmit = async (e) => {
         
         // Update policies page if it's currently active
         if ($('#policies').hasClass('active')) {
-            safeRenderPoliciesTable();
+            renderPoliciesTable();
             updatePoliciesPagination();
             updatePoliciesStats();
         }
@@ -3327,7 +3292,6 @@ const handleSearch = () => {
 // Rows per page change
 const handleRowsPerPageChange = () => {
     rowsPerPage = parseInt($('#rowsPerPage').val());
-    localStorage.setItem('rowsPerPage', rowsPerPage);
     currentPage = 1;
     renderTable();
     updatePagination();
@@ -3854,7 +3818,7 @@ const deletePolicyHandler = async (id) => {
         
         // Update policies page if it's currently active
         if ($('#policies').hasClass('active')) {
-            safeRenderPoliciesTable();
+            renderPoliciesTable();
             updatePoliciesPagination();
             updatePoliciesStats();
         }
@@ -4322,9 +4286,8 @@ const applyPoliciesFilters = () => {
 
 const handlePoliciesRowsPerPageChange = () => {
     policiesRowsPerPage = parseInt($('#policiesRowsPerPage').val());
-    localStorage.setItem('policiesRowsPerPage', policiesRowsPerPage);
     policiesCurrentPage = 1;
-    safeRenderPoliciesTable();
+    renderPoliciesTable();
     updatePoliciesPagination();
 };
 

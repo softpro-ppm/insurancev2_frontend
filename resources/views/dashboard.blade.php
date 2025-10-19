@@ -145,34 +145,15 @@ console.log('Chart.js available:', typeof Chart !== 'undefined');
 console.log('Canvas element:', document.getElementById('barChart'));
 console.log('jQuery available:', typeof $ !== 'undefined');
 
-// Immediate test to update dashboard values
+// Test API call
 fetch('/api/dashboard/stats')
     .then(response => response.json())
     .then(data => {
-        console.log('✅ Dashboard API response:', data);
-        console.log('✅ Chart data available:', data.chartData);
-        console.log('✅ Monthly stats:', data.stats);
-        
-        // Manually update the dashboard cards with current month values
-        if (data && data.stats) {
-            const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
-            
-            console.log('✅ Updating dashboard cards with monthly values...');
-            console.log('  monthlyPremium:', data.stats.monthlyPremium);
-            console.log('  monthlyPolicies:', data.stats.monthlyPolicies);
-            console.log('  monthlyRevenue:', data.stats.monthlyRevenue);
-            console.log('  monthlyRenewals:', data.stats.monthlyRenewals);
-            
-            document.getElementById('monthlyPremium').textContent = fmtINR(data.stats.monthlyPremium);
-            document.getElementById('monthlyPolicies').textContent = data.stats.monthlyPolicies;
-            document.getElementById('monthlyRevenue').textContent = fmtINR(data.stats.monthlyRevenue);
-            document.getElementById('monthlyRenewals').textContent = data.stats.monthlyRenewals;
-            
-            console.log('✅ Dashboard cards updated!');
-        }
+        console.log('Dashboard API response:', data);
+        console.log('Chart data available:', data.chartData);
     })
     .catch(error => {
-        console.error('❌ Dashboard API error:', error);
+        console.error('Dashboard API error:', error);
     });
 </script>
 @endpush
