@@ -1,81 +1,103 @@
 <?php
 
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
-// Bootstrap Laravel
-$app = require_once 'bootstrap/app.php';
-$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
-
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Policy;
 use App\Models\PolicyVersion;
-use Illuminate\Support\Facades\DB;
 
-echo "<h2>🧹 Policy Versions Cleanup Script</h2>\n";
-echo "<p><strong>This will delete ALL PolicyVersion records for ALL policies</strong></p>\n";
-echo "<p>Current policy data in the main Policy table will remain unchanged.</p>\n";
-echo "<hr>\n";
+// Bootstrap Laravel
+$app = require_once __DIR__ . '/bootstrap/app.php';
+$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+
+echo "=== POLICY VERSION CLEANUP SCRIPT ===\n\n";
 
 try {
-    // Get total count before deletion
-    $totalVersions = PolicyVersion::count();
-    $totalPolicies = Policy::count();
+    // Get all policies that have multiple versions
+    $policiesWithMultipleVersions = Policy::has('versions', '>', 1)->with('versions')->get();
     
-    echo "<h3>📊 Current Status:</h3>\n";
-    echo "<p>• Total Policies: <strong>{$totalPolicies}</strong></p>\n";
-    echo "<p>• Total Policy Versions: <strong>{$totalVersions}</strong></p>\n";
-    echo "<hr>\n";
+    echo "Found " . $policiesWithMultipleVersions->count() . " policies with multiple versions.\n\n";
     
-    if ($totalVersions === 0) {
-        echo "<p style='color: orange;'>⚠️ No policy versions found to delete.</p>\n";
-        exit;
+    if ($policiesWithMultipleVersions->isEmpty()) {
+        echo "No policies with multiple versions found. Nothing to clean up.\n";
+        exit(0);
     }
     
-    echo "<h3>🗑️ Deleting Policy Versions...</h3>\n";
+    $totalVersionsToDelete = 0;
+    $totalDocumentsToClean = 0;
     
-    // Start transaction for safety
-    DB::beginTransaction();
-    
-    try {
-        // Delete all policy versions
-        $deletedCount = PolicyVersion::query()->delete();
+    // Process each policy
+    foreach ($policiesWithMultipleVersions as $policy) {
+        echo "Processing Policy ID: {$policy->id} ({$policy->customer_name})\n";
+        echo "  Current versions: " . $policy->versions->count() . "\n";
         
-        // Reset version counters if needed
-        // (This ensures future versions start from 1)
-        DB::statement("ALTER TABLE policy_versions AUTO_INCREMENT = 1");
+        // Get all versions ordered by version number (descending)
+        $versions = $policy->versions()->orderBy('version_number', 'desc')->get();
         
-        DB::commit();
+        // Keep the latest version (first in the ordered list)
+        $latestVersion = $versions->first();
+        $versionsToDelete = $versions->skip(1); // Skip the first (latest) version
         
-        echo "<p style='color: green;'>✅ Successfully deleted <strong>{$deletedCount}</strong> policy version records!</p>\n";
-        echo "<p style='color: green;'>✅ All policy data in main Policy table preserved!</p>\n";
-        echo "<p style='color: green;'>✅ Version counter reset for future versions!</p>\n";
+        echo "  Keeping: Version {$latestVersion->version_number} (created: {$latestVersion->version_created_at})\n";
+        echo "  Deleting: " . $versionsToDelete->count() . " older versions\n";
         
-    } catch (Exception $e) {
-        DB::rollBack();
-        echo "<p style='color: red;'>❌ Error during deletion: " . $e->getMessage() . "</p>\n";
-        echo "<p style='color: orange;'>🔄 Transaction rolled back - no changes made.</p>\n";
-        exit;
+        // Process each version to be deleted
+        foreach ($versionsToDelete as $version) {
+            echo "    Deleting Version {$version->version_number}...\n";
+            
+            // Count documents that will be cleaned up
+            $documents = [
+                $version->policy_copy_path,
+                $version->rc_copy_path,
+                $version->aadhar_copy_path,
+                $version->pan_copy_path
+            ];
+            
+            $documentCount = 0;
+            foreach ($documents as $docPath) {
+                if (!empty($docPath) && Storage::exists($docPath)) {
+                    $documentCount++;
+                }
+            }
+            
+            if ($documentCount > 0) {
+                echo "      Will clean up {$documentCount} documents from this version\n";
+                $totalDocumentsToClean += $documentCount;
+            }
+            
+            // Delete the version (this will also handle document cleanup if cascade is set up)
+            $version->delete();
+            $totalVersionsToDelete++;
+        }
+        
+        echo "  ✓ Policy {$policy->id} cleanup completed\n\n";
     }
     
-    echo "<hr>\n";
-    echo "<h3>📊 Final Status:</h3>\n";
-    echo "<p>• Total Policies: <strong>{$totalPolicies}</strong> (unchanged)</p>\n";
-    echo "<p>• Policy Versions: <strong>0</strong> (all deleted)</p>\n";
-    echo "<p>• Future policy edits will start from Version 1</p>\n";
+    echo "=== CLEANUP SUMMARY ===\n";
+    echo "Total versions deleted: {$totalVersionsToDelete}\n";
+    echo "Total documents cleaned up: {$totalDocumentsToClean}\n";
+    echo "Policies processed: " . $policiesWithMultipleVersions->count() . "\n\n";
     
-    echo "<hr>\n";
-    echo "<h3>🎉 Cleanup Complete!</h3>\n";
-    echo "<p><strong>All policy history has been cleaned up successfully!</strong></p>\n";
-    echo "<p>• All policies now have clean history</p>\n";
-    echo "<p>• Current policy data is preserved</p>\n";
-    echo "<p>• Future edits will create clean version history</p>\n";
+    // Verify the cleanup
+    echo "=== VERIFICATION ===\n";
+    $remainingVersions = PolicyVersion::count();
+    $policiesWithMultipleVersions = Policy::has('versions', '>', 1)->count();
+    
+    echo "Remaining policy versions: {$remainingVersions}\n";
+    echo "Policies with multiple versions: {$policiesWithMultipleVersions}\n";
+    
+    if ($policiesWithMultipleVersions === 0) {
+        echo "✓ SUCCESS: All policies now have only one version (the latest one)\n";
+    } else {
+        echo "⚠ WARNING: Some policies still have multiple versions\n";
+    }
     
 } catch (Exception $e) {
-    echo "<p style='color: red;'>❌ Script Error: " . $e->getMessage() . "</p>\n";
+    echo "ERROR: " . $e->getMessage() . "\n";
+    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+    exit(1);
 }
 
-echo "<hr>\n";
-echo "<p><strong>⚠️ Important:</strong> Delete this file (cleanup_policy_versions.php) after use for security.</p>\n";
-echo "<p><strong>🚀 Next Steps:</strong> Test your policy history - it should now show clean, single versions for all policies.</p>\n";
-
-?>
-
+echo "\n=== CLEANUP COMPLETED ===\n";
