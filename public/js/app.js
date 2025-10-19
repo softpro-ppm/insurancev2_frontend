@@ -890,19 +890,20 @@ const initializeApplication = async () => {
         // Initialize charts first so they're ready for data
         initializeCharts();
         
-        // Load only the data needed for the current page to reduce initial load
+        // Load all essential data to ensure pages work properly
         const currentPath = window.location && window.location.pathname ? window.location.pathname : '';
         console.log('🔍 Current path detected:', currentPath);
         const loads = [];
-        if (currentPath === '/' || currentPath === '/dashboard') {
-            console.log('🚀 Loading dashboard data...');
-            loads.push(loadDashboardData());
-        }
-        if (currentPath === '/policies') {
-            console.log('🚀 Loading policies data...');
-            loads.push(loadPoliciesData());
-            loads.push(loadAgentsData());
-        }
+        
+        // Always load dashboard data (needed for stats)
+        console.log('🚀 Loading dashboard data...');
+        loads.push(loadDashboardData());
+        
+        // Always load policies data (needed for policies page and other features)
+        console.log('🚀 Loading policies data...');
+        loads.push(loadPoliciesData());
+        
+        // Load other data based on current page
         if (currentPath === '/agents') {
             console.log('🚀 Loading agents data...');
             loads.push(loadAgentsData());
