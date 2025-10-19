@@ -3827,8 +3827,36 @@ const deletePolicyHandler = async (id) => {
 // Utility functions
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const d = new Date(dateString);
-    if (isNaN(d.getTime())) return '';
+    const raw = String(dateString).trim();
+    if (raw === '') return '';
+
+    // If already looks like dd-mm-yyyy, return as-is (normalize zeros)
+    const ddmmyyyy = /^(\d{1,2})[-\/](\d{1,2})[-\/]?(\d{2,4})$/;
+    const ddmmyyyyMatch = raw.match(ddmmyyyy);
+    if (ddmmyyyyMatch) {
+        const dd = ddmmyyyyMatch[1].padStart(2, '0');
+        const mm = ddmmyyyyMatch[2].padStart(2, '0');
+        let yyyy = ddmmyyyyMatch[3];
+        if (yyyy.length === 2) {
+            // Assume 20xx for two-digit years
+            yyyy = `20${yyyy}`;
+        }
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    // Try parsing common formats safely (yyyy-mm-dd, ISO)
+    const isoLike = /^(\d{4})[-\/](\d{1,2})[-\/]?(\d{1,2})/;
+    const isoMatch = raw.match(isoLike);
+    if (isoMatch) {
+        const yyyy = isoMatch[1];
+        const mm = isoMatch[2].padStart(2, '0');
+        const dd = isoMatch[3].padStart(2, '0');
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    // Fallback to Date parser; if invalid, return raw
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();

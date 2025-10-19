@@ -3030,8 +3030,32 @@ const deletePolicyHandler = async (id) => {
 // Utility functions
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const d = new Date(dateString);
-    if (isNaN(d.getTime())) return '';
+    const raw = String(dateString).trim();
+    if (raw === '') return '';
+
+    // dd-mm-yyyy or dd/mm/yyyy
+    const ddmmyyyy = /^(\d{1,2})[-\/](\d{1,2})[-\/]?(\d{2,4})$/;
+    const m1 = raw.match(ddmmyyyy);
+    if (m1) {
+        const dd = m1[1].padStart(2, '0');
+        const mm = m1[2].padStart(2, '0');
+        let yyyy = m1[3];
+        if (yyyy.length === 2) yyyy = `20${yyyy}`;
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    // yyyy-mm-dd or yyyy/mm/dd
+    const ymd = /^(\d{4})[-\/](\d{1,2})[-\/]?(\d{1,2})/;
+    const m2 = raw.match(ymd);
+    if (m2) {
+        const yyyy = m2[1];
+        const mm = m2[2].padStart(2, '0');
+        const dd = m2[3].padStart(2, '0');
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
