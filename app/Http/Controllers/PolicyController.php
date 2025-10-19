@@ -115,6 +115,15 @@ class PolicyController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('PolicyController@store called', [
+            'policyType' => $request->input('policyType'),
+            'businessType' => $request->input('businessType'),
+            'path' => $request->path(),
+            'headers' => [
+                'accept' => $request->header('accept'),
+                'x-requested-with' => $request->header('X-Requested-With'),
+            ],
+        ]);
         // Normalize incoming dates to Y-m-d to accept dd-mm-yyyy and dd/mm/yyyy as well
         $normalizeDate = function ($value) {
             if (!$value) return $value;
@@ -191,6 +200,9 @@ class PolicyController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            \Log::warning('PolicyController@store validation failed', [
+                'errors' => $validator->errors()->toArray()
+            ]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -265,6 +277,7 @@ class PolicyController extends Controller
             $policy->update($documentPaths);
         }
 
+        \Log::info('PolicyController@store success', ['policy_id' => $policy->id]);
         return response()->json([
             'message' => 'Policy created successfully!',
             'policy' => [
