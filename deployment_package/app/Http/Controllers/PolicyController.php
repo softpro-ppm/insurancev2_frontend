@@ -310,6 +310,10 @@ class PolicyController extends Controller
             $this->preserveDocumentsForVersion($policy, $version);
         }
 
+        // Normalize dates to Y-m-d before saving (same as store method)
+        $startDate = \Carbon\Carbon::parse($request->startDate)->format('Y-m-d');
+        $endDate = \Carbon\Carbon::parse($request->endDate)->format('Y-m-d');
+
         // Compute revenue on server using incoming values
         $premium = (float) $request->premium;
         $payout = (float) ($request->payout ?? $policy->payout ?? 0);
@@ -341,8 +345,8 @@ class PolicyController extends Controller
             'vehicle_type' => $request->vehicleType ?? $policy->vehicle_type,
             'company_name' => $request->companyName,
             'insurance_type' => $request->insuranceType,
-            'start_date' => $request->startDate,
-            'end_date' => $request->endDate,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'premium' => $premium,
             'payout' => $payout,
             'customer_paid_amount' => $customerPaidAmount,

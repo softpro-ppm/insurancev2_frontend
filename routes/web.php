@@ -48,7 +48,9 @@ Route::post('/api/policies', [PolicyController::class, 'store'])
     ->name('policies.api.store')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::get('/policies/{id}', [PolicyController::class, 'show'])->name('policies.show');
-Route::put('/policies/{id}', [PolicyController::class, 'update'])->name('policies.update');
+Route::put('/policies/{id}', [PolicyController::class, 'update'])
+    ->name('policies.update')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::delete('/policies/{id}', [PolicyController::class, 'destroy'])->name('policies.destroy');
 
 // Policy export and bulk upload routes
