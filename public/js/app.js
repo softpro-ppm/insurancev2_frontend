@@ -2737,9 +2737,12 @@ const setupExistingDocuments = (policy) => {
     
     // Hide all existing document items first
     $('.existing-doc-item').hide();
-    $('#existingDocuments').hide();
+    $('#existingDocuments, #healthExistingDocuments, #lifeExistingDocuments').hide();
     
-    // Check which documents exist and show them
+    // Get the policy type to determine which document sections to show
+    const policyType = policy.policyType || policy.policy_type || 'Motor';
+    
+    // Check which documents exist and show them based on policy type
     const documentTypes = [
         { type: 'policy', field: 'policy_copy_path' },
         { type: 'rc', field: 'rc_copy_path' },
@@ -2753,15 +2756,37 @@ const setupExistingDocuments = (policy) => {
         const path = policy[doc.field];
         if (path && path.trim() !== '') {
             const cap = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
-            $(`#existing${cap}Copy`).show();
-            hasExistingDocs = true;
+            
+            // Show document in the appropriate form based on policy type
+            if (policyType === 'Motor') {
+                $(`#existing${cap}Copy`).show();
+                hasExistingDocs = true;
+            } else if (policyType === 'Health') {
+                $(`#healthExisting${cap}Copy`).show();
+                hasExistingDocs = true;
+            } else if (policyType === 'Life') {
+                $(`#lifeExisting${cap}Copy`).show();
+                hasExistingDocs = true;
+            }
         }
     });
     
     // Show the existing documents section if any documents exist
     if (hasExistingDocs) {
-        $('#existingDocuments').show();
+        if (policyType === 'Motor') {
+            $('#existingDocuments').show();
+        } else if (policyType === 'Health') {
+            $('#healthExistingDocuments').show();
+        } else if (policyType === 'Life') {
+            $('#lifeExistingDocuments').show();
+        }
     }
+    
+    // Also setup document download buttons for the specific policy
+    setupDocumentDownloadButtons(policy);
+    
+    // Store policy data in modal for document functions
+    $('#policyModal').data('policy-data', policy);
 };
 
 const setupDocumentDownloadButtons = (policy) => {
@@ -5536,6 +5561,8 @@ const showPolicyForm = (policyType) => {
     const $selectedForm = $(`#${policyType.toLowerCase()}Form`);
     console.log('showPolicyForm: Selected form element:', $selectedForm);
     console.log('showPolicyForm: Form exists:', $selectedForm.length > 0);
+    console.log('showPolicyForm: Total policy forms found:', $('.policy-form').length);
+    console.log('showPolicyForm: All policy form IDs:', $('.policy-form').map(function() { return this.id; }).get());
     
     $selectedForm.addClass('active');
     console.log('showPolicyForm: Form should now be visible');

@@ -405,6 +405,60 @@
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 5MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
+                        
+                        <!-- Existing Documents -->
+                        <div id="healthExistingDocuments" style="display: none;">
+                            <h4 style="margin-bottom: 10px; color: #374151;">Current Documents:</h4>
+                            <div class="existing-docs-grid">
+                                <div class="existing-doc-item" id="healthExistingPolicyCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Policy Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('policy')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('policy')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="healthExistingAadharCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Aadhar Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('aadhar')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('aadhar')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="healthExistingPanCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>PAN Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('pan')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('pan')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="margin: 15px 0;">
+                        </div>
+
+                        <!-- Upload New Documents -->
+                        <h4 style="margin-bottom: 10px; color: #374151;">Upload New Documents:</h4>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="healthPolicyCopy">Policy Copy</label>
@@ -553,6 +607,60 @@
 
                     <div class="form-section">
                         <h3><i class="fas fa-upload"></i> Documents</h3>
+                        <small class="hint" style="display: block; margin-bottom: 15px; color: #666;">Maximum file size: 5MB per file. Supported formats: PDF, JPG, JPEG, PNG</small>
+                        
+                        <!-- Existing Documents -->
+                        <div id="lifeExistingDocuments" style="display: none;">
+                            <h4 style="margin-bottom: 10px; color: #374151;">Current Documents:</h4>
+                            <div class="existing-docs-grid">
+                                <div class="existing-doc-item" id="lifeExistingPolicyCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Policy Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('policy')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('policy')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="lifeExistingAadharCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Aadhar Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('aadhar')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('aadhar')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="existing-doc-item" id="lifeExistingPanCopy" style="display: none;">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>PAN Copy</span>
+                                    <div class="doc-actions">
+                                        <button type="button" class="btn-download-small" onclick="downloadExistingDocument('pan')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                        <button type="button" class="btn-remove-small" onclick="removeExistingDocument('pan')">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="margin: 15px 0;">
+                        </div>
+
+                        <!-- Upload New Documents -->
+                        <h4 style="margin-bottom: 10px; color: #374151;">Upload New Documents:</h4>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="lifePolicyCopy">Policy Copy</label>
