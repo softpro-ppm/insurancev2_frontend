@@ -1087,11 +1087,11 @@ const updateDashboardStats = (stats) => {
         console.log('🔧 updateDashboardStats: Processing stats data:', stats.stats);
         const fmtINR = (v) => '₹' + Number(v || 0).toLocaleString('en-IN');
 
-        // Use total counts for main dashboard cards instead of monthly counts
-        const totalPremium = stats.stats.totalPremium || stats.stats.monthlyPremium;
-        const totalPolicies = stats.stats.totalPolicies || stats.stats.monthlyPolicies || 0;
-        const totalRevenue = stats.stats.totalRevenue || stats.stats.monthlyRevenue;
-        const totalRenewals = stats.stats.totalRenewals || stats.stats.monthlyRenewals || 0;
+        // Use CURRENT MONTH counts for the 4 dashboard cards
+        const totalPremium = stats.stats.monthlyPremium || 0;
+        const totalPolicies = stats.stats.monthlyPolicies || 0;
+        const totalRevenue = stats.stats.monthlyRevenue || 0;
+        const totalRenewals = stats.stats.monthlyRenewals || 0;
 
         console.log('🔧 updateDashboardStats: Calculated values:', {
             totalPremium, totalPolicies, totalRevenue, totalRenewals
