@@ -174,16 +174,18 @@ class PolicyController extends Controller
             $rules['vehicleType'] = 'required|string|max:50';
         }
         if ($request->policyType === 'Health') {
-            $rules['customerAge'] = 'required|integer|min:0|max:120';
-            $rules['customerGender'] = 'required|in:Male,Female,Other';
-            $rules['sumInsured'] = 'required|numeric|min:0';
+            // Relaxed: allow optional fields for faster data entry; backend stores when provided
+            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
+            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
+            $rules['sumInsured'] = 'nullable|numeric|min:0';
         }
         if ($request->policyType === 'Life') {
-            $rules['customerAge'] = 'required|integer|min:0|max:120';
-            $rules['customerGender'] = 'required|in:Male,Female,Other';
-            $rules['sumAssured'] = 'required|numeric|min:0';
-            $rules['policyTerm'] = 'required|string|max:50';
-            $rules['premiumFrequency'] = 'required|string|max:50';
+            // Relaxed: allow optional fields for faster data entry; backend stores when provided
+            $rules['customerAge'] = 'nullable|integer|min:0|max:120';
+            $rules['customerGender'] = 'nullable|in:Male,Female,Other';
+            $rules['sumAssured'] = 'nullable|numeric|min:0';
+            $rules['policyTerm'] = 'nullable|string|max:50';
+            $rules['premiumFrequency'] = 'nullable|string|max:50';
         }
 
         $validator = Validator::make($request->all(), $rules);
