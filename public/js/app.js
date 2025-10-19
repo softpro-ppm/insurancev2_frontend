@@ -118,6 +118,20 @@ let policiesCurrentPage = 1;
 let policiesRowsPerPage = 10;
 let policiesCurrentSort = { column: 'id', direction: 'asc' };
 let policiesFilteredData = [];
+let policiesRenderScheduled = false;
+
+// Coalesced render for policies table to avoid multiple reflows per frame
+const safeRenderPoliciesTable = () => {
+    if (policiesRenderScheduled) return;
+    policiesRenderScheduled = true;
+    requestAnimationFrame(() => {
+        try {
+            renderPoliciesTable();
+        } finally {
+            policiesRenderScheduled = false;
+        }
+    });
+};
 
 // Renewals page variables
 let renewalsCurrentPage = 1;
@@ -1847,7 +1861,7 @@ const initializeAgents = () => {
 // Initialize policies page
 const initializePoliciesPage = () => {
     policiesFilteredData = [...allPolicies];
-    renderPoliciesTable();
+    safeRenderPoliciesTable();
     updatePoliciesPagination();
     updatePoliciesStats();
     
@@ -3114,7 +3128,7 @@ const handlePolicySubmit = async (e) => {
         
         // Update policies page if it's currently active
         if ($('#policies').hasClass('active')) {
-            renderPoliciesTable();
+            safeRenderPoliciesTable();
             updatePoliciesPagination();
             updatePoliciesStats();
         }
@@ -3834,7 +3848,7 @@ const deletePolicyHandler = async (id) => {
         
         // Update policies page if it's currently active
         if ($('#policies').hasClass('active')) {
-            renderPoliciesTable();
+            safeRenderPoliciesTable();
             updatePoliciesPagination();
             updatePoliciesStats();
         }
