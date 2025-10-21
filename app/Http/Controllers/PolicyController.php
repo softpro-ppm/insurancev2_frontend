@@ -949,12 +949,35 @@ class PolicyController extends Controller
                 return response()->json(['message' => 'Document not found for this policy'], 404);
             }
 
-            // Try the standard storage path first
-            $fullPath = storage_path('app/' . $filePath);
+            // Try multiple possible storage paths
+            $possiblePaths = [
+                storage_path('app/' . $filePath),
+                storage_path('app/public/' . $filePath),
+                public_path('storage/' . $filePath),
+                public_path('uploads/' . $filePath),
+                storage_path($filePath)
+            ];
             
-            if (!file_exists($fullPath)) {
-                \Log::error("Document not found for policy {$policyId}, path: {$fullPath}");
-                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+            $fullPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $fullPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$fullPath) {
+                \Log::error("Document not found for policy {$policyId}, tried paths: " . implode(', ', $possiblePaths));
+                return response()->json([
+                    'message' => 'Document file not found on disk',
+                    'error' => 'The requested document file is missing from the server. Please contact the administrator.',
+                    'debug' => [
+                        'policy_id' => $policyId,
+                        'document_type' => $documentType,
+                        'file_path' => $filePath,
+                        'tried_paths' => $possiblePaths
+                    ]
+                ], 404);
             }
 
             // Get original filename
@@ -995,12 +1018,35 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Document not found for this version'], 404);
         }
 
-        // Try the standard storage path first
-        $fullPath = storage_path('app/' . $filePath);
+        // Try multiple possible storage paths
+        $possiblePaths = [
+            storage_path('app/' . $filePath),
+            storage_path('app/public/' . $filePath),
+            public_path('storage/' . $filePath),
+            public_path('uploads/' . $filePath),
+            storage_path($filePath)
+        ];
         
-        if (!file_exists($fullPath)) {
-            \Log::error("Document not found for version {$versionId}, path: {$fullPath}");
-            return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+        $fullPath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $fullPath = $path;
+                break;
+            }
+        }
+        
+        if (!$fullPath) {
+            \Log::error("Document not found for version {$versionId}, tried paths: " . implode(', ', $possiblePaths));
+            return response()->json([
+                'message' => 'Document file not found on disk',
+                'error' => 'The requested document file is missing from the server. Please contact the administrator.',
+                'debug' => [
+                    'version_id' => $versionId,
+                    'document_type' => $documentType,
+                    'file_path' => $filePath,
+                    'tried_paths' => $possiblePaths
+                ]
+            ], 404);
         }
 
         // Get original filename
