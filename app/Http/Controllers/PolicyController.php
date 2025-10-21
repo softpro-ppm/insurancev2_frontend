@@ -921,6 +921,55 @@ class PolicyController extends Controller
      */
     public function downloadVersionDocument($versionId, $documentType)
     {
+        // Handle "current_" prefix for policies without versions
+        if (str_starts_with($versionId, 'current_')) {
+            $policyId = str_replace('current_', '', $versionId);
+            $policy = Policy::find($policyId);
+            
+            if (!$policy) {
+                return response()->json(['message' => 'Policy not found'], 404);
+            }
+            
+            // Map document types to policy fields
+            $documentFieldMap = [
+                'policy' => 'policy_copy_path',
+                'rc' => 'rc_copy_path',
+                'aadhar' => 'aadhar_copy_path',
+                'pan' => 'pan_copy_path',
+            ];
+
+            if (!isset($documentFieldMap[$documentType])) {
+                return response()->json(['message' => 'Invalid document type'], 400);
+            }
+
+            $documentField = $documentFieldMap[$documentType];
+            $filePath = $policy->$documentField;
+
+            if (!$filePath) {
+                return response()->json(['message' => 'Document not found for this policy'], 404);
+            }
+
+            // Try the standard storage path first
+            $fullPath = storage_path('app/' . $filePath);
+            
+            if (!file_exists($fullPath)) {
+                \Log::error("Document not found for policy {$policyId}, path: {$fullPath}");
+                return response()->json(['message' => 'Document file not found on disk', 'debug' => $filePath], 404);
+            }
+
+            // Get original filename
+            $originalName = basename($filePath);
+            
+            // Create a more user-friendly filename
+            $customerName = $policy->customer_name;
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+            
+            $friendlyName = "{$customerName}_Policy_{$documentType}.{$extension}";
+
+            return response()->download($fullPath, $friendlyName);
+        }
+        
+        // Handle regular version IDs
         $version = PolicyVersion::find($versionId);
         
         if (!$version) {
