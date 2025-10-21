@@ -5,7 +5,7 @@
     <!-- Custom Styles -->
     <style>
         body {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             min-height: 100vh;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow-x: hidden;
@@ -24,7 +24,7 @@
         
         .particle {
             position: absolute;
-            background: rgba(255, 165, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             animation: float 6s ease-in-out infinite;
         }
@@ -59,22 +59,16 @@
         }
         
         .logo-container {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             margin: 0 auto 24px;
-            background: transparent;
-            border-radius: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
             animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .logo-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
         
         @keyframes pulse {
@@ -88,18 +82,18 @@
         }
         
         .auth-title {
-            color: #ffffff !important;
+            color: #1a202c !important;
             font-size: 28px !important;
             font-weight: 700 !important;
             margin-bottom: 8px !important;
-            background: linear-gradient(135deg, #ff8c00, #ffa500);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         
         .auth-subtitle {
-            color: #cccccc !important;
+            color: #718096 !important;
             font-size: 16px !important;
             font-weight: 500 !important;
         }
@@ -152,19 +146,19 @@
         
         .form-input:focus {
             outline: none !important;
-            border-color: #ff8c00 !important;
+            border-color: #667eea !important;
             background: #ffffff !important;
-            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1) !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
             transform: translateY(-1px);
         }
         
         .form-input:focus + .input-icon {
-            color: #ff8c00;
+            color: #667eea;
         }
         
         .auth-button {
             width: 100% !important;
-            background: linear-gradient(135deg, #ff8c00, #ffa500) !important;
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
             color: white !important;
             border: none !important;
             border-radius: 12px !important;
@@ -195,7 +189,7 @@
         
         .auth-button:hover {
             transform: translateY(-2px) !important;
-            box-shadow: 0 10px 25px rgba(255, 140, 0, 0.3) !important;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3) !important;
         }
         
         .auth-button:active {
@@ -210,14 +204,14 @@
         }
         
         .auth-link a {
-            color: #ff8c00 !important;
+            color: #667eea !important;
             text-decoration: none !important;
             font-weight: 600 !important;
             transition: color 0.3s ease;
         }
         
         .auth-link a:hover {
-            color: #ffa500 !important;
+            color: #764ba2 !important;
             text-decoration: underline !important;
         }
         
@@ -255,7 +249,7 @@
         }
 
         .forgot-password-link {
-            color: #ff8c00 !important;
+            color: #667eea !important;
             text-decoration: none !important;
             font-size: 14px !important;
             font-weight: 600 !important;
@@ -266,7 +260,7 @@
         }
 
         .forgot-password-link:hover {
-            color: #ffa500 !important;
+            color: #764ba2 !important;
             text-decoration: underline !important;
         }
         
@@ -310,10 +304,10 @@
     <div class="auth-container">
         <div class="logo-section">
             <div class="logo-container">
-                <img src="/images/softpro-logo.svg" alt="SoftPro Logo" class="logo-image">
+                <i class="fas fa-shield-alt logo-icon"></i>
             </div>
-            <h2 class="auth-title">Welcome Back - SoftPro IMS</h2>
-            <p class="auth-subtitle">Sign in to your Insurance Management System</p>
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to your Insurance Management account</p>
         </div>
 
         <form method="POST" action="{{ route('login') }}">
@@ -377,6 +371,10 @@
             </button>
         </form>
 
+        <div class="auth-link">
+            Don't have an account? 
+            <a href="{{ route('register') }}">Create one here</a>
+        </div>
     </div>
 
     <!-- Include Font Awesome and Google Fonts -->
@@ -417,7 +415,7 @@
         // Add smooth focus transitions
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.querySelector('.input-icon').style.color = '#ff8c00';
+                this.parentElement.querySelector('.input-icon').style.color = '#667eea';
             });
             
             input.addEventListener('blur', function() {
