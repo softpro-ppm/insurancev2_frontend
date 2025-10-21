@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer ring (darker brown) -->
+  <ellipse cx="60" cy="60" rx="55" ry="25" fill="none" stroke="#8B4513" stroke-width="4"/>
+  
+  <!-- Inner ring (medium orange) -->
+  <ellipse cx="60" cy="60" rx="40" ry="18" fill="none" stroke="#FF8C00" stroke-width="3"/>
+  
+  <!-- Computer monitor (medium orange) -->
+  <rect x="35" y="40" width="50" height="35" rx="3" fill="#FF8C00" stroke="#FF8C00" stroke-width="2"/>
+  
+  <!-- Monitor screen (black) -->
+  <rect x="38" y="43" width="44" height="29" rx="2" fill="black"/>
+  
+  <!-- Monitor stand (darker brown) -->
+  <rect x="55" y="75" width="10" height="8" fill="#8B4513"/>
+  
+  <!-- Monitor base (darker brown) -->
+  <rect x="45" y="83" width="30" height="6" fill="#8B4513"/>
+  
+  <!-- SoftPro text -->
+  <text x="60" y="105" text-anchor="middle" font-family="serif" font-size="12" font-weight="bold" fill="#8B4513">
+    <tspan x="60" dy="0">SoftPro</tspan>
+  </text>
+</svg>
