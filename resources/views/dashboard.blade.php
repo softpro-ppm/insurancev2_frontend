@@ -5,7 +5,7 @@
 @section('content')
 <div class="page active" id="dashboard">
     <div class="page-header">
-        <h1>Dashboard</h1>
+        <h1>Dashboard 1</h1>
     </div>
 
     <!-- Dashboard Cards -->
