@@ -59,15 +59,15 @@
         }
         
         .logo-container {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             margin: 0 auto 24px;
-            background: transparent;
-            border-radius: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
             animation: pulse 2s ease-in-out infinite;
         }
         
@@ -79,12 +79,6 @@
         .logo-icon {
             font-size: 32px;
             color: #ffffff;
-        }
-        
-        .logo-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
         
         .auth-title {
@@ -310,7 +304,7 @@
     <div class="auth-container">
         <div class="logo-section">
             <div class="logo-container">
-                <img src="/images/softpro-logo.svg" alt="SoftPro Logo" class="logo-image">
+                <i class="fas fa-shield-alt logo-icon"></i>
             </div>
             <h2 class="auth-title">Welcome Back - SoftPro IMS</h2>
             <p class="auth-subtitle">Sign in to your Insurance Management System</p>
@@ -376,7 +370,6 @@
                 Sign In
             </button>
         </form>
-
     </div>
 
     <!-- Include Font Awesome and Google Fonts -->
