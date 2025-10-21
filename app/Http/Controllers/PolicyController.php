@@ -968,16 +968,9 @@ class PolicyController extends Controller
             
             if (!$fullPath) {
                 \Log::error("Document not found for policy {$policyId}, tried paths: " . implode(', ', $possiblePaths));
-                return response()->json([
-                    'message' => 'Document file not found on disk',
-                    'error' => 'The requested document file is missing from the server. Please contact the administrator.',
-                    'debug' => [
-                        'policy_id' => $policyId,
-                        'document_type' => $documentType,
-                        'file_path' => $filePath,
-                        'tried_paths' => $possiblePaths
-                    ]
-                ], 404);
+                
+                // Create a placeholder PDF response instead of returning error
+                return $this->createPlaceholderDocumentResponse($policy, $documentType);
             }
 
             // Get original filename
@@ -1037,16 +1030,9 @@ class PolicyController extends Controller
         
         if (!$fullPath) {
             \Log::error("Document not found for version {$versionId}, tried paths: " . implode(', ', $possiblePaths));
-            return response()->json([
-                'message' => 'Document file not found on disk',
-                'error' => 'The requested document file is missing from the server. Please contact the administrator.',
-                'debug' => [
-                    'version_id' => $versionId,
-                    'document_type' => $documentType,
-                    'file_path' => $filePath,
-                    'tried_paths' => $possiblePaths
-                ]
-            ], 404);
+            
+            // Create a placeholder PDF response instead of returning error
+            return $this->createPlaceholderDocumentResponse($version, $documentType);
         }
 
         // Get original filename
@@ -1060,6 +1046,106 @@ class PolicyController extends Controller
         $friendlyName = "{$customerName}_Version{$versionNumber}_{$documentType}.{$extension}";
 
         return response()->download($fullPath, $friendlyName);
+    }
+
+    /**
+     * Create a placeholder PDF response for missing documents
+     */
+    private function createPlaceholderDocumentResponse($record, $documentType)
+    {
+        $customerName = $record->customer_name;
+        $recordType = $record instanceof \App\Models\Policy ? 'Policy' : 'Version';
+        $recordId = $record->id;
+        
+        // Create a simple PDF content (minimal valid PDF)
+        $pdfContent = "%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 300
+>>
+stream
+BT
+/F1 16 Tf
+72 720 Td
+(Document Not Available) Tj
+0 -30 Td
+/F1 12 Tf
+(Customer: {$customerName}) Tj
+0 -20 Td
+(Document Type: {$documentType}) Tj
+0 -20 Td
+(Record Type: {$recordType} #{$recordId}) Tj
+0 -20 Td
+(This document is currently unavailable) Tj
+0 -20 Td
+(Please contact the administrator) Tj
+0 -40 Td
+/Date: " . date('Y-m-d H:i:s') . " Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000274 00000 n 
+0000000625 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+707
+%%EOF";
+
+        $filename = "{$customerName}_Missing_{$documentType}.pdf";
+        
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length' => strlen($pdfContent)
+        ]);
     }
 
     /**
