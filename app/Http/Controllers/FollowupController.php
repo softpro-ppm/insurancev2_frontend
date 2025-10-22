@@ -69,6 +69,16 @@ class FollowupController extends Controller
                 ];
             });
 
+        // Debug: Log the count and check if we have any policies
+        \Log::info('Expiring policies count: ' . $expiringPolicies->count());
+        \Log::info('Total policies in database: ' . \App\Models\Policy::count());
+        
+        // If no expiring policies, let's check if there are any policies at all
+        if ($expiringPolicies->count() === 0) {
+            $allPolicies = \App\Models\Policy::all();
+            \Log::info('All policies: ' . $allPolicies->toJson());
+        }
+
         // Get followup statistics
         $stats = [
             'totalFollowups' => Followup::count(),
@@ -232,6 +242,54 @@ class FollowupController extends Controller
         return response()->json([
             'message' => 'Follow-up saved successfully!',
             'followup' => $followup
+        ]);
+    }
+
+    /**
+     * Create sample expiring policies for testing
+     */
+    public function createSampleExpiringPolicies()
+    {
+        $samplePolicies = [
+            [
+                'customer_name' => 'John Doe',
+                'phone' => '9876543210',
+                'email' => 'john@example.com',
+                'policy_type' => 'Motor',
+                'company_name' => 'SBI General',
+                'end_date' => now()->addDays(5)->format('Y-m-d'),
+                'premium' => 15000,
+                'status' => 'Active'
+            ],
+            [
+                'customer_name' => 'Jane Smith',
+                'phone' => '9876543211',
+                'email' => 'jane@example.com',
+                'policy_type' => 'Health',
+                'company_name' => 'Future Generali',
+                'end_date' => now()->addDays(12)->format('Y-m-d'),
+                'premium' => 25000,
+                'status' => 'Active'
+            ],
+            [
+                'customer_name' => 'Mike Johnson',
+                'phone' => '9876543212',
+                'email' => 'mike@example.com',
+                'policy_type' => 'Motor',
+                'company_name' => 'HDFC ERGO',
+                'end_date' => now()->addDays(25)->format('Y-m-d'),
+                'premium' => 18000,
+                'status' => 'Active'
+            ]
+        ];
+
+        foreach ($samplePolicies as $policyData) {
+            \App\Models\Policy::create($policyData);
+        }
+
+        return response()->json([
+            'message' => 'Sample expiring policies created successfully!',
+            'count' => count($samplePolicies)
         ]);
     }
 

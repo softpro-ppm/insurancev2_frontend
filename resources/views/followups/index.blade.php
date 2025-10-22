@@ -11,9 +11,9 @@
         <!-- Follow Ups Controls -->
         <div class="followups-controls">
             <div class="controls-left">
-                <button class="add-followup-btn" id="addFollowupBtn">
+                <button class="btn btn-secondary" id="createSampleDataBtn" onclick="createSampleData()">
                     <i class="fas fa-plus"></i>
-                    Add Follow Up
+                    Create Sample Data
                 </button>
             </div>
             <div class="controls-right">
@@ -212,6 +212,69 @@
     gap: 16px;
 }
 
+.controls-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.controls-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    min-width: 120px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.search-box input {
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 200px;
+    background: white;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
 .add-followup-btn {
     background: linear-gradient(135deg, #10B981, #059669);
     color: white;
@@ -389,8 +452,45 @@
     margin: 1px;
 }
 
-/* Responsive compact table */
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .followups-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .followups-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .controls-left {
+        justify-content: center;
+    }
+    
+    .controls-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    .followups-stats {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
     .compact-data-table {
         font-size: 11px;
     }
@@ -403,6 +503,50 @@
     .compact-data-table .quick-action-btn {
         padding: 2px 4px;
         font-size: 10px;
+    }
+    
+    .dashboard-section h2 {
+        font-size: 1.25rem;
+    }
+    
+    .modal-small {
+        width: 95%;
+        max-width: none;
+    }
+    
+    .customer-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-content {
+        padding: 16px;
+    }
+    
+    .followups-stats {
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 16px;
+    }
+    
+    .stat-content h3 {
+        font-size: 14px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+    }
+    
+    .compact-data-table {
+        font-size: 10px;
+    }
+    
+    .compact-data-table th,
+    .compact-data-table td {
+        padding: 3px 2px;
     }
 }
 
@@ -972,6 +1116,31 @@ async function createFollowupFromPolicy(policyId) {
     } catch (error) {
         console.error('Error creating follow-up:', error);
         alert('Error creating follow-up');
+    }
+}
+
+// Create sample data function
+async function createSampleData() {
+    try {
+        const response = await fetch('/api/followups/create-sample-policies', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Sample data created successfully!');
+            loadCrmDashboard(); // Refresh the dashboard
+        } else {
+            alert('Error creating sample data: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error creating sample data:', error);
+        alert('Error creating sample data');
     }
 }
 

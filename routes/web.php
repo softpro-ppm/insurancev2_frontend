@@ -132,6 +132,7 @@ Route::post('/api/followups/create-from-policy/{policyId}', [FollowupController:
 Route::post('/api/followups/send-email/{policyId}', [FollowupController::class, 'sendEmailToClient'])->name('followups.send-email');
 Route::get('/api/followups/customer/{phone}', [FollowupController::class, 'getCustomerFollowups'])->name('followups.customer');
 Route::post('/api/followups/save-simple', [FollowupController::class, 'saveSimpleFollowup'])->name('followups.save-simple');
+Route::post('/api/followups/create-sample-policies', [FollowupController::class, 'createSampleExpiringPolicies'])->name('followups.create-sample');
 
 // Reports routes
 Route::get('/reports', function () {
