@@ -159,6 +159,13 @@ class PolicyController extends Controller
             $policy->update($documentPaths);
         }
 
+        // Create initial version for new policy
+        PolicyVersion::createFromPolicy(
+            $policy,
+            'Initial policy creation',
+            auth()->user()->name ?? 'System'
+        );
+
         return response()->json([
             'message' => 'Policy created successfully!',
             'policy' => [
@@ -184,11 +191,10 @@ class PolicyController extends Controller
                 'policy_copy_path' => $policy->policy_copy_path,
                 'rc_copy_path' => $policy->rc_copy_path,
                 'aadhar_copy_path' => $policy->aadhar_copy_path,
-                'pan_copy_path' => $policy->pan_copy_path,
+            'pan_copy_path' => $policy->pan_copy_path,
 
-            ]
-        ], 201);
-    }
+        ]
+    ], 201);
 
     /**
      * Display the specified policy
@@ -966,27 +972,35 @@ class PolicyController extends Controller
                 return response()->json(['message' => 'Document not found for this policy'], 404);
             }
 
-            // Try multiple possible storage paths
-            $possiblePaths = [
-                storage_path('app/' . $filePath),
-                storage_path('app/public/' . $filePath),
-                public_path('storage/' . $filePath),
-                public_path('uploads/' . $filePath),
-                storage_path($filePath)
-            ];
-            
+            // Handle different types of file paths
             $fullPath = null;
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path)) {
-                    $fullPath = $path;
-                    break;
+            $isRemoteUrl = false;
+            
+            // Check if it's a URL (starts with http/https)
+            if (str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://')) {
+                $isRemoteUrl = true;
+                $fullPath = $filePath;
+            } else {
+                // Try multiple possible local storage paths
+                $possiblePaths = [
+                    storage_path('app/' . $filePath),
+                    storage_path('app/public/' . $filePath),
+                    public_path('storage/' . $filePath),
+                    public_path('uploads/' . $filePath),
+                    storage_path($filePath),
+                    $filePath // Direct path
+                ];
+                
+                foreach ($possiblePaths as $path) {
+                    if (file_exists($path)) {
+                        $fullPath = $path;
+                        break;
+                    }
                 }
             }
             
             if (!$fullPath) {
-                \Log::error("Document not found for policy {$policyId}, tried paths: " . implode(', ', $possiblePaths));
-                
-                // Create a placeholder PDF response instead of returning error
+                \Log::error("Document not found for policy {$policyId}, path: {$filePath}");
                 return $this->createPlaceholderDocumentResponse($policy, $documentType);
             }
 
@@ -999,7 +1013,14 @@ class PolicyController extends Controller
             
             $friendlyName = "{$customerName}_Policy_{$documentType}.{$extension}";
 
-            return response()->download($fullPath, $friendlyName);
+            // Handle remote URLs vs local files
+            if ($isRemoteUrl) {
+                // For remote URLs, redirect to the URL
+                return redirect($fullPath);
+            } else {
+                // For local files, use download response
+                return response()->download($fullPath, $friendlyName);
+            }
         }
         
         // Handle regular version IDs
@@ -1028,25 +1049,35 @@ class PolicyController extends Controller
             return response()->json(['message' => 'Document not found for this version'], 404);
         }
 
-        // Try multiple possible storage paths
-        $possiblePaths = [
-            storage_path('app/' . $filePath),
-            storage_path('app/public/' . $filePath),
-            public_path('storage/' . $filePath),
-            public_path('uploads/' . $filePath),
-            storage_path($filePath)
-        ];
-        
+        // Handle different types of file paths
         $fullPath = null;
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path)) {
-                $fullPath = $path;
-                break;
+        $isRemoteUrl = false;
+        
+        // Check if it's a URL (starts with http/https)
+        if (str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://')) {
+            $isRemoteUrl = true;
+            $fullPath = $filePath;
+        } else {
+            // Try multiple possible local storage paths
+            $possiblePaths = [
+                storage_path('app/' . $filePath),
+                storage_path('app/public/' . $filePath),
+                public_path('storage/' . $filePath),
+                public_path('uploads/' . $filePath),
+                storage_path($filePath),
+                $filePath // Direct path
+            ];
+            
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $fullPath = $path;
+                    break;
+                }
             }
         }
         
         if (!$fullPath) {
-            \Log::error("Document not found for version {$versionId}, tried paths: " . implode(', ', $possiblePaths));
+            \Log::error("Document not found for version {$versionId}, path: {$filePath}");
             
             // Create a placeholder PDF response instead of returning error
             return $this->createPlaceholderDocumentResponse($version, $documentType);
@@ -1062,7 +1093,14 @@ class PolicyController extends Controller
         
         $friendlyName = "{$customerName}_Version{$versionNumber}_{$documentType}.{$extension}";
 
-        return response()->download($fullPath, $friendlyName);
+        // Handle remote URLs vs local files
+        if ($isRemoteUrl) {
+            // For remote URLs, redirect to the URL
+            return redirect($fullPath);
+        } else {
+            // For local files, use download response
+            return response()->download($fullPath, $friendlyName);
+        }
     }
 
     /**
@@ -1171,32 +1209,14 @@ startxref
     private function preserveDocumentsForVersion(Policy $policy, PolicyVersion $version)
     {
         $documentFields = ['policy_copy_path', 'rc_copy_path', 'aadhar_copy_path', 'pan_copy_path'];
-        $versionDir = "private/policies/{$policy->id}/versions/v{$version->version_number}";
         
         foreach ($documentFields as $field) {
             $currentPath = $policy->$field;
-            if ($currentPath && file_exists(storage_path('app/' . $currentPath))) {
-                // Create version directory if it doesn't exist
-                $versionDirPath = storage_path('app/' . $versionDir);
-                if (!is_dir($versionDirPath)) {
-                    mkdir($versionDirPath, 0755, true);
-                }
-                
-                // Generate new filename for version
-                $originalFilename = basename($currentPath);
-                $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
-                $documentType = str_replace('_path', '', $field);
-                $newFilename = "{$documentType}_v{$version->version_number}.{$extension}";
-                $newPath = $versionDir . '/' . $newFilename;
-                
-                // Copy file to version directory
-                if (copy(storage_path('app/' . $currentPath), storage_path('app/' . $newPath))) {
-                    // Update version record with new path
-                    $version->update([$field => $newPath]);
-                    \Log::info("Document preserved for version: {$currentPath} -> {$newPath}");
-                } else {
-                    \Log::error("Failed to preserve document for version: {$currentPath}");
-                }
+            if ($currentPath) {
+                // Store the current document path in the version
+                // This preserves the historical document reference
+                $version->update([$field => $currentPath]);
+                \Log::info("Document path preserved for version {$version->version_number}: {$field} = {$currentPath}");
             }
         }
     }
