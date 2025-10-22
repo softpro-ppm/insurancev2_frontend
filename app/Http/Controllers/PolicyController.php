@@ -1086,7 +1086,38 @@ class PolicyController extends Controller
         if (!$fullPath) {
             \Log::error("Document not found for version {$versionId}, path: {$filePath}");
             
-            // Create a placeholder PDF response instead of returning error
+            // Try to get the document from the current policy if version document is missing
+            $policy = $version->policy;
+            if ($policy) {
+                $policyDocumentField = $documentFieldMap[$documentType];
+                $policyFilePath = $policy->$policyDocumentField;
+                
+                if ($policyFilePath) {
+                    // Try to use the current policy's document
+                    if (str_starts_with($policyFilePath, 'http://') || str_starts_with($policyFilePath, 'https://')) {
+                        return redirect($policyFilePath);
+                    } else {
+                        $policyPossiblePaths = [
+                            storage_path('app/' . $policyFilePath),
+                            storage_path('app/public/' . $policyFilePath),
+                            public_path('storage/' . $policyFilePath),
+                            public_path('uploads/' . $policyFilePath),
+                            public_path($policyFilePath),
+                            base_path('public/' . $policyFilePath),
+                            base_path('storage/app/' . $policyFilePath)
+                        ];
+                        
+                        foreach ($policyPossiblePaths as $path) {
+                            if (file_exists($path)) {
+                                $friendlyName = "{$version->customer_name}_Version{$version->version_number}_{$documentType}.pdf";
+                                return response()->download($path, $friendlyName);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Create a placeholder PDF response only as last resort
             return $this->createPlaceholderDocumentResponse($version, $documentType);
         }
 
