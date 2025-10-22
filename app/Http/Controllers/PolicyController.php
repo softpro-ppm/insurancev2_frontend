@@ -195,6 +195,7 @@ class PolicyController extends Controller
 
         ]
     ], 201);
+    }
 
     /**
      * Display the specified policy
