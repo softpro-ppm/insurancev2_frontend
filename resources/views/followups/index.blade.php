@@ -45,42 +45,98 @@
             </div>
         </div>
 
-        <!-- Follow Ups Statistics -->
-        <div class="followups-stats">
-            <div class="stat-card glass-effect">
-                <div class="stat-icon pending">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Pending Follow-ups</h3>
-                    <p class="stat-value" id="pendingFollowupsCount">12</p>
+        <!-- CRM Dashboard Overview -->
+        <div class="crm-dashboard">
+            <div class="dashboard-section">
+                <h2><i class="fas fa-chart-line"></i> CRM Overview</h2>
+                <div class="followups-stats">
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Pending Follow-ups</h3>
+                            <p class="stat-value" id="pendingFollowupsCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon overdue">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Overdue Follow-ups</h3>
+                            <p class="stat-value" id="overdueFollowupsCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Completed Today</h3>
+                            <p class="stat-value" id="completedTodayCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon expiring">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Expiring Policies</h3>
+                            <p class="stat-value" id="expiringPoliciesCount">0</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card glass-effect">
-                <div class="stat-icon inprogress">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>In Progress</h3>
-                    <p class="stat-value" id="inProgressFollowupsCount">8</p>
+
+            <!-- Expiring Policies Section -->
+            <div class="dashboard-section">
+                <h2><i class="fas fa-exclamation-circle"></i> Policies Expiring Soon</h2>
+                <div class="expiring-policies-container">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="expiringPoliciesTable">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Phone</th>
+                                    <th>Policy Type</th>
+                                    <th>Company</th>
+                                    <th>Expiry Date</th>
+                                    <th>Days Left</th>
+                                    <th>Premium</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expiringPoliciesTableBody">
+                                <!-- Dynamic data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card glass-effect">
-                <div class="stat-icon completed">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Completed Today</h3>
-                    <p class="stat-value" id="completedTodayCount">15</p>
-                </div>
-            </div>
-            <div class="stat-card glass-effect">
-                <div class="stat-icon total">
-                    <i class="fas fa-list-alt"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Total Follow-ups</h3>
-                    <p class="stat-value" id="totalFollowupsCount">35</p>
+
+            <!-- Recent Follow-ups Section -->
+            <div class="dashboard-section">
+                <h2><i class="fas fa-history"></i> Recent Follow-ups</h2>
+                <div class="recent-followups-container">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="recentFollowupsTable">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Last Contact</th>
+                                    <th>Next Follow-up</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentFollowupsTableBody">
+                                <!-- Dynamic data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -188,6 +244,111 @@
     background: linear-gradient(135deg, #F59E0B, #D97706);
 }
 
+.stat-icon.overdue {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+}
+
+.stat-icon.expiring {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+}
+
+/* CRM Dashboard Styles */
+.crm-dashboard {
+    margin-bottom: 32px;
+}
+
+.dashboard-section {
+    margin-bottom: 32px;
+}
+
+.dashboard-section h2 {
+    color: #1F2937;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-section h2 i {
+    color: #6366F1;
+}
+
+.expiring-policies-container,
+.recent-followups-container {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Status badges for expiring policies */
+.status-badge.urgent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.normal {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22C55E;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Quick action buttons */
+.quick-action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 2px;
+}
+
+.quick-action-btn.call {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22C55E;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.quick-action-btn.call:hover {
+    background: #22C55E;
+    color: white;
+}
+
+.quick-action-btn.email {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3B82F6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.quick-action-btn.email:hover {
+    background: #3B82F6;
+    color: white;
+}
+
+.quick-action-btn.followup {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8B5CF6;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.quick-action-btn.followup:hover {
+    background: #8B5CF6;
+    color: white;
+}
+
 /* Follow-up Type Badges */
 .followup-type-badge {
     padding: 4px 8px;
@@ -264,8 +425,164 @@
 
 @push('scripts')
 <script>
+// CRM Dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    loadCrmDashboard();
+});
+
+async function loadCrmDashboard() {
+    try {
+        const response = await fetch('/api/followups/crm-dashboard');
+        const data = await response.json();
+        
+        // Update statistics
+        document.getElementById('pendingFollowupsCount').textContent = data.stats.pendingFollowups;
+        document.getElementById('overdueFollowupsCount').textContent = data.stats.overdueFollowups;
+        document.getElementById('completedTodayCount').textContent = data.stats.completedToday;
+        document.getElementById('expiringPoliciesCount').textContent = data.stats.expiringPolicies;
+        
+        // Load expiring policies
+        loadExpiringPolicies(data.expiringPolicies);
+        
+        // Load recent followups
+        loadRecentFollowups(data.recentFollowups);
+        
+    } catch (error) {
+        console.error('Error loading CRM dashboard:', error);
+    }
+}
+
+function loadExpiringPolicies(policies) {
+    const tbody = document.getElementById('expiringPoliciesTableBody');
+    tbody.innerHTML = '';
+    
+    if (policies.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-8">No expiring policies found</td></tr>';
+        return;
+    }
+    
+    policies.forEach(policy => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${policy.customerName}</td>
+            <td>${policy.phone}</td>
+            <td>${policy.policyType}</td>
+            <td>${policy.companyName}</td>
+            <td>${policy.endDate}</td>
+            <td>${policy.daysUntilExpiry} days</td>
+            <td>₹${policy.premium}</td>
+            <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
+            <td>
+                <button class="quick-action-btn call" onclick="callClient('${policy.phone}')">
+                    <i class="fas fa-phone"></i> Call
+                </button>
+                <button class="quick-action-btn email" onclick="sendEmailToClient(${policy.id}, '${policy.status}')">
+                    <i class="fas fa-envelope"></i> Email
+                </button>
+                <button class="quick-action-btn followup" onclick="createFollowupFromPolicy(${policy.id})">
+                    <i class="fas fa-plus"></i> Follow-up
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadRecentFollowups(followups) {
+    const tbody = document.getElementById('recentFollowupsTableBody');
+    tbody.innerHTML = '';
+    
+    if (followups.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-8">No recent follow-ups found</td></tr>';
+        return;
+    }
+    
+    followups.forEach(followup => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${followup.customerName}</td>
+            <td>${followup.phone}</td>
+            <td><span class="status-badge ${followup.status.toLowerCase().replace(' ', '')}">${followup.status}</span></td>
+            <td>${followup.lastContact}</td>
+            <td>${followup.nextFollowup}</td>
+            <td>
+                <button class="quick-action-btn call" onclick="callClient('${followup.phone}')">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="quick-action-btn email" onclick="sendEmailToClient(${followup.id}, 'reminder')">
+                    <i class="fas fa-envelope"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Quick action functions
+function callClient(phone) {
+    window.open(`tel:${phone}`, '_self');
+}
+
+function emailClient(email) {
+    if (email) {
+        window.open(`mailto:${email}`, '_self');
+    } else {
+        alert('No email address available for this client');
+    }
+}
+
+async function sendEmailToClient(policyId, emailType = 'reminder') {
+    try {
+        const response = await fetch(`/api/followups/send-email/${policyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                emailType: emailType
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Email sent successfully!');
+        } else {
+            alert('Error sending email: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error sending email:', error);
+        alert('Error sending email');
+    }
+}
+
+async function createFollowupFromPolicy(policyId) {
+    try {
+        const response = await fetch(`/api/followups/create-from-policy/${policyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Follow-up created successfully!');
+            loadCrmDashboard(); // Refresh the dashboard
+        } else {
+            alert('Error creating follow-up: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error creating follow-up:', error);
+        alert('Error creating follow-up');
+    }
+}
+
 // Followups page is handled by main app.js
-console.log('Followups page loaded - functionality handled by main app.js');
+console.log('Followups page loaded - CRM functionality added');
 </script>
 @endpush
 

@@ -49,3 +49,4 @@ foreach ($cacheDirectories as $dir) {
 
 echo "\n=== Cache Clearing Complete ===\n";
 echo "All caches have been cleared. Try accessing your website now.\n";
+

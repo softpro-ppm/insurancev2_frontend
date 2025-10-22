@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\Followup;
+use App\Mail\PolicyExpiringSoon;
+use App\Mail\PolicyExpiredUrgent;
+use App\Mail\RenewalReminder;
+use App\Mail\ThankYouRenewal;
 
 class FollowupController extends Controller
 {
@@ -35,6 +40,140 @@ class FollowupController extends Controller
         });
         
         return response()->json(['followups' => $followups]);
+    }
+
+    /**
+     * Get CRM dashboard data including expiring policies and followup stats
+     */
+    public function getCrmDashboard()
+    {
+        // Get policies expiring in next 30 days
+        $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
+            ->where('end_date', '<=', now()->addDays(30))
+            ->where('status', 'Active')
+            ->orderBy('end_date')
+            ->get()
+            ->map(function ($policy) {
+                $daysUntilExpiry = now()->diffInDays($policy->end_date, false);
+                return [
+                    'id' => $policy->id,
+                    'customerName' => $policy->customer_name,
+                    'phone' => $policy->phone,
+                    'email' => $policy->email,
+                    'policyType' => $policy->policy_type,
+                    'companyName' => $policy->company_name,
+                    'endDate' => $policy->end_date->format('Y-m-d'),
+                    'daysUntilExpiry' => $daysUntilExpiry,
+                    'premium' => $policy->premium,
+                    'status' => $daysUntilExpiry <= 7 ? 'Urgent' : ($daysUntilExpiry <= 15 ? 'Warning' : 'Normal')
+                ];
+            });
+
+        // Get followup statistics
+        $stats = [
+            'totalFollowups' => Followup::count(),
+            'pendingFollowups' => Followup::where('status', 'Pending')->count(),
+            'completedToday' => Followup::where('status', 'Completed')
+                ->whereDate('updated_at', today())->count(),
+            'overdueFollowups' => Followup::where('status', 'Pending')
+                ->where('followup_date', '<', today())->count(),
+            'expiringPolicies' => $expiringPolicies->count(),
+            'urgentPolicies' => $expiringPolicies->where('status', 'Urgent')->count()
+        ];
+
+        // Get recent followups
+        $recentFollowups = Followup::orderByDesc('updated_at')
+            ->limit(10)
+            ->get()
+            ->map(function ($followup) {
+                return [
+                    'id' => $followup->id,
+                    'customerName' => $followup->customer_name,
+                    'phone' => $followup->phone,
+                    'status' => $followup->status,
+                    'lastContact' => $followup->updated_at->format('M d, Y'),
+                    'nextFollowup' => $followup->followup_date ? $followup->followup_date->format('M d, Y') : 'Not scheduled'
+                ];
+            });
+
+        return response()->json([
+            'stats' => $stats,
+            'expiringPolicies' => $expiringPolicies,
+            'recentFollowups' => $recentFollowups
+        ]);
+    }
+
+    /**
+     * Create followup from expiring policy
+     */
+    public function createFromPolicy(Request $request, $policyId)
+    {
+        $policy = \App\Models\Policy::findOrFail($policyId);
+        
+        $followup = Followup::create([
+            'customer_name' => $policy->customer_name,
+            'phone' => $policy->phone,
+            'email' => $policy->email,
+            'policy_type' => $policy->policy_type,
+            'followup_type' => 'Renewal',
+            'followup_date' => now()->addDays(1)->toDateString(),
+            'followup_time' => '09:00:00',
+            'status' => 'Pending',
+            'agent_name' => 'Self',
+            'notes' => "Policy expiring on {$policy->end_date->format('M d, Y')}. Premium: ₹{$policy->premium}"
+        ]);
+
+        return response()->json([
+            'message' => 'Followup created successfully!',
+            'followup' => $followup
+        ]);
+    }
+
+    /**
+     * Send email to client based on policy status
+     */
+    public function sendEmailToClient(Request $request, $policyId)
+    {
+        $policy = \App\Models\Policy::findOrFail($policyId);
+        $emailType = $request->input('emailType', 'reminder');
+        
+        $agentName = 'Insurance Agent'; // You can get this from auth or config
+        $agentPhone = '+91-9876543210'; // You can get this from auth or config
+        $agentEmail = 'agent@insurance.com'; // You can get this from auth or config
+        
+        $daysUntilExpiry = now()->diffInDays($policy->end_date, false);
+        $daysSinceExpiry = abs($daysUntilExpiry);
+        
+        try {
+            switch ($emailType) {
+                case 'expiring':
+                    Mail::to($policy->email)->send(new PolicyExpiringSoon($policy, $daysUntilExpiry, $agentName, $agentPhone, $agentEmail));
+                    break;
+                case 'expired':
+                    Mail::to($policy->email)->send(new PolicyExpiredUrgent($policy, $daysSinceExpiry, $agentName, $agentPhone, $agentEmail));
+                    break;
+                case 'reminder':
+                    Mail::to($policy->email)->send(new RenewalReminder($policy, $daysUntilExpiry, $agentName, $agentPhone, $agentEmail));
+                    break;
+                case 'thankyou':
+                    $newEndDate = $policy->end_date->addYear()->format('M d, Y');
+                    $renewalPremium = $policy->premium * 1.1; // 10% increase for renewal
+                    Mail::to($policy->email)->send(new ThankYouRenewal($policy, $newEndDate, $renewalPremium, $agentName, $agentPhone, $agentEmail));
+                    break;
+                default:
+                    return response()->json(['error' => 'Invalid email type'], 400);
+            }
+            
+            return response()->json([
+                'message' => 'Email sent successfully!',
+                'emailType' => $emailType
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to send email: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

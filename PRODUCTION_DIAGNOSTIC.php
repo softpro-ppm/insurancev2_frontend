@@ -132,3 +132,4 @@ if (file_exists('.env')) {
 echo "\n=== Diagnostic Complete ===\n";
 echo "Upload this file to your production server and run it to see the results.\n";
 echo "This will help identify what's causing the issue.\n";
+

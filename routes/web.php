@@ -126,6 +126,11 @@ Route::get('/followups/{id}', [FollowupController::class, 'show'])->name('follow
 Route::put('/followups/{id}', [FollowupController::class, 'update'])->name('followups.update');
 Route::delete('/followups/{id}', [FollowupController::class, 'destroy'])->name('followups.destroy');
 
+// CRM Dashboard routes
+Route::get('/api/followups/crm-dashboard', [FollowupController::class, 'getCrmDashboard'])->name('followups.crm-dashboard');
+Route::post('/api/followups/create-from-policy/{policyId}', [FollowupController::class, 'createFromPolicy'])->name('followups.create-from-policy');
+Route::post('/api/followups/send-email/{policyId}', [FollowupController::class, 'sendEmailToClient'])->name('followups.send-email');
+
 // Reports routes
 Route::get('/reports', function () {
     return view('reports.index');
