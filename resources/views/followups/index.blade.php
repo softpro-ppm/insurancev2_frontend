@@ -96,6 +96,7 @@
                         <table class="compact-data-table" id="expiringPoliciesTable">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th>Customer</th>
                                     <th>Phone</th>
                                     <th>Type</th>
@@ -405,6 +406,120 @@
     }
 }
 
+/* Simple Follow-up Modal Styles */
+.modal-small {
+    max-width: 600px;
+    width: 90%;
+}
+
+.customer-info-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.customer-info-section h3 {
+    margin: 0 0 12px 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.customer-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+}
+
+.detail-row .label {
+    font-weight: 600;
+    color: #6b7280;
+    margin-right: 8px;
+    min-width: 80px;
+}
+
+.detail-row .value {
+    color: #374151;
+    font-weight: 500;
+}
+
+.followup-form-section {
+    margin-bottom: 20px;
+}
+
+.followup-form-section h3 {
+    margin: 0 0 16px 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.recent-followups-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+}
+
+.recent-followups-section h3 {
+    margin: 0 0 12px 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.recent-followups-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.followup-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.followup-item:last-child {
+    margin-bottom: 0;
+}
+
+.followup-date {
+    color: #6b7280;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.followup-notes {
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.followup-status {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.followup-status.willcome { background: #d1fae5; color: #065f46; }
+.followup-status.sold { background: #dbeafe; color: #1e40af; }
+.followup-status.closed { background: #fef3c7; color: #92400e; }
+.followup-status.nametransfered { background: #e0e7ff; color: #3730a3; }
+.followup-status.notanswered { background: #fee2e2; color: #dc2626; }
+.followup-status.wrongnumber { background: #f3f4f6; color: #374151; }
+.followup-status.notworking { background: #f3f4f6; color: #374151; }
+
 /* Follow-up Type Badges */
 .followup-type-badge {
     padding: 4px 8px;
@@ -479,12 +594,217 @@
 <!-- Include Modals -->
 @include('components.followup-modal')
 
+<!-- Simple Follow-up Notes Modal -->
+<div class="modal" id="simpleFollowupModal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2><i class="fas fa-sticky-note"></i> Add Follow-up Notes</h2>
+            <button class="modal-close" id="closeSimpleFollowupModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="simpleFollowupForm">
+            <div class="modal-body">
+                <!-- Customer Info Display -->
+                <div class="customer-info-section">
+                    <h3><i class="fas fa-user"></i> Customer Information</h3>
+                    <div class="customer-details">
+                        <div class="detail-row">
+                            <span class="label">Name:</span>
+                            <span class="value" id="modalCustomerName">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Phone:</span>
+                            <span class="value" id="modalCustomerPhone">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Email:</span>
+                            <span class="value" id="modalCustomerEmail">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Policy Type:</span>
+                            <span class="value" id="modalPolicyType">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Company:</span>
+                            <span class="value" id="modalCompanyName">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Follow-up Form -->
+                <div class="followup-form-section">
+                    <h3><i class="fas fa-edit"></i> Follow-up Details</h3>
+                    <div class="form-group">
+                        <label for="followupNotes">Customer Notes *</label>
+                        <textarea id="followupNotes" name="notes" rows="3" placeholder="What did the customer say? Any important information..." required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="followupStatus">Status *</label>
+                            <select id="followupStatus" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="Will Come">Will Come</option>
+                                <option value="Sold">Sold</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Name Transfered">Name Transfered</option>
+                                <option value="Not Answered">Not Answered</option>
+                                <option value="Wrong Number">Wrong Number</option>
+                                <option value="Not Working">Not Working</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="nextFollowupDate">Next Follow-up Date</label>
+                            <input type="date" id="nextFollowupDate" name="nextFollowupDate">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Follow-ups -->
+                <div class="recent-followups-section" id="recentFollowupsSection" style="display: none;">
+                    <h3><i class="fas fa-history"></i> Recent Follow-ups</h3>
+                    <div id="recentFollowupsList" class="recent-followups-list">
+                        <!-- Recent follow-ups will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelSimpleFollowup">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="saveSimpleFollowup">Save Follow-up</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // CRM Dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
     loadCrmDashboard();
+    initializeSimpleFollowupModal();
 });
+
+// Initialize simple follow-up modal
+function initializeSimpleFollowupModal() {
+    const modal = document.getElementById('simpleFollowupModal');
+    const closeBtn = document.getElementById('closeSimpleFollowupModal');
+    const cancelBtn = document.getElementById('cancelSimpleFollowup');
+    const form = document.getElementById('simpleFollowupForm');
+
+    // Close modal events
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveSimpleFollowup();
+    });
+}
+
+// Open simple follow-up modal
+function openFollowupModal(policyId, customerName, phone, email, policyType, companyName) {
+    const modal = document.getElementById('simpleFollowupModal');
+    
+    // Populate customer info
+    document.getElementById('modalCustomerName').textContent = customerName;
+    document.getElementById('modalCustomerPhone').textContent = phone;
+    document.getElementById('modalCustomerEmail').textContent = email || 'Not provided';
+    document.getElementById('modalPolicyType').textContent = policyType;
+    document.getElementById('modalCompanyName').textContent = companyName;
+    
+    // Store policy ID for form submission
+    document.getElementById('simpleFollowupForm').dataset.policyId = policyId;
+    
+    // Load recent follow-ups for this customer
+    loadRecentFollowupsForCustomer(phone);
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+// Load recent follow-ups for a specific customer
+async function loadRecentFollowupsForCustomer(phone) {
+    try {
+        const response = await fetch(`/api/followups/customer/${phone}`);
+        if (response.ok) {
+            const data = await response.json();
+            displayRecentFollowups(data.followups);
+        }
+    } catch (error) {
+        console.error('Error loading recent follow-ups:', error);
+    }
+}
+
+// Display recent follow-ups in modal
+function displayRecentFollowups(followups) {
+    const container = document.getElementById('recentFollowupsList');
+    const section = document.getElementById('recentFollowupsSection');
+    
+    if (followups && followups.length > 0) {
+        container.innerHTML = '';
+        followups.forEach(followup => {
+            const item = document.createElement('div');
+            item.className = 'followup-item';
+            item.innerHTML = `
+                <div class="followup-date">${followup.created_at}</div>
+                <div class="followup-notes">${followup.notes}</div>
+                <span class="followup-status ${followup.status.toLowerCase().replace(' ', '')}">${followup.status}</span>
+            `;
+            container.appendChild(item);
+        });
+        section.style.display = 'block';
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+// Save simple follow-up
+async function saveSimpleFollowup() {
+    const form = document.getElementById('simpleFollowupForm');
+    const policyId = form.dataset.policyId;
+    const formData = new FormData(form);
+    
+    const data = {
+        policyId: policyId,
+        customerName: document.getElementById('modalCustomerName').textContent,
+        phone: document.getElementById('modalCustomerPhone').textContent,
+        email: document.getElementById('modalCustomerEmail').textContent,
+        notes: formData.get('notes'),
+        status: formData.get('status'),
+        nextFollowupDate: formData.get('nextFollowupDate')
+    };
+    
+    try {
+        const response = await fetch('/api/followups/save-simple', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Follow-up saved successfully!');
+            document.getElementById('simpleFollowupModal').style.display = 'none';
+            form.reset();
+            loadCrmDashboard(); // Refresh the dashboard
+        } else {
+            alert('Error saving follow-up: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error saving follow-up:', error);
+        alert('Error saving follow-up');
+    }
+}
 
 async function loadCrmDashboard() {
     try {
@@ -513,25 +833,27 @@ function loadExpiringPolicies(policies) {
     tbody.innerHTML = '';
     
     if (policies.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-8">No expiring policies found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-gray-500 py-8">No expiring policies found</td></tr>';
         return;
     }
     
-    policies.forEach(policy => {
+    policies.forEach((policy, index) => {
         const row = document.createElement('tr');
         const expiryDate = new Date(policy.endDate).toLocaleDateString('en-GB', { 
             day: '2-digit', 
             month: 'short' 
         });
         const premium = parseFloat(policy.premium).toLocaleString('en-IN');
+        const daysLeft = Math.round(policy.daysUntilExpiry); // Round to whole number
         
         row.innerHTML = `
+            <td>${index + 1}</td>
             <td>${policy.customerName}</td>
             <td>${policy.phone}</td>
             <td>${policy.policyType}</td>
             <td>${policy.companyName}</td>
             <td>${expiryDate}</td>
-            <td><strong>${policy.daysUntilExpiry}</strong></td>
+            <td><strong>${daysLeft}</strong></td>
             <td>₹${premium}</td>
             <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
             <td>
@@ -541,7 +863,7 @@ function loadExpiringPolicies(policies) {
                 <button class="quick-action-btn email" onclick="sendEmailToClient(${policy.id}, '${policy.status}')" title="Email">
                     <i class="fas fa-envelope"></i>
                 </button>
-                <button class="quick-action-btn followup" onclick="createFollowupFromPolicy(${policy.id})" title="Create Follow-up">
+                <button class="quick-action-btn followup" onclick="openFollowupModal(${policy.id}, '${policy.customerName}', '${policy.phone}', '${policy.email || ''}', '${policy.policyType}', '${policy.companyName}')" title="Add Follow-up Notes">
                     <i class="fas fa-plus"></i>
                 </button>
             </td>

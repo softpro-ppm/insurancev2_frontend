@@ -177,6 +177,65 @@ class FollowupController extends Controller
     }
 
     /**
+     * Get follow-ups for a specific customer by phone
+     */
+    public function getCustomerFollowups($phone)
+    {
+        $followups = Followup::where('phone', $phone)
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get()
+            ->map(function ($followup) {
+                return [
+                    'id' => $followup->id,
+                    'notes' => $followup->notes,
+                    'status' => $followup->status,
+                    'created_at' => $followup->created_at->format('M d, Y H:i')
+                ];
+            });
+
+        return response()->json(['followups' => $followups]);
+    }
+
+    /**
+     * Save simple follow-up from modal
+     */
+    public function saveSimpleFollowup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'policyId' => 'required|integer',
+            'customerName' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|string|max:255',
+            'notes' => 'required|string|max:2000',
+            'status' => 'required|string|in:Will Come,Sold,Closed,Name Transfered,Not Answered,Wrong Number,Not Working',
+            'nextFollowupDate' => 'nullable|date'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $followup = Followup::create([
+            'customer_name' => $request->customerName,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'policy_type' => 'General', // Default since we're not storing policy type in followup
+            'followup_type' => 'Renewal',
+            'followup_date' => $request->nextFollowupDate ?? now()->addDays(1)->toDateString(),
+            'followup_time' => '09:00:00',
+            'status' => $request->status,
+            'agent_name' => 'Self',
+            'notes' => $request->notes
+        ]);
+
+        return response()->json([
+            'message' => 'Follow-up saved successfully!',
+            'followup' => $followup
+        ]);
+    }
+
+    /**
      * Store a newly created followup
      */
     public function store(Request $request)

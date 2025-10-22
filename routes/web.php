@@ -130,6 +130,8 @@ Route::delete('/followups/{id}', [FollowupController::class, 'destroy'])->name('
 Route::get('/api/followups/crm-dashboard', [FollowupController::class, 'getCrmDashboard'])->name('followups.crm-dashboard');
 Route::post('/api/followups/create-from-policy/{policyId}', [FollowupController::class, 'createFromPolicy'])->name('followups.create-from-policy');
 Route::post('/api/followups/send-email/{policyId}', [FollowupController::class, 'sendEmailToClient'])->name('followups.send-email');
+Route::get('/api/followups/customer/{phone}', [FollowupController::class, 'getCustomerFollowups'])->name('followups.customer');
+Route::post('/api/followups/save-simple', [FollowupController::class, 'saveSimpleFollowup'])->name('followups.save-simple');
 
 // Reports routes
 Route::get('/reports', function () {
