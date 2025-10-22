@@ -59,10 +59,11 @@ class FollowupController extends Controller
         $policiesWithEndDate = \App\Models\Policy::whereNotNull('end_date')->count();
         \Log::info('Policies with end_date: ' . $policiesWithEndDate);
         
-        // Get policies expiring in next 30 days
-        $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
-            ->where('end_date', '<=', now()->addDays(30))
-            ->where('status', 'Active')
+        // Get policies expiring in next 30 days (status-agnostic and date-only to avoid time zone issues)
+        $today = now()->startOfDay();
+        $endWindow = $today->copy()->addDays(30);
+        $expiringPolicies = \App\Models\Policy::whereDate('end_date', '>=', $today->toDateString())
+            ->whereDate('end_date', '<=', $endWindow->toDateString())
             ->orderBy('end_date')
             ->get()
             ->map(function ($policy) {
@@ -92,7 +93,7 @@ class FollowupController extends Controller
             'overdueFollowups' => Followup::where('status', 'Pending')
                 ->where('followup_date', '<', today())->count(),
             'expiringPolicies' => $expiringPolicies->count(),
-            'urgentPolicies' => $expiringPolicies->where('status', 'Urgent')->count()
+            'urgentPolicies' => $expiringPolicies->filter(function ($p) { return ($p['status'] ?? '') === 'Urgent'; })->count()
         ];
 
         // Get recent followups

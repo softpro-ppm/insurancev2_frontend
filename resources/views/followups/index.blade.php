@@ -11,11 +11,11 @@
         <!-- Follow Ups Controls -->
         <div class="followups-controls">
             <div class="controls-left">
-                <button class="btn btn-secondary" id="createSampleDataBtn" onclick="createSampleData()">
+                <button class="btn btn-secondary" id="createSampleDataBtn" type="button">
                     <i class="fas fa-plus"></i>
                     Create Sample Data
                 </button>
-                <button class="btn btn-info" onclick="debugDatabase()">
+                <button class="btn btn-info" id="debugDatabaseBtn" type="button">
                     <i class="fas fa-bug"></i>
                     Debug Database
                 </button>
@@ -828,6 +828,16 @@
 <script>
 // CRM Dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Wire up buttons explicitly to avoid scope issues
+    const sampleBtn = document.getElementById('createSampleDataBtn');
+    if (sampleBtn) {
+        sampleBtn.addEventListener('click', createSampleData, { once: false });
+    }
+    const debugBtn = document.getElementById('debugDatabaseBtn');
+    if (debugBtn) {
+        debugBtn.addEventListener('click', debugDatabase, { once: false });
+    }
+
     checkDataStatus();
     loadCrmDashboard();
     initializeSimpleFollowupModal();
