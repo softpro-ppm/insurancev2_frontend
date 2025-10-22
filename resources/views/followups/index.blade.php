@@ -48,7 +48,6 @@
         <!-- CRM Dashboard Overview -->
         <div class="crm-dashboard">
             <div class="dashboard-section">
-                <h2><i class="fas fa-chart-line"></i> CRM Overview</h2>
                 <div class="followups-stats">
                     <div class="stat-card glass-effect">
                         <div class="stat-icon pending">
@@ -93,16 +92,16 @@
             <div class="dashboard-section">
                 <h2><i class="fas fa-exclamation-circle"></i> Policies Expiring Soon</h2>
                 <div class="expiring-policies-container">
-                    <div class="table-wrapper">
-                        <table class="data-table" id="expiringPoliciesTable">
+                    <div class="table-wrapper compact-table">
+                        <table class="compact-data-table" id="expiringPoliciesTable">
                             <thead>
                                 <tr>
                                     <th>Customer</th>
                                     <th>Phone</th>
-                                    <th>Policy Type</th>
+                                    <th>Type</th>
                                     <th>Company</th>
-                                    <th>Expiry Date</th>
-                                    <th>Days Left</th>
+                                    <th>Expires</th>
+                                    <th>Days</th>
                                     <th>Premium</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -120,15 +119,15 @@
             <div class="dashboard-section">
                 <h2><i class="fas fa-history"></i> Recent Follow-ups</h2>
                 <div class="recent-followups-container">
-                    <div class="table-wrapper">
-                        <table class="data-table" id="recentFollowupsTable">
+                    <div class="table-wrapper compact-table">
+                        <table class="compact-data-table" id="recentFollowupsTable">
                             <thead>
                                 <tr>
                                     <th>Customer</th>
                                     <th>Phone</th>
                                     <th>Status</th>
                                     <th>Last Contact</th>
-                                    <th>Next Follow-up</th>
+                                    <th>Next</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -349,6 +348,63 @@
     color: white;
 }
 
+/* Compact Table Styles */
+.compact-table {
+    font-size: 13px;
+}
+
+.compact-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.compact-data-table th {
+    background: #f8f9fa;
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.compact-data-table td {
+    padding: 6px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.compact-data-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.compact-data-table .quick-action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin: 1px;
+}
+
+/* Responsive compact table */
+@media (max-width: 768px) {
+    .compact-data-table {
+        font-size: 11px;
+    }
+    
+    .compact-data-table th,
+    .compact-data-table td {
+        padding: 4px 3px;
+    }
+    
+    .compact-data-table .quick-action-btn {
+        padding: 2px 4px;
+        font-size: 10px;
+    }
+}
+
 /* Follow-up Type Badges */
 .followup-type-badge {
     padding: 4px 8px;
@@ -463,24 +519,30 @@ function loadExpiringPolicies(policies) {
     
     policies.forEach(policy => {
         const row = document.createElement('tr');
+        const expiryDate = new Date(policy.endDate).toLocaleDateString('en-GB', { 
+            day: '2-digit', 
+            month: 'short' 
+        });
+        const premium = parseFloat(policy.premium).toLocaleString('en-IN');
+        
         row.innerHTML = `
             <td>${policy.customerName}</td>
             <td>${policy.phone}</td>
             <td>${policy.policyType}</td>
             <td>${policy.companyName}</td>
-            <td>${policy.endDate}</td>
-            <td>${policy.daysUntilExpiry} days</td>
-            <td>₹${policy.premium}</td>
+            <td>${expiryDate}</td>
+            <td><strong>${policy.daysUntilExpiry}</strong></td>
+            <td>₹${premium}</td>
             <td><span class="status-badge ${policy.status.toLowerCase()}">${policy.status}</span></td>
             <td>
-                <button class="quick-action-btn call" onclick="callClient('${policy.phone}')">
-                    <i class="fas fa-phone"></i> Call
+                <button class="quick-action-btn call" onclick="callClient('${policy.phone}')" title="Call">
+                    <i class="fas fa-phone"></i>
                 </button>
-                <button class="quick-action-btn email" onclick="sendEmailToClient(${policy.id}, '${policy.status}')">
-                    <i class="fas fa-envelope"></i> Email
+                <button class="quick-action-btn email" onclick="sendEmailToClient(${policy.id}, '${policy.status}')" title="Email">
+                    <i class="fas fa-envelope"></i>
                 </button>
-                <button class="quick-action-btn followup" onclick="createFollowupFromPolicy(${policy.id})">
-                    <i class="fas fa-plus"></i> Follow-up
+                <button class="quick-action-btn followup" onclick="createFollowupFromPolicy(${policy.id})" title="Create Follow-up">
+                    <i class="fas fa-plus"></i>
                 </button>
             </td>
         `;
@@ -499,17 +561,27 @@ function loadRecentFollowups(followups) {
     
     followups.forEach(followup => {
         const row = document.createElement('tr');
+        const lastContact = new Date(followup.lastContact).toLocaleDateString('en-GB', { 
+            day: '2-digit', 
+            month: 'short' 
+        });
+        const nextFollowup = followup.nextFollowup === 'Not scheduled' ? 'Not scheduled' : 
+            new Date(followup.nextFollowup).toLocaleDateString('en-GB', { 
+                day: '2-digit', 
+                month: 'short' 
+            });
+        
         row.innerHTML = `
             <td>${followup.customerName}</td>
             <td>${followup.phone}</td>
             <td><span class="status-badge ${followup.status.toLowerCase().replace(' ', '')}">${followup.status}</span></td>
-            <td>${followup.lastContact}</td>
-            <td>${followup.nextFollowup}</td>
+            <td>${lastContact}</td>
+            <td>${nextFollowup}</td>
             <td>
-                <button class="quick-action-btn call" onclick="callClient('${followup.phone}')">
+                <button class="quick-action-btn call" onclick="callClient('${followup.phone}')" title="Call">
                     <i class="fas fa-phone"></i>
                 </button>
-                <button class="quick-action-btn email" onclick="sendEmailToClient(${followup.id}, 'reminder')">
+                <button class="quick-action-btn email" onclick="sendEmailToClient(${followup.id}, 'reminder')" title="Email">
                     <i class="fas fa-envelope"></i>
                 </button>
             </td>
