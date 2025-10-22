@@ -306,7 +306,7 @@
             <div class="logo-container">
                 <i class="fas fa-shield-alt logo-icon"></i>
             </div>
-            <h2 class="auth-title">Welcome Back - SoftPro IMS</h2>
+            <h2 class="auth-title">SoftPro IMS</h2>
             <p class="auth-subtitle">Sign in to your Insurance Management System</p>
         </div>
 

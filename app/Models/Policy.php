@@ -11,6 +11,7 @@ class Policy extends Model
     use HasFactory;
 
     protected $fillable = [
+        'policy_number',
         'customer_name',
         'phone',
         'email',

@@ -11,6 +11,27 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB; // Added this import for DB facade
+use Illuminate\Support\Facades\Auth;
+use App\Http\Middleware\DisableCsrfForTesting;
+
+// Test login route for debugging
+Route::get('/test-login', function () {
+    return view('test-login');
+})->name('test-login');
+
+// Temporary login route without CSRF for testing
+Route::post('/test-login-submit', function (Illuminate\Http\Request $request) {
+    $credentials = $request->only('email', 'password');
+    
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended('/dashboard');
+    }
+    
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->onlyInput('email');
+})->name('test-login-submit')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 Route::get('/', function () {
     if (auth()->check()) {

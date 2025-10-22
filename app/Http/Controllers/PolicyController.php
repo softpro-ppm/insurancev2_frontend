@@ -292,17 +292,34 @@ class PolicyController extends Controller
 
         $policy = Policy::findOrFail($id);
 
-        // Check if policy dates are being changed
+        // Check if any important policy fields are being changed
         $startDateChanged = $policy->start_date->format('Y-m-d') !== $request->startDate;
         $endDateChanged = $policy->end_date->format('Y-m-d') !== $request->endDate;
-        $datesChanged = $startDateChanged || $endDateChanged;
+        $premiumChanged = (float)$policy->premium !== (float)$request->premium;
+        $companyChanged = $policy->company_name !== $request->companyName;
+        $insuranceTypeChanged = $policy->insurance_type !== $request->insuranceType;
+        $statusChanged = $policy->status !== $request->status;
+        
+        $significantChanges = $startDateChanged || $endDateChanged || $premiumChanged || 
+                            $companyChanged || $insuranceTypeChanged || $statusChanged;
 
-        // Only create version history if dates are changing
+        // Create version history for significant changes
         $version = null;
-        if ($datesChanged) {
+        if ($significantChanges) {
+            // Determine what changed for the notes
+            $changes = [];
+            if ($startDateChanged) $changes[] = 'start date';
+            if ($endDateChanged) $changes[] = 'end date';
+            if ($premiumChanged) $changes[] = 'premium';
+            if ($companyChanged) $changes[] = 'insurance company';
+            if ($insuranceTypeChanged) $changes[] = 'insurance type';
+            if ($statusChanged) $changes[] = 'status';
+            
+            $changeDescription = 'Policy updated: ' . implode(', ', $changes);
+            
             $version = PolicyVersion::createFromPolicy(
                 $policy, 
-                'Policy dates updated via edit form',
+                $changeDescription,
                 auth()->user()->name ?? 'System'
             );
             
