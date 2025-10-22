@@ -824,9 +824,34 @@
 <script>
 // CRM Dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
+    checkDataStatus();
     loadCrmDashboard();
     initializeSimpleFollowupModal();
 });
+
+// Check data status for production safety
+async function checkDataStatus() {
+    try {
+        const response = await fetch('/api/followups/check-data');
+        const data = await response.json();
+        
+        console.log('Data status:', data);
+        
+        // Show/hide sample data button based on data availability
+        const sampleDataBtn = document.getElementById('createSampleDataBtn');
+        if (sampleDataBtn) {
+            if (data.needsSampleData) {
+                sampleDataBtn.style.display = 'block';
+                sampleDataBtn.innerHTML = '<i class="fas fa-plus"></i> Create Sample Data (No Data Found)';
+            } else {
+                sampleDataBtn.style.display = 'none';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error checking data status:', error);
+    }
+}
 
 // Initialize simple follow-up modal
 function initializeSimpleFollowupModal() {

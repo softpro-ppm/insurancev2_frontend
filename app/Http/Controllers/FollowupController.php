@@ -51,10 +51,8 @@ class FollowupController extends Controller
         $totalPolicies = \App\Models\Policy::count();
         \Log::info('Total policies in database: ' . $totalPolicies);
         
-        // If no policies exist, create some sample data
-        if ($totalPolicies === 0) {
-            $this->createSampleExpiringPolicies();
-        }
+        // Only create sample data if we're in development or if explicitly requested
+        // Don't auto-create on production unless specifically needed
         
         // Get policies expiring in next 30 days
         $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
@@ -107,24 +105,8 @@ class FollowupController extends Controller
                 ];
             });
 
-        // If no followups exist, create some sample data
-        if ($recentFollowups->count() === 0) {
-            $this->createSampleFollowups();
-            // Re-fetch after creating sample data
-            $recentFollowups = Followup::orderByDesc('updated_at')
-                ->limit(10)
-                ->get()
-                ->map(function ($followup) {
-                    return [
-                        'id' => $followup->id,
-                        'customerName' => $followup->customer_name,
-                        'phone' => $followup->phone,
-                        'status' => $followup->status,
-                        'lastContact' => $followup->updated_at->format('M d, Y'),
-                        'nextFollowup' => $followup->followup_date ? $followup->followup_date->format('M d, Y') : 'Not scheduled'
-                    ];
-                });
-        }
+        // Don't auto-create followups on production
+        // Sample data should only be created when explicitly requested
 
         return response()->json([
             'stats' => $stats,
@@ -270,6 +252,18 @@ class FollowupController extends Controller
      */
     public function createSampleExpiringPolicies()
     {
+        // Check if we already have sample data to avoid duplicates
+        $existingSamplePolicies = \App\Models\Policy::where('customer_name', 'John Doe')
+            ->orWhere('customer_name', 'Jane Smith')
+            ->orWhere('customer_name', 'Mike Johnson')
+            ->count();
+            
+        if ($existingSamplePolicies > 0) {
+            return response()->json([
+                'message' => 'Sample data already exists!',
+                'count' => $existingSamplePolicies
+            ]);
+        }
         $samplePolicies = [
             [
                 'customer_name' => 'John Doe',
@@ -399,6 +393,27 @@ class FollowupController extends Controller
                 \Log::error('Error creating followup: ' . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Check data status for production safety
+     */
+    public function checkDataStatus()
+    {
+        $totalPolicies = \App\Models\Policy::count();
+        $totalFollowups = Followup::count();
+        $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
+            ->where('end_date', '<=', now()->addDays(30))
+            ->where('status', 'Active')
+            ->count();
+
+        return response()->json([
+            'totalPolicies' => $totalPolicies,
+            'totalFollowups' => $totalFollowups,
+            'expiringPolicies' => $expiringPolicies,
+            'hasData' => $totalPolicies > 0 || $totalFollowups > 0,
+            'needsSampleData' => $totalPolicies === 0 && $totalFollowups === 0
+        ]);
     }
 
     /**
