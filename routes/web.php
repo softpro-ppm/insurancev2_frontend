@@ -134,6 +134,7 @@ Route::get('/api/followups/customer/{phone}', [FollowupController::class, 'getCu
 Route::post('/api/followups/save-simple', [FollowupController::class, 'saveSimpleFollowup'])->name('followups.save-simple');
 Route::post('/api/followups/create-sample-policies', [FollowupController::class, 'createSampleExpiringPolicies'])->name('followups.create-sample');
 Route::get('/api/followups/check-data', [FollowupController::class, 'checkDataStatus'])->name('followups.check-data');
+Route::get('/api/followups/debug', [FollowupController::class, 'debugDatabase'])->name('followups.debug');
 
 // Reports routes
 Route::get('/reports', function () {

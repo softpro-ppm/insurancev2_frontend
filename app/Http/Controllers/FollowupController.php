@@ -51,8 +51,13 @@ class FollowupController extends Controller
         $totalPolicies = \App\Models\Policy::count();
         \Log::info('Total policies in database: ' . $totalPolicies);
         
-        // Only create sample data if we're in development or if explicitly requested
-        // Don't auto-create on production unless specifically needed
+        // Debug: Let's see what's in the database
+        $allPolicies = \App\Models\Policy::all();
+        \Log::info('All policies in database: ' . $allPolicies->toJson());
+        
+        // Check if we have any policies with end_date
+        $policiesWithEndDate = \App\Models\Policy::whereNotNull('end_date')->count();
+        \Log::info('Policies with end_date: ' . $policiesWithEndDate);
         
         // Get policies expiring in next 30 days
         $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
@@ -414,6 +419,51 @@ class FollowupController extends Controller
             'hasData' => $totalPolicies > 0 || $totalFollowups > 0,
             'needsSampleData' => $totalPolicies === 0 && $totalFollowups === 0
         ]);
+    }
+
+    /**
+     * Debug database connection and data
+     */
+    public function debugDatabase()
+    {
+        try {
+            // Test database connection
+            $dbConnection = \DB::connection()->getPdo();
+            $dbName = \DB::connection()->getDatabaseName();
+            
+            // Get table info
+            $tables = \DB::select("SHOW TABLES");
+            $policiesTableExists = \Schema::hasTable('policies');
+            $followupsTableExists = \Schema::hasTable('followups');
+            
+            // Get actual data
+            $totalPolicies = \App\Models\Policy::count();
+            $totalFollowups = Followup::count();
+            
+            // Get sample policies
+            $samplePolicies = \App\Models\Policy::limit(3)->get();
+            $sampleFollowups = Followup::limit(3)->get();
+            
+            return response()->json([
+                'database_connected' => true,
+                'database_name' => $dbName,
+                'tables' => $tables,
+                'policies_table_exists' => $policiesTableExists,
+                'followups_table_exists' => $followupsTableExists,
+                'total_policies' => $totalPolicies,
+                'total_followups' => $totalFollowups,
+                'sample_policies' => $samplePolicies,
+                'sample_followups' => $sampleFollowups,
+                'current_time' => now()->toDateTimeString(),
+                'timezone' => config('app.timezone')
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'database_connected' => false
+            ]);
+        }
     }
 
     /**

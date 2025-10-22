@@ -15,6 +15,10 @@
                     <i class="fas fa-plus"></i>
                     Create Sample Data
                 </button>
+                <button class="btn btn-info" onclick="debugDatabase()">
+                    <i class="fas fa-bug"></i>
+                    Debug Database
+                </button>
             </div>
             <div class="controls-right">
                 <div class="filter-group">
@@ -1148,6 +1152,39 @@ async function createFollowupFromPolicy(policyId) {
     } catch (error) {
         console.error('Error creating follow-up:', error);
         alert('Error creating follow-up');
+    }
+}
+
+// Debug database function
+async function debugDatabase() {
+    try {
+        const response = await fetch('/api/followups/debug');
+        const data = await response.json();
+        
+        console.log('Database Debug Info:', data);
+        
+        // Show debug info in an alert
+        let debugInfo = `Database Debug Info:\n\n`;
+        debugInfo += `Database Connected: ${data.database_connected}\n`;
+        debugInfo += `Database Name: ${data.database_name}\n`;
+        debugInfo += `Policies Table Exists: ${data.policies_table_exists}\n`;
+        debugInfo += `Followups Table Exists: ${data.followups_table_exists}\n`;
+        debugInfo += `Total Policies: ${data.total_policies}\n`;
+        debugInfo += `Total Followups: ${data.total_followups}\n`;
+        debugInfo += `Current Time: ${data.current_time}\n`;
+        
+        if (data.sample_policies && data.sample_policies.length > 0) {
+            debugInfo += `\nSample Policies:\n`;
+            data.sample_policies.forEach((policy, index) => {
+                debugInfo += `${index + 1}. ${policy.customer_name} - ${policy.end_date}\n`;
+            });
+        }
+        
+        alert(debugInfo);
+        
+    } catch (error) {
+        console.error('Error debugging database:', error);
+        alert('Error debugging database: ' + error.message);
     }
 }
 
