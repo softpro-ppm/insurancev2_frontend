@@ -952,14 +952,20 @@ async function saveSimpleFollowup() {
 
 async function loadCrmDashboard() {
     try {
+        console.log('Loading CRM dashboard...');
         const response = await fetch('/api/followups/crm-dashboard');
         const data = await response.json();
+        
+        console.log('Dashboard data received:', data);
         
         // Update statistics
         document.getElementById('pendingFollowupsCount').textContent = data.stats.pendingFollowups;
         document.getElementById('overdueFollowupsCount').textContent = data.stats.overdueFollowups;
         document.getElementById('completedTodayCount').textContent = data.stats.completedToday;
         document.getElementById('expiringPoliciesCount').textContent = data.stats.expiringPolicies;
+        
+        console.log('Expiring policies:', data.expiringPolicies);
+        console.log('Recent followups:', data.recentFollowups);
         
         // Load expiring policies
         loadExpiringPolicies(data.expiringPolicies);
@@ -969,6 +975,7 @@ async function loadCrmDashboard() {
         
     } catch (error) {
         console.error('Error loading CRM dashboard:', error);
+        alert('Error loading dashboard data: ' + error.message);
     }
 }
 
@@ -1133,14 +1140,17 @@ async function createSampleData() {
         const result = await response.json();
         
         if (response.ok) {
-            alert('Sample data created successfully!');
-            loadCrmDashboard(); // Refresh the dashboard
+            alert('Sample data created successfully! ' + result.count + ' policies added.');
+            // Force refresh the dashboard
+            setTimeout(() => {
+                loadCrmDashboard();
+            }, 1000);
         } else {
-            alert('Error creating sample data: ' + result.message);
+            alert('Error creating sample data: ' + (result.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error creating sample data:', error);
-        alert('Error creating sample data');
+        alert('Error creating sample data: ' + error.message);
     }
 }
 

@@ -47,6 +47,15 @@ class FollowupController extends Controller
      */
     public function getCrmDashboard()
     {
+        // First, let's check if we have any policies at all
+        $totalPolicies = \App\Models\Policy::count();
+        \Log::info('Total policies in database: ' . $totalPolicies);
+        
+        // If no policies exist, create some sample data
+        if ($totalPolicies === 0) {
+            $this->createSampleExpiringPolicies();
+        }
+        
         // Get policies expiring in next 30 days
         $expiringPolicies = \App\Models\Policy::where('end_date', '>=', now())
             ->where('end_date', '<=', now()->addDays(30))
@@ -69,15 +78,7 @@ class FollowupController extends Controller
                 ];
             });
 
-        // Debug: Log the count and check if we have any policies
         \Log::info('Expiring policies count: ' . $expiringPolicies->count());
-        \Log::info('Total policies in database: ' . \App\Models\Policy::count());
-        
-        // If no expiring policies, let's check if there are any policies at all
-        if ($expiringPolicies->count() === 0) {
-            $allPolicies = \App\Models\Policy::all();
-            \Log::info('All policies: ' . $allPolicies->toJson());
-        }
 
         // Get followup statistics
         $stats = [
@@ -105,6 +106,25 @@ class FollowupController extends Controller
                     'nextFollowup' => $followup->followup_date ? $followup->followup_date->format('M d, Y') : 'Not scheduled'
                 ];
             });
+
+        // If no followups exist, create some sample data
+        if ($recentFollowups->count() === 0) {
+            $this->createSampleFollowups();
+            // Re-fetch after creating sample data
+            $recentFollowups = Followup::orderByDesc('updated_at')
+                ->limit(10)
+                ->get()
+                ->map(function ($followup) {
+                    return [
+                        'id' => $followup->id,
+                        'customerName' => $followup->customer_name,
+                        'phone' => $followup->phone,
+                        'status' => $followup->status,
+                        'lastContact' => $followup->updated_at->format('M d, Y'),
+                        'nextFollowup' => $followup->followup_date ? $followup->followup_date->format('M d, Y') : 'Not scheduled'
+                    ];
+                });
+        }
 
         return response()->json([
             'stats' => $stats,
@@ -259,7 +279,16 @@ class FollowupController extends Controller
                 'company_name' => 'SBI General',
                 'end_date' => now()->addDays(5)->format('Y-m-d'),
                 'premium' => 15000,
-                'status' => 'Active'
+                'status' => 'Active',
+                'start_date' => now()->subDays(300)->format('Y-m-d'),
+                'vehicle_number' => 'KA01AB1234',
+                'vehicle_type' => 'Car',
+                'insurance_type' => 'Comprehensive',
+                'payout' => 0,
+                'customer_paid_amount' => 15000,
+                'revenue' => 1500,
+                'business_type' => 'Direct',
+                'agent_name' => 'Agent1'
             ],
             [
                 'customer_name' => 'Jane Smith',
@@ -269,7 +298,16 @@ class FollowupController extends Controller
                 'company_name' => 'Future Generali',
                 'end_date' => now()->addDays(12)->format('Y-m-d'),
                 'premium' => 25000,
-                'status' => 'Active'
+                'status' => 'Active',
+                'start_date' => now()->subDays(300)->format('Y-m-d'),
+                'vehicle_number' => null,
+                'vehicle_type' => null,
+                'insurance_type' => 'Health',
+                'payout' => 0,
+                'customer_paid_amount' => 25000,
+                'revenue' => 2500,
+                'business_type' => 'Direct',
+                'agent_name' => 'Agent2'
             ],
             [
                 'customer_name' => 'Mike Johnson',
@@ -279,18 +317,88 @@ class FollowupController extends Controller
                 'company_name' => 'HDFC ERGO',
                 'end_date' => now()->addDays(25)->format('Y-m-d'),
                 'premium' => 18000,
-                'status' => 'Active'
+                'status' => 'Active',
+                'start_date' => now()->subDays(300)->format('Y-m-d'),
+                'vehicle_number' => 'KA02CD5678',
+                'vehicle_type' => 'Bike',
+                'insurance_type' => 'Third Party',
+                'payout' => 0,
+                'customer_paid_amount' => 18000,
+                'revenue' => 1800,
+                'business_type' => 'Direct',
+                'agent_name' => 'Agent3'
             ]
         ];
 
+        $createdCount = 0;
         foreach ($samplePolicies as $policyData) {
-            \App\Models\Policy::create($policyData);
+            try {
+                \App\Models\Policy::create($policyData);
+                $createdCount++;
+            } catch (\Exception $e) {
+                \Log::error('Error creating policy: ' . $e->getMessage());
+            }
         }
+
+        \Log::info('Created ' . $createdCount . ' sample policies');
 
         return response()->json([
             'message' => 'Sample expiring policies created successfully!',
-            'count' => count($samplePolicies)
+            'count' => $createdCount
         ]);
+    }
+
+    /**
+     * Create sample follow-ups for testing
+     */
+    private function createSampleFollowups()
+    {
+        $sampleFollowups = [
+            [
+                'customer_name' => 'John Doe',
+                'phone' => '9876543210',
+                'email' => 'john@example.com',
+                'policy_type' => 'Motor',
+                'followup_type' => 'Renewal',
+                'followup_date' => now()->addDays(2)->format('Y-m-d'),
+                'followup_time' => '10:00:00',
+                'status' => 'Pending',
+                'agent_name' => 'Self',
+                'notes' => 'Customer interested in renewal, will call back tomorrow'
+            ],
+            [
+                'customer_name' => 'Jane Smith',
+                'phone' => '9876543211',
+                'email' => 'jane@example.com',
+                'policy_type' => 'Health',
+                'followup_type' => 'Renewal',
+                'followup_date' => now()->addDays(5)->format('Y-m-d'),
+                'followup_time' => '14:00:00',
+                'status' => 'Will Come',
+                'agent_name' => 'Self',
+                'notes' => 'Customer confirmed they will visit office next week'
+            ],
+            [
+                'customer_name' => 'Mike Johnson',
+                'phone' => '9876543212',
+                'email' => 'mike@example.com',
+                'policy_type' => 'Motor',
+                'followup_type' => 'Renewal',
+                'followup_date' => now()->addDays(1)->format('Y-m-d'),
+                'followup_time' => '09:00:00',
+                'status' => 'Not Answered',
+                'agent_name' => 'Self',
+                'notes' => 'No response to calls, will try again tomorrow'
+            ]
+        ];
+
+        foreach ($sampleFollowups as $followupData) {
+            try {
+                Followup::create($followupData);
+            } catch (\Exception $e) {
+                \Log::error('Error creating followup: ' . $e->getMessage());
+            }
+        }
     }
 
     /**
