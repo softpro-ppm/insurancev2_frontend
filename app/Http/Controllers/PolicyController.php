@@ -982,15 +982,18 @@ class PolicyController extends Controller
                 $isRemoteUrl = true;
                 $fullPath = $filePath;
             } else {
-                // Try multiple possible local storage paths
-                $possiblePaths = [
-                    storage_path('app/' . $filePath),
-                    storage_path('app/public/' . $filePath),
-                    public_path('storage/' . $filePath),
-                    public_path('uploads/' . $filePath),
-                    storage_path($filePath),
-                    $filePath // Direct path
-                ];
+            // Try multiple possible storage paths for production
+            $possiblePaths = [
+                storage_path('app/' . $filePath),
+                storage_path('app/public/' . $filePath),
+                public_path('storage/' . $filePath),
+                public_path('uploads/' . $filePath),
+                public_path($filePath), // Direct public path
+                storage_path($filePath),
+                $filePath, // Direct path
+                base_path('public/' . $filePath), // Production public path
+                base_path('storage/app/' . $filePath) // Production storage path
+            ];
                 
                 foreach ($possiblePaths as $path) {
                     if (file_exists($path)) {
@@ -1059,14 +1062,17 @@ class PolicyController extends Controller
             $isRemoteUrl = true;
             $fullPath = $filePath;
         } else {
-            // Try multiple possible local storage paths
+            // Try multiple possible storage paths for production
             $possiblePaths = [
                 storage_path('app/' . $filePath),
                 storage_path('app/public/' . $filePath),
                 public_path('storage/' . $filePath),
                 public_path('uploads/' . $filePath),
+                public_path($filePath), // Direct public path
                 storage_path($filePath),
-                $filePath // Direct path
+                $filePath, // Direct path
+                base_path('public/' . $filePath), // Production public path
+                base_path('storage/app/' . $filePath) // Production storage path
             ];
             
             foreach ($possiblePaths as $path) {
