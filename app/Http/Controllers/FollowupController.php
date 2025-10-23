@@ -59,15 +59,47 @@ class FollowupController extends Controller
         $policiesWithEndDate = \App\Models\Policy::whereNotNull('end_date')->count();
         \Log::info('Policies with end_date: ' . $policiesWithEndDate);
         
-        // Get policies expiring in next 30 days (status-agnostic and date-only to avoid time zone issues)
+        // Get policies expiring in next 30 days - handle both date formats
         $today = now()->startOfDay();
         $endWindow = $today->copy()->addDays(30);
+        
+        // Try standard date format first
         $expiringPolicies = \App\Models\Policy::whereDate('end_date', '>=', $today->toDateString())
             ->whereDate('end_date', '<=', $endWindow->toDateString())
             ->orderBy('end_date')
-            ->get()
-            ->map(function ($policy) {
-                $daysUntilExpiry = now()->diffInDays($policy->end_date, false);
+            ->get();
+            
+        // If no results, try with string comparison for dd-mm-yyyy format
+        if ($expiringPolicies->count() === 0) {
+            $todayStr = $today->format('d-m-Y');
+            $endWindowStr = $endWindow->format('d-m-Y');
+            
+            $expiringPolicies = \App\Models\Policy::where('end_date', '>=', $todayStr)
+                ->where('end_date', '<=', $endWindowStr)
+                ->orderBy('end_date')
+                ->get();
+        }
+        
+        // If still no results, get all policies to debug
+        if ($expiringPolicies->count() === 0) {
+            $allPolicies = \App\Models\Policy::limit(5)->get();
+            \Log::info('No expiring policies found. Sample policies:', $allPolicies->toArray());
+        }
+        
+        $expiringPolicies = $expiringPolicies->map(function ($policy) {
+            try {
+                // Handle different date formats
+                $endDate = $policy->end_date;
+                if (is_string($endDate)) {
+                    // Try to parse as dd-mm-yyyy first
+                    if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $endDate)) {
+                        $endDate = \Carbon\Carbon::createFromFormat('d-m-Y', $endDate);
+                    } else {
+                        $endDate = \Carbon\Carbon::parse($endDate);
+                    }
+                }
+                
+                $daysUntilExpiry = now()->diffInDays($endDate, false);
                 return [
                     'id' => $policy->id,
                     'customerName' => $policy->customer_name,
@@ -75,12 +107,16 @@ class FollowupController extends Controller
                     'email' => $policy->email,
                     'policyType' => $policy->policy_type,
                     'companyName' => $policy->company_name,
-                    'endDate' => $policy->end_date->format('Y-m-d'),
+                    'endDate' => $endDate->format('Y-m-d'),
                     'daysUntilExpiry' => $daysUntilExpiry,
                     'premium' => $policy->premium,
                     'status' => $daysUntilExpiry <= 7 ? 'Urgent' : ($daysUntilExpiry <= 15 ? 'Warning' : 'Normal')
                 ];
-            });
+            } catch (\Exception $e) {
+                \Log::error('Error processing policy: ' . $e->getMessage());
+                return null;
+            }
+        })->filter();
 
         \Log::info('Expiring policies count: ' . $expiringPolicies->count());
 

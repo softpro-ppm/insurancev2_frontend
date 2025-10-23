@@ -135,6 +135,21 @@ Route::post('/api/followups/save-simple', [FollowupController::class, 'saveSimpl
 Route::post('/api/followups/create-sample-policies', [FollowupController::class, 'createSampleExpiringPolicies'])->name('followups.create-sample');
 Route::get('/api/followups/check-data', [FollowupController::class, 'checkDataStatus'])->name('followups.check-data');
 Route::get('/api/followups/debug', [FollowupController::class, 'debugDatabase'])->name('followups.debug');
+Route::get('/api/followups/quick-check', function() {
+    $totalPolicies = \App\Models\Policy::count();
+    $samplePolicies = \App\Models\Policy::limit(3)->get(['id', 'customer_name', 'end_date', 'status']);
+    $expiringCount = \App\Models\Policy::where('end_date', '>=', now()->format('Y-m-d'))
+        ->where('end_date', '<=', now()->addDays(30)->format('Y-m-d'))
+        ->count();
+    
+    return response()->json([
+        'total_policies' => $totalPolicies,
+        'expiring_count' => $expiringCount,
+        'sample_policies' => $samplePolicies,
+        'current_date' => now()->format('Y-m-d'),
+        'next_30_days' => now()->addDays(30)->format('Y-m-d')
+    ]);
+});
 
 // Reports routes
 Route::get('/reports', function () {
