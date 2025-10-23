@@ -59,18 +59,21 @@ class FollowupController extends Controller
         $policiesWithEndDate = \App\Models\Policy::whereNotNull('end_date')->count();
         \Log::info('Policies with end_date: ' . $policiesWithEndDate);
         
-        // Get policies expiring in next 30 days - handle both date formats
+        // Get policies expiring in next 30 days using SQL-based date conversion
         $today = now()->startOfDay();
         $endWindow = $today->copy()->addDays(30);
         
-        // Try standard date format first
-        $expiringPolicies = \App\Models\Policy::whereDate('end_date', '>=', $today->toDateString())
-            ->whereDate('end_date', '<=', $endWindow->toDateString())
-            ->orderBy('end_date')
-            ->get();
-            
-        // If no results, try with string comparison for dd-mm-yyyy format
+        // Use raw SQL to handle both date formats (dd-mm-yyyy and yyyy-mm-dd)
+        $expiringPolicies = \App\Models\Policy::whereRaw(
+            "STR_TO_DATE(end_date, '%d-%m-%Y') BETWEEN ? AND ? OR 
+             STR_TO_DATE(end_date, '%Y-%m-%d') BETWEEN ? AND ?",
+            [$today->toDateString(), $endWindow->toDateString(), $today->toDateString(), $endWindow->toDateString()]
+        )->orderBy('end_date')
+        ->get();
+        
+        // If still no results, try alternative approaches
         if ($expiringPolicies->count() === 0) {
+            // Try with string comparison for dd-mm-yyyy format
             $todayStr = $today->format('d-m-Y');
             $endWindowStr = $endWindow->format('d-m-Y');
             
@@ -88,15 +91,12 @@ class FollowupController extends Controller
         
         $expiringPolicies = $expiringPolicies->map(function ($policy) {
             try {
-                // Handle different date formats
-                $endDate = $policy->end_date;
-                if (is_string($endDate)) {
-                    // Try to parse as dd-mm-yyyy first
-                    if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $endDate)) {
-                        $endDate = \Carbon\Carbon::createFromFormat('d-m-Y', $endDate);
-                    } else {
-                        $endDate = \Carbon\Carbon::parse($endDate);
-                    }
+                // Use smart date detection
+                $endDate = $this->parseDate($policy->end_date);
+                
+                if (!$endDate) {
+                    \Log::warning('Could not parse date for policy ID: ' . $policy->id . ', raw date: ' . $policy->end_date);
+                    return null;
                 }
                 
                 $daysUntilExpiry = now()->diffInDays($endDate, false);
@@ -456,6 +456,46 @@ class FollowupController extends Controller
             'hasData' => $totalPolicies > 0 || $totalFollowups > 0,
             'needsSampleData' => $totalPolicies === 0 && $totalFollowups === 0
         ]);
+    }
+
+    /**
+     * Smart date detection and parsing helper
+     */
+    private function parseDate($dateValue)
+    {
+        if (is_null($dateValue)) {
+            return null;
+        }
+        
+        if ($dateValue instanceof \Carbon\Carbon) {
+            return $dateValue;
+        }
+        
+        // Try dd-mm-yyyy format first
+        if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $dateValue)) {
+            try {
+                return \Carbon\Carbon::createFromFormat('d-m-Y', $dateValue);
+            } catch (\Exception $e) {
+                \Log::error('Failed to parse dd-mm-yyyy date: ' . $dateValue . ' - ' . $e->getMessage());
+            }
+        }
+        
+        // Try yyyy-mm-dd format
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateValue)) {
+            try {
+                return \Carbon\Carbon::createFromFormat('Y-m-d', $dateValue);
+            } catch (\Exception $e) {
+                \Log::error('Failed to parse yyyy-mm-dd date: ' . $dateValue . ' - ' . $e->getMessage());
+            }
+        }
+        
+        // Try general parsing
+        try {
+            return \Carbon\Carbon::parse($dateValue);
+        } catch (\Exception $e) {
+            \Log::error('Failed to parse date: ' . $dateValue . ' - ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**

@@ -138,16 +138,48 @@ Route::get('/api/followups/debug', [FollowupController::class, 'debugDatabase'])
 Route::get('/api/followups/quick-check', function() {
     $totalPolicies = \App\Models\Policy::count();
     $samplePolicies = \App\Models\Policy::limit(3)->get(['id', 'customer_name', 'end_date', 'status']);
-    $expiringCount = \App\Models\Policy::where('end_date', '>=', now()->format('Y-m-d'))
-        ->where('end_date', '<=', now()->addDays(30)->format('Y-m-d'))
+    
+    // Test both date format queries
+    $today = now()->format('Y-m-d');
+    $next30Days = now()->addDays(30)->format('Y-m-d');
+    
+    // Standard yyyy-mm-dd query
+    $expiringCountStandard = \App\Models\Policy::where('end_date', '>=', $today)
+        ->where('end_date', '<=', $next30Days)
         ->count();
+    
+    // SQL-based date conversion query
+    $expiringCountSQL = \App\Models\Policy::whereRaw(
+        "STR_TO_DATE(end_date, '%d-%m-%Y') BETWEEN ? AND ? OR 
+         STR_TO_DATE(end_date, '%Y-%m-%d') BETWEEN ? AND ?",
+        [$today, $next30Days, $today, $next30Days]
+    )->count();
+    
+    // Analyze date formats in sample data
+    $dateFormats = [];
+    foreach ($samplePolicies as $policy) {
+        if ($policy->end_date) {
+            $rawDate = $policy->end_date;
+            $dateFormats[] = [
+                'id' => $policy->id,
+                'raw_date' => $rawDate,
+                'is_dd_mm_yyyy' => preg_match('/^\d{2}-\d{2}-\d{4}$/', $rawDate),
+                'is_yyyy_mm_dd' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate),
+                'date_type' => gettype($rawDate)
+            ];
+        }
+    }
     
     return response()->json([
         'total_policies' => $totalPolicies,
-        'expiring_count' => $expiringCount,
+        'expiring_count_standard' => $expiringCountStandard,
+        'expiring_count_sql_conversion' => $expiringCountSQL,
         'sample_policies' => $samplePolicies,
-        'current_date' => now()->format('Y-m-d'),
-        'next_30_days' => now()->addDays(30)->format('Y-m-d')
+        'date_format_analysis' => $dateFormats,
+        'current_date' => $today,
+        'next_30_days' => $next30Days,
+        'timezone' => config('app.timezone'),
+        'current_time' => now()->toDateTimeString()
     ]);
 });
 
