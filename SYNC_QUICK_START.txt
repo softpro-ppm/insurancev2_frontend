@@ -1,0 +1,81 @@
+╔════════════════════════════════════════════════════════════════╗
+║  PRODUCTION → LOCAL SYNC - QUICK START GUIDE                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+📋 WHAT THIS DOES:
+   ✅ Downloads all 560+ policies from production
+   ✅ Downloads all documents (PDFs, images)
+   ✅ Imports everything to your local database
+   ✅ Makes local = production (perfect for development!)
+
+⏱️  TIME REQUIRED: 15-45 minutes (mostly waiting for file downloads)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 STEP 1: EXPORT FROM PRODUCTION SERVER
+
+You're already connected to SSH!
+At the prompt: [u820431346@us-imm-web1739 ~]$
+
+Run these commands ONE AT A TIME:
+
+1️⃣  cd ~/public_html/v2insurance
+2️⃣  php export_policies_production.php > policies_export.json 2>&1
+3️⃣  ls -lh policies_export.json
+    (You should see the file size, like: 2.3M)
+4️⃣  exit
+    (Returns you to your Mac terminal)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 STEP 2: DOWNLOAD & IMPORT (ON YOUR MAC)
+
+After you exit SSH, run this ONE command:
+
+./SYNC_FROM_PRODUCTION.sh
+
+This script will:
+✅ Download the database export (5 seconds)
+✅ Download all documents (10-30 minutes with progress bar)
+✅ Import to local database (1-2 minutes)
+
+You'll be prompted before each step - just press ENTER to continue.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 3: VERIFY
+
+After import completes, verify:
+
+php artisan tinker --execute="echo 'Policies: ' . \App\Models\Policy::count();"
+
+Should show: Policies: 560+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧹 CLEANUP (IMPORTANT FOR SECURITY!)
+
+Delete the export file from production:
+
+ssh -p 65002 u820431346@145.14.146.15 'rm ~/public_html/v2insurance/policies_export.json'
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TROUBLESHOOTING:
+
+❌ "Permission denied" → Run: chmod +x SYNC_FROM_PRODUCTION.sh
+❌ "File not found" → Make sure you ran the export on the server first
+❌ "Connection refused" → Check your SSH password
+❌ Documents sync too slow → You can skip it (press Ctrl+C when prompted)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 CURRENT STATUS:
+   ✅ Sync script created: SYNC_FROM_PRODUCTION.sh
+   ✅ Import script ready: import_policies_local.php
+   ⏳ Waiting for you to: Run export on server (Step 1)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 NEED HELP? Just paste the error message and I'll fix it!
+

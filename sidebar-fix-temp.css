@@ -1,0 +1,68 @@
+/* Sidebar Navigation - Full Clickable Area Fix */
+
+.nav-item {
+    margin: 6px 0px;
+    position: relative;
+    list-style: none;
+}
+
+.nav-item.active {
+    border-right: 3px solid #4F46E5;
+}
+
+.nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #6B7280;
+    text-decoration: none;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+}
+
+.nav-item a:hover {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4F46E5;
+}
+
+.nav-item.active a {
+    background: rgba(79, 70, 229, 0.12);
+    color: #4F46E5;
+}
+
+.nav-item a i {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.nav-item a:hover i {
+    transform: scale(1.05);
+}
+
+.nav-item a span {
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .nav-item a span {
+    display: none;
+    opacity: 0;
+}
+
+.sidebar.collapsed .nav-item a {
+    justify-content: center;
+    padding: 14px;
+}
+
+.sidebar.collapsed .nav-item a i {
+    margin: 0;
+}
+

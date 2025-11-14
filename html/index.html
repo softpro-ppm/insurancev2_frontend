@@ -1,0 +1,3281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Management System 2.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="light-theme">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Insurance MS 2.0</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="add-policy-btn" id="addPolicyBtn">
+                <i class="fas fa-plus"></i>
+                Add New Policy
+            </button>
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Admin</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <div class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Admin</span>
+                    </div>
+                    <div class="dropdown-item">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Agent</span>
+                    </div>
+                    <div class="dropdown-item">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Reception</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li class="nav-item" data-page="policies">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Policies</span>
+                    </li>
+                    <li class="nav-item" data-page="renewals">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Renewals</span>
+                    </li>
+                    <li class="nav-item" data-page="followups">
+                        <i class="fas fa-bell"></i>
+                        <span>Follow Ups</span>
+                    </li>
+                    <li class="nav-item" data-page="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </li>
+                    <li class="nav-item" data-page="agents">
+                        <i class="fas fa-users"></i>
+                        <span>Agents</span>
+                    </li>
+                    <li class="nav-item" data-page="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </li>
+                    <li class="nav-item" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Welcome to Insurance Management System 2.0</p>
+                </div>
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-icon premium">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Premium (Current Month)</h3>
+                            <p class="card-value">₹2,45,000</p>
+                            <p class="card-subtitle">₹12,50,000 (FY)</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon policies">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Policies (Current Month)</h3>
+                            <p class="card-value">45</p>
+                            <p class="card-subtitle">280 (FY)</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon renewals">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Renewals (Current Month)</h3>
+                            <p class="card-value">12</p>
+                            <p class="card-subtitle">85 Pending</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon revenue">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Revenue (Current Month)</h3>
+                            <p class="card-value">₹1,85,000</p>
+                            <p class="card-subtitle">₹9,20,000 (FY)</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Premium vs Revenue vs Policy</h3>
+                            <select class="chart-dropdown" id="chartPeriod">
+                                <option value="fy">Financial Year</option>
+                                <option value="month">Current Month</option>
+                                <option value="quarter">Current Quarter</option>
+                            </select>
+                        </div>
+                        <canvas id="barChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Insurance Distribution</h3>
+                        </div>
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Recent Policies</h3>
+                        <div class="table-controls">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search policies..." id="policySearch">
+                            </div>
+                            <select class="rows-per-page" id="rowsPerPage">
+                                <option value="10">10 rows</option>
+                                <option value="30">30 rows</option>
+                                <option value="50">50 rows</option>
+                                <option value="100">100 rows</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="policiesTable">
+                            <thead>
+                                <tr>
+                                    <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                                    <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
+                                    <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
+                                    <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
+                                    <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
+                                    <th data-sort="endDate">End Date <i class="fas fa-sort"></i></th>
+                                    <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
+                                    <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="policiesTableBody">
+                                <!-- Table data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-pagination">
+                        <div class="pagination-info">
+                            Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords">50</span> entries
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPage" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="page-numbers" id="pageNumbers">
+                                <!-- Page numbers will be generated by JavaScript -->
+                            </div>
+                            <button class="pagination-btn" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Pages (Hidden by default) -->
+            <div class="page" id="policies">
+                <div class="page-header">
+                    <h1>Policies</h1>
+                    <p>Manage all insurance policies</p>
+                </div>
+                <div class="page-content">
+                    <!-- Policies Controls -->
+                    <div class="policies-controls">
+                        <div class="controls-left">
+                            <button class="add-policy-btn" id="addPolicyFromPoliciesBtn">
+                                <i class="fas fa-plus"></i>
+                                Add New Policy
+                            </button>
+                        </div>
+                        <div class="controls-right">
+                            <div class="filter-group">
+                                <label for="policyTypeFilter">Policy Type:</label>
+                                <select id="policyTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="Motor">Motor</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Life">Life</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="statusFilter">Status:</label>
+                                <select id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Expired">Expired</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search policies..." id="policiesSearch">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Policies Statistics -->
+                    <div class="policies-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon active">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Active Policies</h3>
+                                <p class="stat-value" id="activePoliciesCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon expired">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Expired Policies</h3>
+                                <p class="stat-value" id="expiredPoliciesCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Pending Renewals</h3>
+                                <p class="stat-value" id="pendingRenewalsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon total">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Policies</h3>
+                                <p class="stat-value" id="totalPoliciesCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Policies Data Table -->
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <h3>All Policies</h3>
+                            <div class="table-controls">
+                                <select class="rows-per-page" id="policiesRowsPerPage">
+                                    <option value="10">10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                </select>
+                                <button class="export-btn" id="exportPolicies">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                                                    <table class="data-table" id="policiesPageTable">
+                            <thead>
+                                <tr>
+                                    <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                                    <th data-sort="type">Policy Type <i class="fas fa-sort"></i></th>
+                                    <th data-sort="owner">Customer Name <i class="fas fa-sort"></i></th>
+                                    <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
+                                    <th data-sort="company">Insurance Company <i class="fas fa-sort"></i></th>
+                                    <th data-sort="endDate">End Date <i class="fas fa-sort"></i></th>
+                                    <th data-sort="premium">Premium <i class="fas fa-sort"></i></th>
+                                    <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="policiesPageTableBody">
+                                <!-- Table data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                Showing <span id="policiesStartRecord">1</span> to <span id="policiesEndRecord">10</span> of <span id="policiesTotalRecords">50</span> entries
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="policiesPrevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div class="page-numbers" id="policiesPageNumbers">
+                                    <!-- Page numbers will be generated by JavaScript -->
+                                </div>
+                                <button class="pagination-btn" id="policiesNextPage">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="renewals">
+                <div class="page-header">
+                    <h1>Renewals</h1>
+                    <p>Manage policy renewals and track upcoming expirations</p>
+                </div>
+                <div class="page-content">
+                    <!-- Renewals Controls -->
+                    <div class="renewals-controls">
+                        <div class="controls-left">
+                            <button class="add-renewal-btn" id="addRenewalBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Renewal Reminder
+                            </button>
+                        </div>
+                        <div class="controls-right">
+                            <div class="filter-group">
+                                <label for="renewalStatusFilter">Status:</label>
+                                <select id="renewalStatusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="renewalPriorityFilter">Priority:</label>
+                                <select id="renewalPriorityFilter">
+                                    <option value="">All Priorities</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search renewals..." id="renewalsSearch">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Renewals Statistics -->
+                    <div class="renewals-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Pending Renewals</h3>
+                                <p class="stat-value" id="pendingRenewalsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon overdue">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Overdue Renewals</h3>
+                                <p class="stat-value" id="overdueRenewalsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Completed This Month</h3>
+                                <p class="stat-value" id="completedRenewalsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon total">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Renewals</h3>
+                                <p class="stat-value" id="totalRenewalsCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Renewals Data Table -->
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <h3>Renewals Management</h3>
+                            <div class="table-controls">
+                                <select class="rows-per-page" id="renewalsRowsPerPage">
+                                    <option value="10">10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                </select>
+                                <button class="export-btn" id="exportRenewals">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="renewalsTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                                        <th data-sort="policyId">Policy ID <i class="fas fa-sort"></i></th>
+                                        <th data-sort="customerName">Customer Name <i class="fas fa-sort"></i></th>
+                                        <th data-sort="policyType">Policy Type <i class="fas fa-sort"></i></th>
+                                        <th data-sort="expiryDate">Expiry Date <i class="fas fa-sort"></i></th>
+                                        <th data-sort="daysLeft">Days Left <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                        <th data-sort="priority">Priority <i class="fas fa-sort"></i></th>
+                                        <th data-sort="assignedTo">Assigned To <i class="fas fa-sort"></i></th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="renewalsTableBody">
+                                    <!-- Table data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                Showing <span id="renewalsStartRecord">1</span> to <span id="renewalsEndRecord">10</span> of <span id="renewalsTotalRecords">0</span> entries
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="renewalsPrevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div class="page-numbers" id="renewalsPageNumbers">
+                                    <!-- Page numbers will be generated by JavaScript -->
+                                </div>
+                                <button class="pagination-btn" id="renewalsNextPage">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="followups">
+                <div class="page-header">
+                    <h1>Follow Ups</h1>
+                    <p>Track customer interactions and telecaller follow-up activities</p>
+                </div>
+                <div class="page-content">
+                    <!-- Follow Ups Controls -->
+                    <div class="followups-controls">
+                        <div class="controls-left">
+                            <button class="add-followup-btn" id="addFollowupBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Follow Up
+                            </button>
+                        </div>
+                        <div class="controls-right">
+                            <div class="filter-group">
+                                <label for="followupStatusFilter">Status:</label>
+                                <select id="followupStatusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="No Response">No Response</option>
+                                    <option value="Not Interested">Not Interested</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="followupTypeFilter">Type:</label>
+                                <select id="followupTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="Renewal">Renewal</option>
+                                    <option value="New Policy">New Policy</option>
+                                    <option value="Claim">Claim</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search follow-ups..." id="followupsSearch">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow Ups Statistics -->
+                    <div class="followups-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Pending Follow-ups</h3>
+                                <p class="stat-value" id="pendingFollowupsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon inprogress">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>In Progress</h3>
+                                <p class="stat-value" id="inProgressFollowupsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Completed Today</h3>
+                                <p class="stat-value" id="completedTodayCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon total">
+                                <i class="fas fa-list-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Follow-ups</h3>
+                                <p class="stat-value" id="totalFollowupsCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow Ups Data Table -->
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <h3>Follow-up Management</h3>
+                            <div class="table-controls">
+                                <select class="rows-per-page" id="followupsRowsPerPage">
+                                    <option value="10">10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                </select>
+                                <button class="export-btn" id="exportFollowups">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="followupsTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                                        <th data-sort="customerName">Customer Name <i class="fas fa-sort"></i></th>
+                                        <th data-sort="phone">Phone Number <i class="fas fa-sort"></i></th>
+                                        <th data-sort="followupType">Follow-up Type <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                        <th data-sort="assignedTo">Assigned To <i class="fas fa-sort"></i></th>
+                                        <th data-sort="lastFollowupDate">Last Follow-up <i class="fas fa-sort"></i></th>
+                                        <th data-sort="nextFollowupDate">Next Follow-up <i class="fas fa-sort"></i></th>
+                                        <th data-sort="recentNote">Recent Note <i class="fas fa-sort"></i></th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="followupsTableBody">
+                                    <!-- Table data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                Showing <span id="followupsStartRecord">1</span> to <span id="followupsEndRecord">10</span> of <span id="followupsTotalRecords">0</span> entries
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="followupsPrevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div class="page-numbers" id="followupsPageNumbers">
+                                    <!-- Page numbers will be generated by JavaScript -->
+                                </div>
+                                <button class="pagination-btn" id="followupsNextPage">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="reports">
+                <div class="page-header">
+                    <h1>Reports & Analytics</h1>
+                    <p>Comprehensive insights and performance analytics</p>
+                </div>
+                <div class="page-content">
+                    <!-- Reports Controls -->
+                    <div class="reports-controls">
+                        <div class="controls-left">
+                            <div class="date-range-picker">
+                                <label for="reportStartDate">From:</label>
+                                <input type="date" id="reportStartDate">
+                                <label for="reportEndDate">To:</label>
+                                <input type="date" id="reportEndDate">
+                            </div>
+                        </div>
+                        <div class="controls-right">
+                            <div class="filter-group">
+                                <label for="reportTypeFilter">Report Type:</label>
+                                <select id="reportTypeFilter">
+                                    <option value="all">All Reports</option>
+                                    <option value="policies">Policies</option>
+                                    <option value="renewals">Renewals</option>
+                                    <option value="followups">Follow-ups</option>
+                                    <option value="agents">Agents</option>
+                                    <option value="revenue">Revenue</option>
+                                </select>
+                            </div>
+                            <button class="generate-report-btn" id="generateReportBtn">
+                                <i class="fas fa-chart-bar"></i>
+                                Generate Report
+                            </button>
+                            <button class="export-report-btn" id="exportReportBtn">
+                                <i class="fas fa-download"></i>
+                                Export Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Key Performance Indicators -->
+                    <div class="kpi-section">
+                        <h3>Key Performance Indicators</h3>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-icon premium">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                                <div class="kpi-content">
+                                    <h4>Total Premium</h4>
+                                    <p class="kpi-value" id="totalPremiumKPI">₹0</p>
+                                    <span class="kpi-change positive" id="premiumChange">+0%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon revenue">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="kpi-content">
+                                    <h4>Total Revenue</h4>
+                                    <p class="kpi-value" id="totalRevenueKPI">₹0</p>
+                                    <span class="kpi-change positive" id="revenueChange">+0%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon policies">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
+                                <div class="kpi-content">
+                                    <h4>Active Policies</h4>
+                                    <p class="kpi-value" id="activePoliciesKPI">0</p>
+                                    <span class="kpi-change positive" id="policiesChange">+0%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon conversion">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="kpi-content">
+                                    <h4>Conversion Rate</h4>
+                                    <p class="kpi-value" id="conversionRateKPI">0%</p>
+                                    <span class="kpi-change positive" id="conversionChange">+0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="charts-section">
+                        <div class="chart-row">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h3>Premium vs Revenue Trend</h3>
+                                    <div class="chart-controls">
+                                        <select id="trendPeriod">
+                                            <option value="7">Last 7 Days</option>
+                                            <option value="30" selected>Last 30 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                            <option value="365">Last Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h3>Policy Type Distribution</h3>
+                                    <div class="chart-controls">
+                                        <select id="policyTypePeriod">
+                                            <option value="30" selected>Last 30 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                            <option value="365">Last Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <canvas id="policyTypeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-row">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h3>Agent Performance</h3>
+                                    <div class="chart-controls">
+                                        <select id="agentPerformancePeriod">
+                                            <option value="30" selected>Last 30 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                            <option value="365">Last Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <canvas id="agentPerformanceChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h3>Renewal Status</h3>
+                                    <div class="chart-controls">
+                                        <select id="renewalStatusPeriod">
+                                            <option value="30" selected>Last 30 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                            <option value="365">Last Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <canvas id="renewalStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Reports Section -->
+                    <div class="reports-section">
+                        <div class="reports-tabs">
+                            <button class="tab-btn active" data-tab="policies">Policies Report</button>
+                            <button class="tab-btn" data-tab="renewals">Renewals Report</button>
+                            <button class="tab-btn" data-tab="followups">Follow-ups Report</button>
+                            <button class="tab-btn" data-tab="agents">Agents Report</button>
+                        </div>
+                        
+                        <!-- Policies Report Tab -->
+                        <div class="tab-content active" id="policiesReport">
+                            <div class="report-summary">
+                                <div class="summary-card">
+                                    <h4>Policy Summary</h4>
+                                    <div class="summary-stats">
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Total Policies:</span>
+                                            <span class="stat-value" id="totalPoliciesReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Active Policies:</span>
+                                            <span class="stat-value" id="activePoliciesReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Expired Policies:</span>
+                                            <span class="stat-value" id="expiredPoliciesReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Average Premium:</span>
+                                            <span class="stat-value" id="avgPremiumReport">₹0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="report-table-container">
+                                <table class="report-table" id="policiesReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Policy ID</th>
+                                            <th>Customer Name</th>
+                                            <th>Policy Type</th>
+                                            <th>Company</th>
+                                            <th>Premium</th>
+                                            <th>Status</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="policiesReportTableBody">
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Renewals Report Tab -->
+                        <div class="tab-content" id="renewalsReport">
+                            <div class="report-summary">
+                                <div class="summary-card">
+                                    <h4>Renewal Summary</h4>
+                                    <div class="summary-stats">
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Pending Renewals:</span>
+                                            <span class="stat-value" id="pendingRenewalsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Completed Renewals:</span>
+                                            <span class="stat-value" id="completedRenewalsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Overdue Renewals:</span>
+                                            <span class="stat-value" id="overdueRenewalsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Renewal Rate:</span>
+                                            <span class="stat-value" id="renewalRateReport">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="report-table-container">
+                                <table class="report-table" id="renewalsReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Policy ID</th>
+                                            <th>Customer Name</th>
+                                            <th>Expiry Date</th>
+                                            <th>Days Left</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Assigned To</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="renewalsReportTableBody">
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Follow-ups Report Tab -->
+                        <div class="tab-content" id="followupsReport">
+                            <div class="report-summary">
+                                <div class="summary-card">
+                                    <h4>Follow-up Summary</h4>
+                                    <div class="summary-stats">
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Total Follow-ups:</span>
+                                            <span class="stat-value" id="totalFollowupsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Completed Today:</span>
+                                            <span class="stat-value" id="completedTodayReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Pending Follow-ups:</span>
+                                            <span class="stat-value" id="pendingFollowupsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Success Rate:</span>
+                                            <span class="stat-value" id="successRateReport">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="report-table-container">
+                                <table class="report-table" id="followupsReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th>Phone</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Assigned To</th>
+                                            <th>Last Follow-up</th>
+                                            <th>Next Follow-up</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="followupsReportTableBody">
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Agents Report Tab -->
+                        <div class="tab-content" id="agentsReport">
+                            <div class="report-summary">
+                                <div class="summary-card">
+                                    <h4>Agent Performance Summary</h4>
+                                    <div class="summary-stats">
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Total Agents:</span>
+                                            <span class="stat-value" id="totalAgentsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Active Agents:</span>
+                                            <span class="stat-value" id="activeAgentsReport">0</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Top Performer:</span>
+                                            <span class="stat-value" id="topPerformerReport">-</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span class="stat-label">Avg. Performance:</span>
+                                            <span class="stat-value" id="avgPerformanceReport">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="report-table-container">
+                                <table class="report-table" id="agentsReportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Agent Name</th>
+                                            <th>Policies Sold</th>
+                                            <th>Total Premium</th>
+                                            <th>Renewals Handled</th>
+                                            <th>Follow-ups</th>
+                                            <th>Performance Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="agentsReportTableBody">
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="agents">
+                <div class="page-header">
+                    <h1>Agents</h1>
+                    <p>Manage insurance agents</p>
+                </div>
+                <div class="page-content">
+                    <!-- Agents Controls -->
+                    <div class="agents-controls">
+                        <button class="add-agent-btn" id="addAgentBtn">
+                            <i class="fas fa-plus"></i>
+                            Add New Agent
+                        </button>
+                        <div class="search-box">
+                            <input type="text" id="agentsSearch" placeholder="Search agents...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+
+                    <!-- Agents Statistics -->
+                    <div class="agents-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon total">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Agents</h3>
+                                <p class="stat-value" id="totalAgentsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon active">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Active Agents</h3>
+                                <p class="stat-value" id="activeAgentsCount">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon performance">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Avg Performance</h3>
+                                <p class="stat-value" id="avgPerformanceCount">0%</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon policies">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Policies</h3>
+                                <p class="stat-value" id="totalPoliciesCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agents Data Table -->
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <h3>Agent Management</h3>
+                            <div class="table-controls">
+                                <select class="rows-per-page" id="agentsRowsPerPage">
+                                    <option value="10">10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                </select>
+                                <button class="export-btn" id="exportAgents">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="agentsTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">Sl. No <i class="fas fa-sort"></i></th>
+                                        <th data-sort="name">Agent Name <i class="fas fa-sort"></i></th>
+                                        <th data-sort="phone">Phone Number <i class="fas fa-sort"></i></th>
+                                        <th data-sort="email">Email <i class="fas fa-sort"></i></th>
+                                        <th data-sort="userId">User ID <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                        <th data-sort="policies">Policies <i class="fas fa-sort"></i></th>
+                                        <th data-sort="performance">Performance <i class="fas fa-sort"></i></th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="agentsTableBody">
+                                    <!-- Table data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                Showing <span id="agentsStartRecord">1</span> to <span id="agentsEndRecord">10</span> of <span id="agentsTotalRecords">0</span> entries
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="agentsPrevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div class="page-numbers" id="agentsPageNumbers">
+                                    <!-- Page numbers will be generated by JavaScript -->
+                                </div>
+                                <button class="pagination-btn" id="agentsNextPage">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Page -->
+            <div class="page" id="notifications">
+                <div class="page-header">
+                    <h1>Notification Center</h1>
+                    <p>Manage and send notifications to customers and agents</p>
+                </div>
+
+                <!-- Notification Stats -->
+                <div class="notification-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon urgent">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="expiringCount">15</h3>
+                            <p>Policies Expiring Tomorrow</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="followupsCount">8</h3>
+                            <p>Follow-ups Due Today</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="renewalsCount">23</h3>
+                            <p>Renewals Due This Week</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="sentToday">156</h3>
+                            <p>Notifications Sent Today</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Controls -->
+                <div class="notification-controls">
+                    <div class="controls-left">
+                        <button class="btn btn-primary" id="sendBulkNotifications">
+                            <i class="fas fa-paper-plane"></i> Send Bulk Notifications
+                        </button>
+                        <button class="btn btn-secondary" id="scheduleNotifications">
+                            <i class="fas fa-calendar-alt"></i> Schedule Notifications
+                        </button>
+                        <button class="btn btn-info" id="viewAnalytics">
+                            <i class="fas fa-chart-line"></i> View Analytics
+                        </button>
+                        <button class="btn btn-warning" id="manageTemplates">
+                            <i class="fas fa-edit"></i> Manage Templates
+                        </button>
+                    </div>
+                    <div class="controls-right">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="notificationSearch" placeholder="Search notifications...">
+                        </div>
+                        <select id="notificationFilter">
+                            <option value="all">All Types</option>
+                            <option value="expiring">Expiring Policies</option>
+                            <option value="renewals">Renewals</option>
+                            <option value="followups">Follow-ups</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Analytics Overview -->
+                <div class="analytics-overview">
+                    <h3>Performance Analytics</h3>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-header">
+                                <h4>Delivery Rate</h4>
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="analytics-value">95.2%</div>
+                            <div class="analytics-change positive">+2.1%</div>
+                            <div class="analytics-chart">
+                                <canvas id="deliveryRateChart" width="200" height="60"></canvas>
+                            </div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-header">
+                                <h4>Open Rate</h4>
+                                <i class="fas fa-envelope-open"></i>
+                            </div>
+                            <div class="analytics-value">67.8%</div>
+                            <div class="analytics-change positive">+5.3%</div>
+                            <div class="analytics-chart">
+                                <canvas id="openRateChart" width="200" height="60"></canvas>
+                            </div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-header">
+                                <h4>Response Rate</h4>
+                                <i class="fas fa-reply"></i>
+                            </div>
+                            <div class="analytics-value">12.1%</div>
+                            <div class="analytics-change negative">-1.2%</div>
+                            <div class="analytics-chart">
+                                <canvas id="responseRateChart" width="200" height="60"></canvas>
+                            </div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-header">
+                                <h4>Channel Performance</h4>
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="channel-stats">
+                                <div class="channel-stat">
+                                    <span class="channel-name">Email</span>
+                                    <span class="channel-rate">98.5%</span>
+                                </div>
+                                <div class="channel-stat">
+                                    <span class="channel-name">WhatsApp</span>
+                                    <span class="channel-rate">87.2%</span>
+                                </div>
+                                <div class="channel-stat">
+                                    <span class="channel-name">SMS</span>
+                                    <span class="channel-rate">92.1%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Notifications -->
+                <div class="scheduled-notifications">
+                    <h3>Upcoming Scheduled Notifications</h3>
+                    <div class="schedule-grid">
+                        <div class="schedule-card">
+                            <div class="schedule-header">
+                                <div class="schedule-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Tomorrow, 10:00 AM</span>
+                                </div>
+                                <div class="schedule-status pending">Pending</div>
+                            </div>
+                            <div class="schedule-content">
+                                <h4>Policy Renewal Reminders</h4>
+                                <p>Send renewal reminders to 23 customers with policies expiring next week</p>
+                                <div class="schedule-details">
+                                    <span class="schedule-recipients">23 recipients</span>
+                                    <span class="schedule-channels">Email, WhatsApp</span>
+                                </div>
+                            </div>
+                            <div class="schedule-actions">
+                                <button class="btn btn-sm btn-primary">Edit</button>
+                                <button class="btn btn-sm btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="schedule-card">
+                            <div class="schedule-header">
+                                <div class="schedule-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Dec 20, 2:30 PM</span>
+                                </div>
+                                <div class="schedule-status recurring">Recurring</div>
+                            </div>
+                            <div class="schedule-content">
+                                <h4>Weekly Follow-up Reminders</h4>
+                                <p>Weekly follow-up reminders for pending customer inquiries</p>
+                                <div class="schedule-details">
+                                    <span class="schedule-recipients">15 recipients</span>
+                                    <span class="schedule-channels">WhatsApp</span>
+                                </div>
+                            </div>
+                            <div class="schedule-actions">
+                                <button class="btn btn-sm btn-primary">Edit</button>
+                                <button class="btn btn-sm btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="schedule-card">
+                            <div class="schedule-header">
+                                <div class="schedule-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Dec 25, 9:00 AM</span>
+                                </div>
+                                <div class="schedule-status pending">Pending</div>
+                            </div>
+                            <div class="schedule-content">
+                                <h4>Commission Alerts</h4>
+                                <p>Send commission notifications to agents for December earnings</p>
+                                <div class="schedule-details">
+                                    <span class="schedule-recipients">8 recipients</span>
+                                    <span class="schedule-channels">Email</span>
+                                </div>
+                            </div>
+                            <div class="schedule-actions">
+                                <button class="btn btn-sm btn-primary">Edit</button>
+                                <button class="btn btn-sm btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Notifications -->
+                <div class="notifications-section">
+                    <h3>Active Notifications</h3>
+                    <div class="notification-list">
+                        <div class="notification-item urgent">
+                            <div class="notification-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h4>15 Policies Expiring Tomorrow</h4>
+                                <p>Send renewal reminders via email & WhatsApp to prevent policy lapses</p>
+                                <div class="notification-meta">
+                                    <span class="notification-time">2 hours ago</span>
+                                    <span class="notification-priority">High Priority</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="btn btn-sm btn-success" onclick="sendBulkEmail('expiring')">
+                                        <i class="fas fa-envelope"></i> Send Email
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="sendBulkWhatsApp('expiring')">
+                                        <i class="fab fa-whatsapp"></i> Send WhatsApp
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="viewNotificationDetails('expiring')">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-item warning">
+                            <div class="notification-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h4>8 Follow-ups Due Today</h4>
+                                <p>Telecallers need to contact customers for pending follow-ups</p>
+                                <div class="notification-meta">
+                                    <span class="notification-time">4 hours ago</span>
+                                    <span class="notification-priority">Medium Priority</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="btn btn-sm btn-warning" onclick="sendBulkEmail('followups')">
+                                        <i class="fas fa-envelope"></i> Notify Agents
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" onclick="sendBulkWhatsApp('followups')">
+                                        <i class="fab fa-whatsapp"></i> Notify Agents
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="viewNotificationDetails('followups')">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-item info">
+                            <div class="notification-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h4>23 Renewals Due This Week</h4>
+                                <p>Send renewal reminders to customers with policies expiring this week</p>
+                                <div class="notification-meta">
+                                    <span class="notification-time">1 day ago</span>
+                                    <span class="notification-priority">Normal Priority</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="btn btn-sm btn-info" onclick="sendBulkEmail('renewals')">
+                                        <i class="fas fa-envelope"></i> Send Email
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="sendBulkWhatsApp('renewals')">
+                                        <i class="fab fa-whatsapp"></i> Send WhatsApp
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="viewNotificationDetails('renewals')">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notification-item success">
+                            <div class="notification-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h4>Commission Alerts Sent</h4>
+                                <p>Successfully sent commission notifications to 12 agents</p>
+                                <div class="notification-meta">
+                                    <span class="notification-time">3 hours ago</span>
+                                    <span class="notification-status">Completed</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="btn btn-sm btn-secondary" onclick="viewNotificationHistory('commission')">
+                                        <i class="fas fa-history"></i> View History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification History -->
+                <div class="notifications-section">
+                    <h3>Recent Notification History</h3>
+                    <div class="data-table-container">
+                        <table class="data-table" id="notificationHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Recipients</th>
+                                    <th>Channels</th>
+                                    <th>Status</th>
+                                    <th>Success Rate</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notificationHistoryBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="settings">
+                <div class="page-header">
+                    <h1>Settings</h1>
+                    <p>System configuration and preferences</p>
+                </div>
+                <div class="page-content">
+                    <!-- Settings Tabs -->
+                    <div class="settings-tabs">
+                        <button class="settings-tab-btn active" data-tab="general">
+                            <i class="fas fa-cog"></i>
+                            General
+                        </button>
+                                            <button class="settings-tab-btn" data-tab="notifications">
+                        <i class="fas fa-bell"></i>
+                        Notifications
+                    </button>
+                    <button class="settings-tab-btn" data-tab="emailTemplates">
+                        <i class="fas fa-envelope"></i>
+                        Email Templates
+                    </button>
+                    <button class="settings-tab-btn" data-tab="security">
+                        <i class="fas fa-shield-alt"></i>
+                        Security
+                    </button>
+                        <button class="settings-tab-btn" data-tab="appearance">
+                            <i class="fas fa-palette"></i>
+                            Appearance
+                        </button>
+                        <button class="settings-tab-btn" data-tab="backup">
+                            <i class="fas fa-database"></i>
+                            Backup & Export
+                        </button>
+                    </div>
+
+                    <!-- General Settings Tab -->
+                    <div class="settings-content active" id="generalSettings">
+                        <div class="settings-section">
+                            <h3>Company Information</h3>
+                            <div class="form-section">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="companyName">Company Name</label>
+                                        <input type="text" id="companyName" value="Insurance Management System">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="companyEmail">Company Email</label>
+                                        <input type="email" id="companyEmail" value="info@insurance.com">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="companyPhone">Company Phone</label>
+                                        <input type="tel" id="companyPhone" value="+91 98765 43210">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="companyAddress">Company Address</label>
+                                        <textarea id="companyAddress" rows="3">123 Insurance Street, Business District, City - 123456</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>System Preferences</h3>
+                            <div class="form-section">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="defaultCurrency">Default Currency</label>
+                                        <select id="defaultCurrency">
+                                            <option value="INR" selected>Indian Rupee (₹)</option>
+                                            <option value="USD">US Dollar ($)</option>
+                                            <option value="EUR">Euro (€)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dateFormat">Date Format</label>
+                                        <select id="dateFormat">
+                                            <option value="DD/MM/YYYY" selected>DD/MM/YYYY</option>
+                                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="timezone">Timezone</label>
+                                        <select id="timezone">
+                                            <option value="Asia/Kolkata" selected>Asia/Kolkata (IST)</option>
+                                            <option value="UTC">UTC</option>
+                                            <option value="America/New_York">America/New_York (EST)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="language">Language</label>
+                                        <select id="language">
+                                            <option value="en" selected>English</option>
+                                            <option value="hi">Hindi</option>
+                                            <option value="es">Spanish</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Policy Settings</h3>
+                            <div class="form-section">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="defaultPolicyDuration">Default Policy Duration (Days)</label>
+                                        <input type="number" id="defaultPolicyDuration" value="365" min="30" max="1095">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="renewalReminderDays">Renewal Reminder (Days Before)</label>
+                                        <input type="number" id="renewalReminderDays" value="30" min="1" max="90">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="maxPoliciesPerAgent">Max Policies Per Agent</label>
+                                        <input type="number" id="maxPoliciesPerAgent" value="100" min="1" max="1000">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="commissionRate">Default Commission Rate (%)</label>
+                                        <input type="number" id="commissionRate" value="10" min="0" max="50" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Settings Tab -->
+                    <div class="settings-content" id="notificationsSettings">
+                        <div class="settings-section">
+                            <h3>Email Notifications</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="emailNotifications">
+                                        <input type="checkbox" id="emailNotifications" checked>
+                                        Enable Email Notifications
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="smtpServer">SMTP Server</label>
+                                    <input type="text" id="smtpServer" value="smtp.gmail.com">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="smtpPort">SMTP Port</label>
+                                        <input type="number" id="smtpPort" value="587">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtpUsername">SMTP Username</label>
+                                        <input type="email" id="smtpUsername" value="noreply@insurance.com">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="smtpPassword">SMTP Password</label>
+                                    <input type="password" id="smtpPassword" value="********">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>SMS Notifications</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="smsNotifications">
+                                        <input type="checkbox" id="smsNotifications" checked>
+                                        Enable SMS Notifications
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="smsProvider">SMS Provider</label>
+                                    <select id="smsProvider">
+                                        <option value="twilio" selected>Twilio</option>
+                                        <option value="msg91">MSG91</option>
+                                        <option value="custom">Custom Provider</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="smsApiKey">SMS API Key</label>
+                                        <input type="text" id="smsApiKey" value="your_api_key_here">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smsSenderId">Sender ID</label>
+                                        <input type="text" id="smsSenderId" value="INSURANCE" maxlength="6">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>WhatsApp Business Integration</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="whatsappEnabled">
+                                        <input type="checkbox" id="whatsappEnabled">
+                                        Enable WhatsApp Notifications
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="whatsappBusinessId">WhatsApp Business ID</label>
+                                    <input type="text" id="whatsappBusinessId" placeholder="Your Business ID">
+                                </div>
+                                <div class="form-group">
+                                    <label for="whatsappAccessToken">Access Token</label>
+                                    <input type="password" id="whatsappAccessToken" placeholder="Your Access Token">
+                                </div>
+                                <div class="form-group">
+                                    <label for="whatsappPhoneNumber">Business Phone Number</label>
+                                    <input type="tel" id="whatsappPhoneNumber" placeholder="+91 98765 43210">
+                                </div>
+                                <div class="form-group">
+                                    <label for="whatsappWebhookUrl">Webhook URL</label>
+                                    <input type="url" id="whatsappWebhookUrl" placeholder="https://your-domain.com/webhook">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Notification Preferences</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="policyExpiryAlerts">
+                                        <input type="checkbox" id="policyExpiryAlerts" checked>
+                                        Policy Expiry Alerts
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="renewalReminders">
+                                        <input type="checkbox" id="renewalReminders" checked>
+                                        Renewal Reminders
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="followupAlerts">
+                                        <input type="checkbox" id="followupAlerts" checked>
+                                        Follow-up Alerts
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="commissionAlerts">
+                                        <input type="checkbox" id="commissionAlerts" checked>
+                                        Commission Alerts
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Templates Settings Tab -->
+                    <div class="settings-content" id="emailTemplatesSettings">
+                        <div class="settings-section">
+                            <h3>Email Templates</h3>
+                            <div class="template-list">
+                                <div class="template-item">
+                                    <div class="template-header">
+                                        <h4>Policy Renewal Reminder</h4>
+                                        <button class="btn btn-primary btn-sm" onclick="editEmailTemplate('policy_renewal')">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    </div>
+                                    <div class="template-preview">
+                                        <div class="preview-subject">
+                                            <strong>Subject:</strong> Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]
+                                        </div>
+                                        <div class="preview-body">
+                                            <strong>Body:</strong> Dear [CUSTOMER_NAME],<br><br>
+                                            Your [POLICY_TYPE] policy (Policy ID: [POLICY_ID]) expires on [EXPIRY_DATE]. 
+                                            To ensure continuous coverage, please renew your policy before the expiry date.<br><br>
+                                            <strong>Policy Details:</strong><br>
+                                            • Policy Type: [POLICY_TYPE]<br>
+                                            • Vehicle: [VEHICLE_NUMBER]<br>
+                                            • Premium Amount: ₹[PREMIUM_AMOUNT]<br><br>
+                                            <strong>Contact us:</strong><br>
+                                            Phone: [CONTACT_PHONE]<br>
+                                            Email: [CONTACT_EMAIL]<br><br>
+                                            Best regards,<br>
+                                            [COMPANY_NAME] Team
+                                        </div>
+                                    </div>
+                                    <div class="template-variables">
+                                        <span class="variable">[CUSTOMER_NAME]</span>
+                                        <span class="variable">[POLICY_TYPE]</span>
+                                        <span class="variable">[POLICY_ID]</span>
+                                        <span class="variable">[EXPIRY_DATE]</span>
+                                        <span class="variable">[VEHICLE_NUMBER]</span>
+                                        <span class="variable">[PREMIUM_AMOUNT]</span>
+                                        <span class="variable">[CONTACT_PHONE]</span>
+                                        <span class="variable">[CONTACT_EMAIL]</span>
+                                        <span class="variable">[COMPANY_NAME]</span>
+                                    </div>
+                                </div>
+
+                                <div class="template-item">
+                                    <div class="template-header">
+                                        <h4>Follow-up Reminder</h4>
+                                        <button class="btn btn-primary btn-sm" onclick="editEmailTemplate('followup')">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    </div>
+                                    <div class="template-preview">
+                                        <div class="preview-subject">
+                                            <strong>Subject:</strong> Follow-up Required: [CUSTOMER_NAME] - [POLICY_TYPE]
+                                        </div>
+                                        <div class="preview-body">
+                                            <strong>Body:</strong> Dear [AGENT_NAME],<br><br>
+                                            A follow-up is required for customer [CUSTOMER_NAME] regarding their [POLICY_TYPE] policy.<br><br>
+                                            <strong>Customer Details:</strong><br>
+                                            • Name: [CUSTOMER_NAME]<br>
+                                            • Phone: [CUSTOMER_PHONE]<br>
+                                            • Email: [CUSTOMER_EMAIL]<br>
+                                            • Policy ID: [POLICY_ID]<br><br>
+                                            <strong>Follow-up Notes:</strong><br>
+                                            [FOLLOWUP_NOTES]<br><br>
+                                            Please contact the customer at your earliest convenience.<br><br>
+                                            Best regards,<br>
+                                            [COMPANY_NAME] Team
+                                        </div>
+                                    </div>
+                                    <div class="template-variables">
+                                        <span class="variable">[AGENT_NAME]</span>
+                                        <span class="variable">[CUSTOMER_NAME]</span>
+                                        <span class="variable">[POLICY_TYPE]</span>
+                                        <span class="variable">[CUSTOMER_PHONE]</span>
+                                        <span class="variable">[CUSTOMER_EMAIL]</span>
+                                        <span class="variable">[POLICY_ID]</span>
+                                        <span class="variable">[FOLLOWUP_NOTES]</span>
+                                        <span class="variable">[COMPANY_NAME]</span>
+                                    </div>
+                                </div>
+
+                                <div class="template-item">
+                                    <div class="template-header">
+                                        <h4>Commission Alert</h4>
+                                        <button class="btn btn-primary btn-sm" onclick="editEmailTemplate('commission')">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    </div>
+                                    <div class="template-preview">
+                                        <div class="preview-subject">
+                                            <strong>Subject:</strong> Commission Earned: ₹[COMMISSION_AMOUNT] for [POLICY_TYPE]
+                                        </div>
+                                        <div class="preview-body">
+                                            <strong>Body:</strong> Dear [AGENT_NAME],<br><br>
+                                            Congratulations! You have earned a commission for successfully closing a [POLICY_TYPE] policy.<br><br>
+                                            <strong>Commission Details:</strong><br>
+                                            • Policy Type: [POLICY_TYPE]<br>
+                                            • Customer: [CUSTOMER_NAME]<br>
+                                            • Policy ID: [POLICY_ID]<br>
+                                            • Commission Amount: ₹[COMMISSION_AMOUNT]<br>
+                                            • Commission Rate: [COMMISSION_RATE]%<br><br>
+                                            The commission will be processed in the next payment cycle.<br><br>
+                                            Keep up the great work!<br><br>
+                                            Best regards,<br>
+                                            [COMPANY_NAME] Team
+                                        </div>
+                                    </div>
+                                    <div class="template-variables">
+                                        <span class="variable">[AGENT_NAME]</span>
+                                        <span class="variable">[POLICY_TYPE]</span>
+                                        <span class="variable">[CUSTOMER_NAME]</span>
+                                        <span class="variable">[POLICY_ID]</span>
+                                        <span class="variable">[COMMISSION_AMOUNT]</span>
+                                        <span class="variable">[COMMISSION_RATE]</span>
+                                        <span class="variable">[COMPANY_NAME]</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings Tab -->
+                    <div class="settings-content" id="securitySettings">
+                        <div class="settings-section">
+                            <h3>Password Policy</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="minPasswordLength">Minimum Password Length</label>
+                                    <input type="number" id="minPasswordLength" value="8" min="6" max="20">
+                                </div>
+                                <div class="form-group">
+                                    <label for="requireUppercase">
+                                        <input type="checkbox" id="requireUppercase" checked>
+                                        Require Uppercase Letters
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requireLowercase">
+                                        <input type="checkbox" id="requireLowercase" checked>
+                                        Require Lowercase Letters
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requireNumbers">
+                                        <input type="checkbox" id="requireNumbers" checked>
+                                        Require Numbers
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requireSpecialChars">
+                                        <input type="checkbox" id="requireSpecialChars">
+                                        Require Special Characters
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Session Management</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="sessionTimeout">Session Timeout (Minutes)</label>
+                                    <input type="number" id="sessionTimeout" value="30" min="5" max="480">
+                                </div>
+                                <div class="form-group">
+                                    <label for="maxLoginAttempts">Maximum Login Attempts</label>
+                                    <input type="number" id="maxLoginAttempts" value="5" min="3" max="10">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lockoutDuration">Account Lockout Duration (Minutes)</label>
+                                    <input type="number" id="lockoutDuration" value="15" min="5" max="1440">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Two-Factor Authentication</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="enable2FA">
+                                        <input type="checkbox" id="enable2FA">
+                                        Enable Two-Factor Authentication
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="twoFactorMethod">2FA Method</label>
+                                    <select id="twoFactorMethod">
+                                        <option value="sms">SMS</option>
+                                        <option value="email">Email</option>
+                                        <option value="authenticator">Authenticator App</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appearance Settings Tab -->
+                    <div class="settings-content" id="appearanceSettings">
+                        <div class="settings-section">
+                            <h3>Theme Settings</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="themeMode">Theme Mode</label>
+                                    <select id="themeMode">
+                                        <option value="light">Light Theme</option>
+                                        <option value="dark">Dark Theme</option>
+                                        <option value="auto" selected>Auto (System)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="primaryColor">Primary Color</label>
+                                    <input type="color" id="primaryColor" value="#4F46E5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="secondaryColor">Secondary Color</label>
+                                    <input type="color" id="secondaryColor" value="#10B981">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Display Settings</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="defaultRowsPerPage">Default Rows Per Page</label>
+                                    <select id="defaultRowsPerPage">
+                                        <option value="10" selected>10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="showAnimations">
+                                        <input type="checkbox" id="showAnimations" checked>
+                                        Show Animations
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="compactMode">
+                                        <input type="checkbox" id="compactMode">
+                                        Compact Mode
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Export Settings Tab -->
+                    <div class="settings-content" id="backupSettings">
+                        <div class="settings-section">
+                            <h3>Automatic Backup</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="autoBackup">
+                                        <input type="checkbox" id="autoBackup" checked>
+                                        Enable Automatic Backup
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="backupFrequency">Backup Frequency</label>
+                                    <select id="backupFrequency">
+                                        <option value="daily" selected>Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="backupTime">Backup Time</label>
+                                    <input type="time" id="backupTime" value="02:00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="retainBackups">Retain Backups (Days)</label>
+                                    <input type="number" id="retainBackups" value="30" min="7" max="365">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Manual Export</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="exportFormat">Export Format</label>
+                                    <select id="exportFormat">
+                                        <option value="csv" selected>CSV</option>
+                                        <option value="excel">Excel</option>
+                                        <option value="json">JSON</option>
+                                        <option value="pdf">PDF</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="includeDeleted">
+                                        <input type="checkbox" id="includeDeleted">
+                                        Include Deleted Records
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exportDateRange">Export Date Range</label>
+                                    <select id="exportDateRange">
+                                        <option value="all" selected>All Data</option>
+                                        <option value="last30">Last 30 Days</option>
+                                        <option value="last90">Last 90 Days</option>
+                                        <option value="last365">Last Year</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" id="exportAllData">
+                                    <i class="fas fa-download"></i>
+                                    Export All Data
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Data Management</h3>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="dataRetention">Data Retention Period (Days)</label>
+                                    <input type="number" id="dataRetention" value="2555" min="365" max="10950">
+                                    <small>Minimum 1 year, Maximum 30 years</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="autoArchive">
+                                        <input type="checkbox" id="autoArchive" checked>
+                                        Auto-archive Old Data
+                                    </label>
+                                </div>
+                                <button class="btn btn-warning" id="clearCache">
+                                    <i class="fas fa-broom"></i>
+                                    Clear Cache
+                                </button>
+                                <button class="btn btn-danger" id="resetSettings">
+                                    <i class="fas fa-undo"></i>
+                                    Reset to Defaults
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Actions -->
+                    <div class="settings-actions">
+                        <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
+                        <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Add/Edit Policy Modal -->
+    <div class="modal" id="policyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="policyModalTitle">Add New Policy</h2>
+                <button class="modal-close" id="closePolicyModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+
+
+            <!-- Step 1: Policy Type Selection -->
+            <div class="modal-body" id="step1">
+                <h3 style="text-align: center; margin-bottom: 20px;">Select Policy Type</h3>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="policyTypeSelect">Policy Type *</label>
+                        <select id="policyTypeSelect" required>
+                            <option value="">Select Policy Type</option>
+                            <option value="Motor">Motor Insurance</option>
+                            <option value="Health">Health Insurance</option>
+                            <option value="Life">Life Insurance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelPolicy">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="nextStep1" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Business Type Selection -->
+            <div class="modal-body" id="step2" style="display: none;">
+                <h3 style="text-align: center; margin-bottom: 20px;">Select Business Type</h3>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="businessTypeSelect">Business Type *</label>
+                        <select id="businessTypeSelect" required>
+                            <option value="">Select Business Type</option>
+                            <option value="Self">Self</option>
+                            <option value="Agent1">Agent 1</option>
+                            <option value="Agent2">Agent 2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="prevStep2">Previous</button>
+                    <button type="button" class="btn btn-primary" id="nextStep2" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Policy Details Form -->
+            <div class="modal-body" id="step3" style="display: none;">
+                <form id="policyForm">
+                    <!-- Motor Insurance Form -->
+                    <div class="policy-form" id="motorForm">
+                        <!-- Vehicle Info Section -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-car"></i> Vehicle Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="vehicleNumber">Vehicle Number *</label>
+                                    <input type="text" id="vehicleNumber" name="vehicleNumber" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vehicleType">Vehicle Type *</label>
+                                    <select id="vehicleType" name="vehicleType" required>
+                                        <option value="">Select Vehicle Type</option>
+                                        <option value="Auto">Auto</option>
+                                        <option value="Bus">Bus</option>
+                                        <option value="Lorry">Lorry</option>
+                                        <option value="Car">Car</option>
+                                        <option value="Bike">Bike</option>
+                                        <option value="Truck">Truck</option>
+                                        <option value="Tractor">Tractor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Info Section -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-user"></i> Customer Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerName">Customer Name *</label>
+                                    <input type="text" id="customerName" name="customerName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerPhone">Phone Number *</label>
+                                    <input type="tel" id="customerPhone" name="customerPhone" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerEmail">Email Address</label>
+                                <input type="email" id="customerEmail" name="customerEmail">
+                            </div>
+                        </div>
+
+                        <!-- Insurance Info Section -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="companyName">Company Name *</label>
+                                    <select id="companyName" name="companyName" required>
+                                        <option value="">Select Company</option>
+                                        <!-- General Insurance Companies -->
+                                        <optgroup label="General Insurance">
+                                            <option value="The New India Assurance Co. Ltd.">The New India Assurance Co. Ltd.</option>
+                                            <option value="United India Insurance Co. Ltd.">United India Insurance Co. Ltd.</option>
+                                            <option value="National Insurance Co. Ltd.">National Insurance Co. Ltd.</option>
+                                            <option value="The Oriental Insurance Co. Ltd.">The Oriental Insurance Co. Ltd.</option>
+                                            <option value="ICICI Lombard General Insurance Co. Ltd.">ICICI Lombard General Insurance Co. Ltd.</option>
+                                            <option value="Bajaj Allianz General Insurance Co. Ltd.">Bajaj Allianz General Insurance Co. Ltd.</option>
+                                            <option value="HDFC ERGO General Insurance Co. Ltd.">HDFC ERGO General Insurance Co. Ltd.</option>
+                                            <option value="Tata AIG General Insurance Co. Ltd.">Tata AIG General Insurance Co. Ltd.</option>
+                                            <option value="Reliance General Insurance Co. Ltd.">Reliance General Insurance Co. Ltd.</option>
+                                            <option value="SBI General Insurance Co. Ltd.">SBI General Insurance Co. Ltd.</option>
+                                            <option value="IFFCO Tokio General Insurance Co. Ltd.">IFFCO Tokio General Insurance Co. Ltd.</option>
+                                            <option value="Future Generali India Insurance Co. Ltd.">Future Generali India Insurance Co. Ltd.</option>
+                                            <option value="Kotak Mahindra General Insurance Co. Ltd.">Kotak Mahindra General Insurance Co. Ltd.</option>
+                                            <option value="Cholamandalam MS General Insurance Co. Ltd.">Cholamandalam MS General Insurance Co. Ltd.</option>
+                                            <option value="Magma HDI General Insurance Co. Ltd.">Magma HDI General Insurance Co. Ltd.</option>
+                                            <option value="Zuno General Insurance Ltd.">Zuno General Insurance Ltd.</option>
+                                            <option value="Liberty General Insurance Ltd.">Liberty General Insurance Ltd.</option>
+                                            <option value="Royal Sundaram General Insurance Co. Ltd.">Royal Sundaram General Insurance Co. Ltd.</option>
+                                            <option value="Shriram General Insurance Co. Ltd.">Shriram General Insurance Co. Ltd.</option>
+                                            <option value="Universal Sompo General Insurance Co. Ltd.">Universal Sompo General Insurance Co. Ltd.</option>
+                                            <option value="Go Digit General Insurance Ltd.">Go Digit General Insurance Ltd.</option>
+                                            <option value="Raheja QBE General Insurance Co. Ltd.">Raheja QBE General Insurance Co. Ltd.</option>
+                                            <option value="ACKO General Insurance Ltd.">ACKO General Insurance Ltd.</option>
+                                            <option value="Navi General Insurance Ltd.">Navi General Insurance Ltd.</option>
+                                            <option value="Aditya Birla General Insurance Ltd.">Aditya Birla General Insurance Ltd.</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="insuranceType">Insurance Type *</label>
+                                    <select id="insuranceType" name="insuranceType" required>
+                                        <option value="">Select Insurance Type</option>
+                                        <option value="Comprehensive">Comprehensive</option>
+                                        <option value="Stand Alone OD">Stand Alone OD</option>
+                                        <option value="Third Party">Third Party</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="startDate">Start Date *</label>
+                                    <input type="date" id="startDate" name="startDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endDate">End Date *</label>
+                                    <input type="date" id="endDate" name="endDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="premium">Premium Amount (₹) *</label>
+                                    <input type="number" id="premium" name="premium" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="payout">Payout Amount (₹)</label>
+                                    <input type="number" id="payout" name="payout" step="0.01">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerPaidAmount">Customer Paid (₹) *</label>
+                                    <input type="number" id="customerPaidAmount" name="customerPaidAmount" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="revenue">Revenue (₹) *</label>
+                                    <input type="number" id="revenue" name="revenue" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-upload"></i> Documents</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="policyCopy">Policy Copy</label>
+                                    <input type="file" id="policyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="rcCopy">RC Copy</label>
+                                    <input type="file" id="rcCopy" name="rcCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="aadharCopy">Aadhar Copy</label>
+                                    <input type="file" id="aadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="panCopy">PAN Copy</label>
+                                    <input type="file" id="panCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Insurance Form -->
+                    <div class="policy-form" id="healthForm" style="display: none;">
+                        <div class="form-section">
+                            <h3><i class="fas fa-user"></i> Customer Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthCustomerName">Customer Name *</label>
+                                    <input type="text" id="healthCustomerName" name="customerName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthCustomerPhone">Phone Number *</label>
+                                    <input type="tel" id="healthCustomerPhone" name="customerPhone" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthCustomerEmail">Email Address</label>
+                                    <input type="email" id="healthCustomerEmail" name="customerEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthCustomerAge">Age *</label>
+                                    <input type="number" id="healthCustomerAge" name="customerAge" min="1" max="120" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthCustomerGender">Gender *</label>
+                                    <select id="healthCustomerGender" name="customerGender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthSumInsured">Sum Insured (₹) *</label>
+                                    <input type="number" id="healthSumInsured" name="sumInsured" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthCompanyName">Company Name *</label>
+                                    <select id="healthCompanyName" name="companyName" required>
+                                        <option value="">Select Company</option>
+                                        <!-- Health Insurance Companies -->
+                                        <optgroup label="Health Insurance">
+                                            <option value="Star Health and Allied Insurance Co. Ltd.">Star Health and Allied Insurance Co. Ltd.</option>
+                                            <option value="Niva Bupa Health Insurance Co. Ltd.">Niva Bupa Health Insurance Co. Ltd.</option>
+                                            <option value="Care Health Insurance Ltd.">Care Health Insurance Ltd.</option>
+                                            <option value="ManipalCigna Health Insurance Co. Ltd.">ManipalCigna Health Insurance Co. Ltd.</option>
+                                            <option value="Aditya Birla Health Insurance Co. Ltd.">Aditya Birla Health Insurance Co. Ltd.</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthPlanType">Plan Type *</label>
+                                    <select id="healthPlanType" name="planType" required>
+                                        <option value="">Select Plan Type</option>
+                                        <option value="Individual">Individual</option>
+                                        <option value="Family Floater">Family Floater</option>
+                                        <option value="Senior Citizen">Senior Citizen</option>
+                                        <option value="Critical Illness">Critical Illness</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthStartDate">Start Date *</label>
+                                    <input type="date" id="healthStartDate" name="startDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthEndDate">End Date *</label>
+                                    <input type="date" id="healthEndDate" name="endDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthPremium">Premium Amount (₹) *</label>
+                                    <input type="number" id="healthPremium" name="premium" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthCustomerPaid">Customer Paid (₹) *</label>
+                                    <input type="number" id="healthCustomerPaid" name="customerPaidAmount" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthRevenue">Revenue (₹) *</label>
+                                    <input type="number" id="healthRevenue" name="revenue" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthPayout">Payout Amount (₹)</label>
+                                    <input type="number" id="healthPayout" name="payout" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-upload"></i> Documents</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthPolicyCopy">Policy Copy</label>
+                                    <input type="file" id="healthPolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthAadharCopy">Aadhar Copy</label>
+                                    <input type="file" id="healthAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="healthPanCopy">PAN Copy</label>
+                                    <input type="file" id="healthPanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="healthMedicalReports">Medical Reports</label>
+                                    <input type="file" id="healthMedicalReports" name="medicalReports" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Life Insurance Form -->
+                    <div class="policy-form" id="lifeForm" style="display: none;">
+                        <div class="form-section">
+                            <h3><i class="fas fa-user"></i> Customer Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeCustomerName">Customer Name *</label>
+                                    <input type="text" id="lifeCustomerName" name="customerName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeCustomerPhone">Phone Number *</label>
+                                    <input type="tel" id="lifeCustomerPhone" name="customerPhone" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeCustomerEmail">Email Address</label>
+                                    <input type="email" id="lifeCustomerEmail" name="customerEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeCustomerAge">Age *</label>
+                                    <input type="number" id="lifeCustomerAge" name="customerAge" min="1" max="120" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeCustomerGender">Gender *</label>
+                                    <select id="lifeCustomerGender" name="customerGender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeSumAssured">Sum Assured (₹) *</label>
+                                    <input type="number" id="lifeSumAssured" name="sumAssured" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifePolicyTerm">Policy Term (Years) *</label>
+                                    <input type="number" id="lifePolicyTerm" name="policyTerm" min="1" max="50" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifePremiumFrequency">Premium Frequency *</label>
+                                    <select id="lifePremiumFrequency" name="premiumFrequency" required>
+                                        <option value="">Select Frequency</option>
+                                        <option value="Monthly">Monthly</option>
+                                        <option value="Quarterly">Quarterly</option>
+                                        <option value="Half Yearly">Half Yearly</option>
+                                        <option value="Yearly">Yearly</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeCompanyName">Company Name *</label>
+                                    <select id="lifeCompanyName" name="companyName" required>
+                                        <option value="">Select Company</option>
+                                        <!-- Life Insurance Companies -->
+                                        <optgroup label="Life Insurance">
+                                            <option value="Life Insurance Corporation of India">Life Insurance Corporation of India</option>
+                                            <option value="HDFC Life Insurance Co. Ltd.">HDFC Life Insurance Co. Ltd.</option>
+                                            <option value="ICICI Prudential Life Insurance Co. Ltd.">ICICI Prudential Life Insurance Co. Ltd.</option>
+                                            <option value="SBI Life Insurance Co. Ltd.">SBI Life Insurance Co. Ltd.</option>
+                                            <option value="Max Life Insurance Co. Ltd.">Max Life Insurance Co. Ltd.</option>
+                                            <option value="Bajaj Allianz Life Insurance Co. Ltd.">Bajaj Allianz Life Insurance Co. Ltd.</option>
+                                            <option value="Kotak Mahindra Life Insurance Co. Ltd.">Kotak Mahindra Life Insurance Co. Ltd.</option>
+                                            <option value="Aditya Birla Sun Life Insurance Co. Ltd.">Aditya Birla Sun Life Insurance Co. Ltd.</option>
+                                            <option value="PNB MetLife India Insurance Co. Ltd.">PNB MetLife India Insurance Co. Ltd.</option>
+                                            <option value="Tata AIA Life Insurance Co. Ltd.">Tata AIA Life Insurance Co. Ltd.</option>
+                                            <option value="Reliance Nippon Life Insurance Co. Ltd.">Reliance Nippon Life Insurance Co. Ltd.</option>
+                                            <option value="Canara HSBC Life Insurance Co. Ltd.">Canara HSBC Life Insurance Co. Ltd.</option>
+                                            <option value="Edelweiss Tokio Life Insurance Co. Ltd.">Edelweiss Tokio Life Insurance Co. Ltd.</option>
+                                            <option value="IndiaFirst Life Insurance Co. Ltd.">IndiaFirst Life Insurance Co. Ltd.</option>
+                                            <option value="Future Generali India Life Insurance Co. Ltd.">Future Generali India Life Insurance Co. Ltd.</option>
+                                            <option value="Star Union Dai-ichi Life Insurance Co. Ltd.">Star Union Dai-ichi Life Insurance Co. Ltd.</option>
+                                            <option value="Shriram Life Insurance Co. Ltd.">Shriram Life Insurance Co. Ltd.</option>
+                                            <option value="Sahara India Life Insurance Co. Ltd.">Sahara India Life Insurance Co. Ltd.</option>
+                                            <option value="Aegon Life Insurance Co. Ltd.">Aegon Life Insurance Co. Ltd.</option>
+                                            <option value="Pramerica Life Insurance Co. Ltd.">Pramerica Life Insurance Co. Ltd.</option>
+                                            <option value="Aviva Life Insurance Co. Ltd.">Aviva Life Insurance Co. Ltd.</option>
+                                            <option value="Ageas Federal Life Insurance Co. Ltd.">Ageas Federal Life Insurance Co. Ltd.</option>
+                                            <option value="Exide Life Insurance Co. Ltd.">Exide Life Insurance Co. Ltd.</option>
+                                            <option value="Bharti AXA Life Insurance Co. Ltd.">Bharti AXA Life Insurance Co. Ltd.</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifePlanType">Plan Type *</label>
+                                    <select id="lifePlanType" name="planType" required>
+                                        <option value="">Select Plan Type</option>
+                                        <option value="Term Life">Term Life</option>
+                                        <option value="Whole Life">Whole Life</option>
+                                        <option value="Endowment">Endowment</option>
+                                        <option value="Money Back">Money Back</option>
+                                        <option value="ULIP">ULIP</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeStartDate">Start Date *</label>
+                                    <input type="date" id="lifeStartDate" name="startDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeEndDate">End Date *</label>
+                                    <input type="date" id="lifeEndDate" name="endDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifePremium">Premium Amount (₹) *</label>
+                                    <input type="number" id="lifePremium" name="premium" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeCustomerPaid">Customer Paid (₹) *</label>
+                                    <input type="number" id="lifeCustomerPaid" name="customerPaidAmount" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifeRevenue">Revenue (₹) *</label>
+                                    <input type="number" id="lifeRevenue" name="revenue" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifePayout">Payout Amount (₹)</label>
+                                    <input type="number" id="lifePayout" name="payout" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-upload"></i> Documents</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifePolicyCopy">Policy Copy</label>
+                                    <input type="file" id="lifePolicyCopy" name="policyCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeAadharCopy">Aadhar Copy</label>
+                                    <input type="file" id="lifeAadharCopy" name="aadharCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lifePanCopy">PAN Copy</label>
+                                    <input type="file" id="lifePanCopy" name="panCopy" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lifeMedicalReports">Medical Reports</label>
+                                    <input type="file" id="lifeMedicalReports" name="medicalReports" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="prevStep3">Previous</button>
+                    <button type="submit" form="policyForm" class="btn btn-primary">Submit Policy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Notification Modal -->
+    <div class="modal" id="scheduleNotificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Schedule Notification</h2>
+                <button class="modal-close" id="closeScheduleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="schedule-form">
+                    <div class="form-section">
+                        <h3><i class="fas fa-calendar"></i> Schedule Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="scheduleDate">Date</label>
+                                <input type="date" id="scheduleDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="scheduleTime">Time</label>
+                                <input type="time" id="scheduleTime" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleType">Schedule Type</label>
+                            <select id="scheduleType">
+                                <option value="once">Send Once</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="recurringOptions" style="display: none;">
+                            <label for="recurringDays">Recurring Days</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" value="monday"> Monday</label>
+                                <label><input type="checkbox" value="tuesday"> Tuesday</label>
+                                <label><input type="checkbox" value="wednesday"> Wednesday</label>
+                                <label><input type="checkbox" value="thursday"> Thursday</label>
+                                <label><input type="checkbox" value="friday"> Friday</label>
+                                <label><input type="checkbox" value="saturday"> Saturday</label>
+                                <label><input type="checkbox" value="sunday"> Sunday</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-users"></i> Recipients</h3>
+                        <div class="form-group">
+                            <label for="scheduleFilterType">Filter by:</label>
+                            <select id="scheduleFilterType">
+                                <option value="expiring">Policies Expiring</option>
+                                <option value="renewals">Pending Renewals</option>
+                                <option value="followups">Follow-ups Due</option>
+                                <option value="custom">Custom Selection</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleDaysRange">Days Range:</label>
+                            <input type="number" id="scheduleDaysRange" value="7" min="1" max="90">
+                        </div>
+                        <div class="recipients-preview">
+                            <h4>Recipients (<span id="scheduleRecipientsCount">0</span> customers)</h4>
+                            <div class="recipients-list" id="scheduleRecipientsList">
+                                <!-- Dynamic list of recipients -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+                        <div class="notification-channels">
+                            <div class="channel-option">
+                                <label>
+                                    <input type="checkbox" id="scheduleEmail" checked>
+                                    <i class="fas fa-envelope"></i> Email
+                                </label>
+                            </div>
+                            <div class="channel-option">
+                                <label>
+                                    <input type="checkbox" id="scheduleWhatsApp">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </label>
+                            </div>
+                            <div class="channel-option">
+                                <label>
+                                    <input type="checkbox" id="scheduleSMS">
+                                    <i class="fas fa-sms"></i> SMS
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleTemplate">Template</label>
+                            <select id="scheduleTemplate">
+                                <option value="policy_renewal">Policy Renewal Reminder</option>
+                                <option value="followup">Follow-up Reminder</option>
+                                <option value="commission">Commission Alert</option>
+                                <option value="custom">Custom Template</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-eye"></i> Preview</h3>
+                        <div class="message-preview">
+                            <div class="preview-tabs">
+                                <button class="preview-tab active" data-tab="email">Email</button>
+                                <button class="preview-tab" data-tab="whatsapp">WhatsApp</button>
+                                <button class="preview-tab" data-tab="sms">SMS</button>
+                            </div>
+                            <div class="preview-content">
+                                <div class="preview-panel active" id="scheduleEmailPreview">
+                                    <div class="email-preview">
+                                        <div class="email-header">
+                                            <strong>Subject:</strong> Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]
+                                        </div>
+                                        <div class="email-body">
+                                            Dear [CUSTOMER_NAME],<br><br>
+                                            Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                            Please renew to maintain continuous coverage.<br><br>
+                                            Contact: [CONTACT_PHONE]<br><br>
+                                            Best regards,<br>
+                                            [COMPANY_NAME] Team
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="preview-panel" id="scheduleWhatsAppPreview">
+                                    <div class="whatsapp-preview">
+                                        <div class="whatsapp-message">
+                                            Hi [CUSTOMER_NAME], your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                            Renew now to avoid coverage lapse. Call [CONTACT_PHONE] for assistance.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="preview-panel" id="scheduleSmsPreview">
+                                    <div class="sms-preview">
+                                        <div class="sms-message">
+                                            [COMPANY_NAME]: Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                            Call [CONTACT_PHONE] to renew.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSchedule">Cancel</button>
+                <button class="btn btn-primary" id="saveSchedule">Schedule Notification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Notification Modal -->
+    <div class="modal" id="bulkNotificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Bulk Notifications</h2>
+                <button class="modal-close" id="closeBulkModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-filters">
+                    <div class="form-group">
+                        <label>Filter by:</label>
+                        <select id="bulkFilterType">
+                            <option value="expiring">Policies Expiring</option>
+                            <option value="renewals">Pending Renewals</option>
+                            <option value="followups">Follow-ups Due</option>
+                            <option value="custom">Custom Selection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Days Range:</label>
+                        <input type="number" id="bulkDaysRange" value="7" min="1" max="90">
+                    </div>
+                    <div class="form-group">
+                        <label>Policy Type:</label>
+                        <select id="bulkPolicyType">
+                            <option value="all">All Types</option>
+                            <option value="motor">Motor Insurance</option>
+                            <option value="health">Health Insurance</option>
+                            <option value="life">Life Insurance</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="recipients-preview">
+                    <h4>Recipients (<span id="recipientsCount">0</span> customers)</h4>
+                    <div class="recipients-list" id="recipientsList">
+                        <!-- Dynamic list of recipients -->
+                    </div>
+                </div>
+                
+                <div class="notification-channels">
+                    <h4>Notification Channels</h4>
+                    <div class="channel-options">
+                        <div class="channel-option">
+                            <label>
+                                <input type="checkbox" id="bulkEmail" checked>
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                        </div>
+                        <div class="channel-option">
+                            <label>
+                                <input type="checkbox" id="bulkWhatsApp">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </label>
+                        </div>
+                        <div class="channel-option">
+                            <label>
+                                <input type="checkbox" id="bulkSMS">
+                                <i class="fas fa-sms"></i> SMS
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-preview">
+                    <h4>Message Preview</h4>
+                    <div class="message-preview-content">
+                        <div class="preview-tabs">
+                            <button class="preview-tab active" data-tab="email">Email</button>
+                            <button class="preview-tab" data-tab="whatsapp">WhatsApp</button>
+                            <button class="preview-tab" data-tab="sms">SMS</button>
+                        </div>
+                        <div class="preview-content">
+                            <div class="preview-panel active" id="emailPreview">
+                                <div class="email-preview">
+                                    <div class="email-header">
+                                        <strong>Subject:</strong> Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]
+                                    </div>
+                                    <div class="email-body">
+                                        Dear [CUSTOMER_NAME],<br><br>
+                                        Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                        Please renew to maintain continuous coverage.<br><br>
+                                        Contact: [CONTACT_PHONE]<br><br>
+                                        Best regards,<br>
+                                        [COMPANY_NAME] Team
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-panel" id="whatsappPreview">
+                                <div class="whatsapp-preview">
+                                    <div class="whatsapp-message">
+                                        Hi [CUSTOMER_NAME], your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                        Renew now to avoid coverage lapse. Call [CONTACT_PHONE] for assistance.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-panel" id="smsPreview">
+                                <div class="sms-preview">
+                                    <div class="sms-message">
+                                        [COMPANY_NAME]: Your [POLICY_TYPE] policy expires on [EXPIRY_DATE]. 
+                                        Call [CONTACT_PHONE] to renew.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelBulk">Cancel</button>
+                <button class="btn btn-primary" id="sendBulkNotifications">Send Notifications</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Agent Modal -->
+    <div class="modal" id="agentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Agent</h2>
+                <button class="modal-close" id="closeAgentModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="agentForm">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="agentName">Agent Name *</label>
+                            <input type="text" id="agentName" name="agentName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="agentPhone">Phone Number *</label>
+                            <input type="tel" id="agentPhone" name="agentPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="agentEmail">Email Address *</label>
+                            <input type="email" id="agentEmail" name="agentEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="agentUserId">User ID</label>
+                            <input type="text" id="agentUserId" name="agentUserId" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentPassword">Password *</label>
+                        <input type="password" id="agentPassword" name="agentPassword" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelAgent">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Agent</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Renewal Modal -->
+    <div class="modal" id="renewalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="renewalModalTitle">Add Renewal Reminder</h2>
+                <button class="modal-close" id="closeRenewalModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="renewalForm">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h3><i class="fas fa-file-contract"></i> Policy Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="renewalPolicyId">Policy ID *</label>
+                                <select id="renewalPolicyId" name="policyId" required>
+                                    <option value="">Select Policy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalCustomerName">Customer Name</label>
+                                <input type="text" id="renewalCustomerName" name="customerName" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="renewalPolicyType">Policy Type</label>
+                                <input type="text" id="renewalPolicyType" name="policyType" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalExpiryDate">Current Expiry Date</label>
+                                <input type="date" id="renewalExpiryDate" name="expiryDate" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-calendar-alt"></i> Renewal Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="renewalReminderDate">Reminder Date *</label>
+                                <input type="date" id="renewalReminderDate" name="reminderDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalPriority">Priority *</label>
+                                <select id="renewalPriority" name="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="renewalStatus">Status *</label>
+                                <select id="renewalStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalAssignedTo">Assigned To *</label>
+                                <select id="renewalAssignedTo" name="assignedTo" required>
+                                    <option value="">Select Agent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="renewalNotes">Notes</label>
+                            <textarea id="renewalNotes" name="notes" rows="3" placeholder="Add any additional notes about this renewal..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="renewalEmailNotification">
+                                    <input type="checkbox" id="renewalEmailNotification" name="emailNotification" checked>
+                                    Send Email Notification
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalSMSNotification">
+                                    <input type="checkbox" id="renewalSMSNotification" name="smsNotification">
+                                    Send SMS Notification
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="renewalNotificationDays">Notify Before (Days)</label>
+                            <input type="number" id="renewalNotificationDays" name="notificationDays" min="1" max="90" value="30">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelRenewal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Renewal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Follow-up Modal -->
+    <div class="modal" id="followupModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="followupModalTitle">Add Follow Up</h2>
+                <button class="modal-close" id="closeFollowupModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="followupForm">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Customer Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupCustomerName">Customer Name *</label>
+                                <input type="text" id="followupCustomerName" name="customerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="followupPhone">Phone Number *</label>
+                                <input type="tel" id="followupPhone" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupEmail">Email Address</label>
+                                <input type="email" id="followupEmail" name="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="followupPolicyId">Related Policy ID</label>
+                                <select id="followupPolicyId" name="policyId">
+                                    <option value="">Select Policy (Optional)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-phone"></i> Follow-up Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupType">Follow-up Type *</label>
+                                <select id="followupType" name="followupType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Renewal">Renewal</option>
+                                    <option value="New Policy">New Policy</option>
+                                    <option value="Claim">Claim</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="followupStatus">Status *</label>
+                                <select id="followupStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="No Response">No Response</option>
+                                    <option value="Not Interested">Not Interested</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupAssignedTo">Assigned To *</label>
+                                <select id="followupAssignedTo" name="assignedTo" required>
+                                    <option value="">Select Telecaller</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="followupPriority">Priority</label>
+                                <select id="followupPriority" name="priority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupNextDate">Next Follow-up Date</label>
+                                <input type="date" id="followupNextDate" name="nextFollowupDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="followupReminderTime">Reminder Time</label>
+                                <input type="time" id="followupReminderTime" name="reminderTime">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-sticky-note"></i> Follow-up Notes</h3>
+                        <div class="form-group">
+                            <label for="followupNote">Add Note *</label>
+                            <textarea id="followupNote" name="note" rows="4" placeholder="Enter the conversation details, customer response, and any important information..." required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="followupCallDuration">Call Duration (minutes)</label>
+                                <input type="number" id="followupCallDuration" name="callDuration" min="0" max="120">
+                            </div>
+                            <div class="form-group">
+                                <label for="followupCallResult">Call Result</label>
+                                <select id="followupCallResult" name="callResult">
+                                    <option value="">Select Result</option>
+                                    <option value="Answered">Answered</option>
+                                    <option value="Not Answered">Not Answered</option>
+                                    <option value="Busy">Busy</option>
+                                    <option value="Wrong Number">Wrong Number</option>
+                                    <option value="Call Back Later">Call Back Later</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Previous Notes Section -->
+                    <div class="form-section" id="previousNotesSection" style="display: none;">
+                        <h3><i class="fas fa-history"></i> Previous Notes</h3>
+                        <div class="previous-notes-container" id="previousNotesContainer">
+                            <!-- Previous notes will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelFollowup">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Follow-up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Policy Details Modal -->
+    <div class="modal" id="viewPolicyModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Policy Details</h2>
+                <button class="modal-close" id="closeViewPolicyModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="policy-details-container">
+                    <!-- Policy Overview -->
+                    <div class="policy-overview">
+                        <div class="policy-header">
+                            <div class="policy-badge">
+                                <span class="policy-type-badge" id="viewPolicyType">Motor</span>
+                                <span class="status-badge" id="viewPolicyStatus">Active</span>
+                            </div>
+                            <div class="policy-id">
+                                <strong>Policy ID:</strong> <span id="viewPolicyId">#001</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="detail-section">
+                        <h3><i class="fas fa-user"></i> Customer Information</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Customer Name:</label>
+                                <span id="viewCustomerName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Phone Number:</label>
+                                <span id="viewCustomerPhone">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Email Address:</label>
+                                <span id="viewCustomerEmail">-</span>
+                            </div>
+                            <div class="detail-item" id="viewCustomerAgeContainer" style="display: none;">
+                                <label>Age:</label>
+                                <span id="viewCustomerAge">-</span>
+                            </div>
+                            <div class="detail-item" id="viewCustomerGenderContainer" style="display: none;">
+                                <label>Gender:</label>
+                                <span id="viewCustomerGender">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Information (Motor Only) -->
+                    <div class="detail-section" id="viewVehicleSection" style="display: none;">
+                        <h3><i class="fas fa-car"></i> Vehicle Information</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Vehicle Number:</label>
+                                <span id="viewVehicleNumber">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Vehicle Type:</label>
+                                <span id="viewVehicleType">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insurance Information -->
+                    <div class="detail-section">
+                        <h3><i class="fas fa-shield-alt"></i> Insurance Information</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Insurance Company:</label>
+                                <span id="viewCompanyName">-</span>
+                            </div>
+                            <div class="detail-item" id="viewInsuranceTypeContainer">
+                                <label>Insurance Type:</label>
+                                <span id="viewInsuranceType">-</span>
+                            </div>
+                            <div class="detail-item" id="viewPlanTypeContainer" style="display: none;">
+                                <label>Plan Type:</label>
+                                <span id="viewPlanType">-</span>
+                            </div>
+                            <div class="detail-item" id="viewSumInsuredContainer" style="display: none;">
+                                <label>Sum Insured:</label>
+                                <span id="viewSumInsured">-</span>
+                            </div>
+                            <div class="detail-item" id="viewSumAssuredContainer" style="display: none;">
+                                <label>Sum Assured:</label>
+                                <span id="viewSumAssured">-</span>
+                            </div>
+                            <div class="detail-item" id="viewPolicyTermContainer" style="display: none;">
+                                <label>Policy Term:</label>
+                                <span id="viewPolicyTerm">-</span>
+                            </div>
+                            <div class="detail-item" id="viewPremiumFrequencyContainer" style="display: none;">
+                                <label>Premium Frequency:</label>
+                                <span id="viewPremiumFrequency">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Start Date:</label>
+                                <span id="viewStartDate">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>End Date:</label>
+                                <span id="viewEndDate">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="detail-section">
+                        <h3><i class="fas fa-rupee-sign"></i> Financial Information</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Premium Amount:</label>
+                                <span id="viewPremium">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Customer Paid:</label>
+                                <span id="viewCustomerPaid">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Revenue:</label>
+                                <span id="viewRevenue">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Payout Amount:</label>
+                                <span id="viewPayout">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Business Type:</label>
+                                <span id="viewBusinessType">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <div class="detail-section">
+                        <h3><i class="fas fa-file-alt"></i> Documents</h3>
+                        <div class="documents-grid" id="viewDocumentsGrid">
+                            <div class="document-item">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Policy Copy</span>
+                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('policyCopy')">Download</button>
+                            </div>
+                            <div class="document-item">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>RC Copy</span>
+                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('rcCopy')">Download</button>
+                            </div>
+                            <div class="document-item">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Aadhar Copy</span>
+                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('aadharCopy')">Download</button>
+                            </div>
+                            <div class="document-item">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>PAN Copy</span>
+                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('panCopy')">Download</button>
+                            </div>
+                            <div class="document-item" id="viewMedicalReportsItem" style="display: none;">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Medical Reports</span>
+                                <button class="btn btn-sm btn-primary" onclick="downloadDocument('medicalReports')">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeViewPolicyBtn">Close</button>
+                <button type="button" class="btn btn-primary" id="editPolicyFromViewBtn">Edit Policy</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,168 @@
+================================================================================
+                    FIX DATABASE VIA SSH (ONE COMMAND!)
+================================================================================
+
+Since you have SSH access, this is MUCH easier than phpMyAdmin!
+
+================================================================================
+                              STEP-BY-STEP
+================================================================================
+
+STEP 1: Connect to your Hostinger server via SSH
+-------------------------------------------------
+(Use whatever SSH client you normally use - Terminal, PuTTY, etc.)
+
+
+STEP 2: Run this ONE command (copy-paste everything):
+-------------------------------------------------
+
+mysql -u YOUR_DB_USERNAME -p YOUR_DB_NAME << 'EOF'
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS customer_age SMALLINT UNSIGNED NULL AFTER agent_name;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS customer_gender VARCHAR(255) NULL AFTER customer_age;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS sum_insured DECIMAL(12, 2) NULL AFTER customer_gender;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS sum_assured DECIMAL(12, 2) NULL AFTER sum_insured;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS policy_term VARCHAR(255) NULL AFTER sum_assured;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS premium_frequency VARCHAR(255) NULL AFTER policy_term;
+SHOW COLUMNS FROM policies;
+EOF
+
+
+REPLACE:
+--------
+- YOUR_DB_USERNAME with your actual database username
+- YOUR_DB_NAME with your actual database name
+
+EXAMPLE:
+--------
+mysql -u u123456_insurance -p u123456_insurancedb << 'EOF'
+... (rest of the command stays the same)
+
+
+STEP 3: Enter your database password when prompted
+-------------------------------------------------
+It will ask: "Enter password:"
+Type your database password and press Enter
+
+
+STEP 4: Done!
+-------------------------------------------------
+You should see a list of all columns in the policies table.
+The new columns should be there!
+
+
+================================================================================
+                        ALTERNATIVE: DIRECT SQL FILE
+================================================================================
+
+If the above command doesn't work, try this:
+
+STEP 1: Upload the SQL file to your server
+-------------------------------------------------
+Upload FIX_PRODUCTION_DATABASE.sql to your server (via SFTP or SCP)
+
+Put it in your home directory or project root
+
+
+STEP 2: Run this command:
+-------------------------------------------------
+mysql -u YOUR_DB_USERNAME -p YOUR_DB_NAME < FIX_PRODUCTION_DATABASE.sql
+
+
+STEP 3: Enter password when prompted
+-------------------------------------------------
+
+
+================================================================================
+                        FIND YOUR DATABASE CREDENTIALS
+================================================================================
+
+Your database credentials are in your .env file on the server.
+
+To see them, run:
+-------------------------------------------------
+cat /path/to/your/project/.env | grep DB_
+
+
+You'll see:
+-------------------------------------------------
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=u123456_insurancedb    ← This is YOUR_DB_NAME
+DB_USERNAME=u123456_insurance       ← This is YOUR_DB_USERNAME
+DB_PASSWORD=your_password_here
+
+
+================================================================================
+                            QUICK VERSION
+================================================================================
+
+If you know your credentials already:
+
+ssh your_server
+mysql -u YOUR_USERNAME -p YOUR_DATABASE << 'EOF'
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS customer_age SMALLINT UNSIGNED NULL;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS customer_gender VARCHAR(255) NULL;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS sum_insured DECIMAL(12, 2) NULL;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS sum_assured DECIMAL(12, 2) NULL;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS policy_term VARCHAR(255) NULL;
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS premium_frequency VARCHAR(255) NULL;
+EOF
+[Enter password]
+Done!
+
+
+================================================================================
+                            VERIFICATION
+================================================================================
+
+After running the command, verify it worked:
+-------------------------------------------------
+mysql -u YOUR_USERNAME -p YOUR_DATABASE -e "SHOW COLUMNS FROM policies;"
+
+You should see the new columns listed!
+
+
+================================================================================
+                            TROUBLESHOOTING
+================================================================================
+
+ERROR: "Access denied"
+-------------------------------------------------
+→ Wrong username or password
+→ Check your .env file for correct credentials
+
+
+ERROR: "Database doesn't exist"  
+-------------------------------------------------
+→ Wrong database name
+→ Check your .env file for DB_DATABASE value
+
+
+ERROR: "mysql: command not found"
+-------------------------------------------------
+→ Try: /usr/bin/mysql instead of mysql
+→ Or find mysql path: which mysql
+
+
+ERROR: "Column already exists"
+-------------------------------------------------
+→ That's OK! It means the column is already there
+→ The command is safe to run multiple times
+
+
+================================================================================
+                            SECURITY NOTE
+================================================================================
+
+⚠️  NEVER share your:
+- SSH password
+- Database password
+- .env file contents
+- Server IP address
+
+Not even with developers or support (unless it's official Hostinger support)
+
+
+================================================================================
+

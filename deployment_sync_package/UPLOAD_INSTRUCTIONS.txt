@@ -1,0 +1,60 @@
+═══════════════════════════════════════════════════════════════
+  PRODUCTION DATA EXPORT - UPLOAD INSTRUCTIONS
+═══════════════════════════════════════════════════════════════
+
+📦 WHAT'S IN THIS PACKAGE:
+   ├── run_production_export.php (Upload to public_html root)
+   └── app/Console/Commands/ExportPolicies.php (Upload to app/Console/Commands/)
+
+═══════════════════════════════════════════════════════════════
+  STEP 1: UPLOAD FILES TO HOSTINGER
+═══════════════════════════════════════════════════════════════
+
+Via Hostinger File Manager:
+   1. Go to Hostinger Control Panel
+   2. Open File Manager
+   3. Navigate to: /domains/v2insurance.softpromis.com/public_html/
+   
+   4. Upload run_production_export.php to:
+      /domains/v2insurance.softpromis.com/public_html/run_production_export.php
+   
+   5. Upload ExportPolicies.php to:
+      /domains/v2insurance.softpromis.com/public_html/app/Console/Commands/ExportPolicies.php
+
+═══════════════════════════════════════════════════════════════
+  STEP 2: RUN THE EXPORT
+═══════════════════════════════════════════════════════════════
+
+   Visit in your browser:
+   https://v2insurance.softpromis.com/run_production_export.php?password=export2025
+   
+   This will:
+   ✅ Count your 548 policies
+   ✅ Export all data to JSON
+   ✅ Provide a download link
+
+═══════════════════════════════════════════════════════════════
+  STEP 3: DOWNLOAD THE FILE
+═══════════════════════════════════════════════════════════════
+
+   Click the "Download policies_export.json" button on the page
+   Save to: /Users/rajesh/Documents/GitHub/insurancev2_frontend/policies_export.json
+
+═══════════════════════════════════════════════════════════════
+  STEP 4: TELL ME WHEN READY
+═══════════════════════════════════════════════════════════════
+
+   Once you've downloaded the file, tell me and I'll run the import!
+
+═══════════════════════════════════════════════════════════════
+  IMPORTANT: CLEANUP AFTER EXPORT
+═══════════════════════════════════════════════════════════════
+
+   ⚠️  DELETE FROM HOSTINGER:
+   - run_production_export.php
+   - policies_export.json
+   
+   These files contain sensitive data!
+
+═══════════════════════════════════════════════════════════════
+
