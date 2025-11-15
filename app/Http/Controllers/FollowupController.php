@@ -568,28 +568,18 @@ class FollowupController extends Controller
             ]);
             
             // Get ALL policies with end dates (not just Active, to match Renewals page behavior)
-            // This ensures we see all policies that need follow-up regardless of current status
-            $allPolicies = \App\Models\Policy::whereNotNull('end_date')
+            // Eager-load versions so we can treat policies with versions as "already renewed"
+            $allPolicies = \App\Models\Policy::with('versions')
+                ->whereNotNull('end_date')
                 ->get();
             
             \Log::info('Total active policies found: ' . $allPolicies->count());
             
-            // Helper function to check if policy is renewed
-            $isRenewed = function($policy) use ($allPolicies) {
-                if (!$policy->end_date) return false;
-                
-                // Check if a newer policy exists for same customer
-                $newerPolicy = $allPolicies->first(function($p) use ($policy) {
-                    if ($p->phone !== $policy->phone) return false;
-                    if ($p->id === $policy->id) return false;
-                    if (!$p->start_date) return false;
-                    
-                    // Newer policy's start date should be within 90 days of old policy's end date
-                    $daysDiff = $policy->end_date->diffInDays($p->start_date, false);
-                    return $daysDiff >= -90 && $daysDiff <= 90;
-                });
-                
-                return $newerPolicy !== null;
+            // Helper: consider a policy "renewed" if it has any versions (new version-based system)
+            // Older multi-policy renewals without versions will be treated as pending for now,
+            // which keeps this dashboard consistent with the new Renewals summary logic.
+            $isRenewed = function($policy) {
+                return $policy->relationLoaded('versions') && $policy->versions->count() > 0;
             };
             
             // Get last notes for policies
@@ -608,7 +598,7 @@ class FollowupController extends Controller
             // Process and categorize policies
             $processPolicies = function($policies, $category) use ($isRenewed, $getLastNote, $today) {
                 return $policies->map(function ($policy) use ($isRenewed, $getLastNote, $today, $category) {
-                    // Skip if renewed
+                    // Skip if renewed (has versions in new system)
                     if ($isRenewed($policy)) {
                         return null;
                     }

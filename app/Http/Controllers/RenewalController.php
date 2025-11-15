@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+use App\Models\Policy;
 use App\Models\Renewal;
 
 class RenewalController extends Controller
@@ -36,6 +38,70 @@ class RenewalController extends Controller
         });
         
         return response()->json(['renewals' => $renewals]);
+    }
+
+    /**
+     * Get renewal summary stats based on latest policy period end dates.
+     *
+     * Current behaviour:
+     * - For each policy, we consider the latest finished period:
+     *   - If the policy has versions: use latest version's end_date.
+     *   - If there are no versions: use the main policy's end_date.
+     * - A policy belongs to the "current month" bucket if that latest period end_date
+     *   falls between the first and last day of the current month.
+     * - "Completed" renewals are those policies that have at least one version
+     *   (i.e. a renewal has been performed for the latest finished period).
+     * - "Pending" renewals are those policies in the month bucket without versions.
+     */
+    public function summary(Request $request)
+    {
+        $timePeriod = $request->get('time_period', 'current_month');
+
+        // Currently we only support current_month explicitly; other values can be added later.
+        $now = Carbon::now();
+        $start = $now->copy()->startOfMonth();
+        $end = $now->copy()->endOfMonth();
+
+        $policies = Policy::with('versions')->get();
+
+        $total = 0;
+        $completed = 0;
+        $pending = 0;
+
+        foreach ($policies as $policy) {
+            // Latest version (highest version_number) represents the last finished period
+            $latestVersion = $policy->versions->sortByDesc('version_number')->first();
+
+            if ($latestVersion) {
+                $periodEnd = $latestVersion->end_date;
+                $hasRenewal = true;
+            } else {
+                $periodEnd = $policy->end_date;
+                $hasRenewal = false;
+            }
+
+            if ($periodEnd instanceof Carbon && $periodEnd->between($start, $end)) {
+                $total++;
+                if ($hasRenewal) {
+                    $completed++;
+                } else {
+                    $pending++;
+                }
+            }
+        }
+
+        return response()->json([
+            'time_period' => $timePeriod,
+            'range' => [
+                'start' => $start->toDateString(),
+                'end' => $end->toDateString(),
+            ],
+            'totals' => [
+                'total' => $total,
+                'completed' => $completed,
+                'pending' => $pending,
+            ],
+        ]);
     }
 
     /**

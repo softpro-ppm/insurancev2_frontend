@@ -104,15 +104,16 @@ const showDuplicateDialog = (policy) => {
     
     const confirmBtn = document.createElement('button');
     confirmBtn.type = 'button';
-    confirmBtn.textContent = 'Renew/Edit';
+    confirmBtn.textContent = 'Renew';
     confirmBtn.style.cssText = 'padding:8px 12px; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;';
     confirmBtn.addEventListener('click', async () => {
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Opening...';
         vehicleDuplicateCheckEnabled = false;
         try {
+            // Close the add-policy modal and open the dedicated Renew Policy flow
             closePolicyModal();
-            await editPolicy(policy.id);
+            await renewPolicy(policy.id);
         } finally {
             if (document.body.contains(overlay)) document.body.removeChild(overlay);
             duplicateDialogOpen = false;

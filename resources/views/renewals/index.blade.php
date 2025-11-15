@@ -769,25 +769,60 @@
         renderTable();
     }
 
-    function updateStats() {
+    async function updateStats() {
         const timePeriodFilter = els.timePeriodFilter.value || 'current_month';
         
         console.log('🔍 updateStats called with filter:', timePeriodFilter);
         console.log('🔍 Total policies in state.all:', state.all.length);
+
+        // For the current month, use server-side summary based on latest period end-date
+        if (timePeriodFilter === 'current_month') {
+            try {
+                const res = await fetch('/api/renewals/summary?time_period=current_month', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (res.ok) {
+                    const payload = await res.json();
+                    const totals = payload.totals || {};
+                    const pending = Number(totals.pending ?? 0);
+                    const completed = Number(totals.completed ?? 0);
+                    const total = Number(totals.total ?? (pending + completed));
+
+                    console.log('🔍 Server summary for current month:', { pending, completed, total, payload });
+
+                    state.totals = { pending, completed, total };
+                    els.stats.pending.textContent = String(pending);
+                    els.stats.completed.textContent = String(completed);
+                    els.stats.total.textContent = String(total);
+
+                    console.log('🔍 DOM updated from server summary. Current values:', {
+                        pending: els.stats.pending.textContent,
+                        completed: els.stats.completed.textContent,
+                        total: els.stats.total.textContent
+                    });
+
+                    return;
+                } else {
+                    console.warn('🔍 Failed to fetch server renewals summary, falling back to client logic. Status:', res.status);
+                }
+            } catch (err) {
+                console.error('🔍 Error fetching server renewals summary, falling back to client logic:', err);
+            }
+        }
         
+        // Fallback / non-current-month logic: compute from client-side dataset
         // Filter policies by time period first
         const timeFilteredPolicies = state.all.filter(row => isPolicyInTimePeriod(row, timePeriodFilter));
         
-        console.log('🔍 Time filtered policies:', timeFilteredPolicies.length, 'out of', state.all.length);
+        console.log('🔍 Time filtered policies (client fallback):', timeFilteredPolicies.length, 'out of', state.all.length);
         console.log('🔍 Sample filtered policies:', timeFilteredPolicies.slice(0, 3));
         
-        // Calculate stats based on new logic
+        // Calculate stats based on simple hasRenewal flag
         let pending = 0, completed = 0;
         
         timeFilteredPolicies.forEach(policy => {
             const isRenewed = isPolicyRenewed(policy);
-            console.log('🔍 Policy', policy.id, 'hasRenewal:', policy.hasRenewal, 'isRenewed:', isRenewed);
-            
             if (isRenewed) {
                 completed++;
             } else {
@@ -797,28 +832,13 @@
         
         const total = timeFilteredPolicies.length;
         
-        console.log('🔍 Final calculated counts:', { pending, completed, total });
-        console.log('🔍 Updating DOM elements...');
-        
-        // Additional verification log
-        console.log('🔍 VERIFICATION: Current month policies breakdown:', {
-            totalPoliciesInMonth: timeFilteredPolicies.length,
-            renewedPolicies: timeFilteredPolicies.filter(p => p.hasRenewal).length,
-            pendingPolicies: timeFilteredPolicies.filter(p => !p.hasRenewal).length,
-            timePeriod: timePeriodFilter
-        });
+        console.log('🔍 Final calculated counts (client fallback):', { pending, completed, total });
         
         state.totals = { pending, completed, total };
 
         els.stats.pending.textContent = String(pending);
         els.stats.completed.textContent = String(completed);
         els.stats.total.textContent = String(total);
-        
-        console.log('🔍 DOM updated. Current values:', {
-            pending: els.stats.pending.textContent,
-            completed: els.stats.completed.textContent,
-            total: els.stats.total.textContent
-        });
     }
 
     async function fetchPolicies() {

@@ -193,6 +193,7 @@ Route::post('/renewals', [RenewalController::class, 'store'])->name('renewals.st
 Route::get('/renewals/{id}', [RenewalController::class, 'show'])->name('renewals.show');
 Route::put('/renewals/{id}', [RenewalController::class, 'update'])->name('renewals.update');
 Route::delete('/renewals/{id}', [RenewalController::class, 'destroy'])->name('renewals.destroy');
+Route::get('/api/renewals/summary', [RenewalController::class, 'summary'])->name('renewals.summary');
 
 // Follow-ups routes
 Route::get('/followups', function () {
