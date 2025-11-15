@@ -11225,7 +11225,8 @@ const downloadVersionDocument = async (versionId, documentType) => {
 window.renewPolicy = renewPolicy;
 window.editPolicy = editPolicy;
 window.deletePolicy = deletePolicy;
-window.viewPolicy = viewPolicy;
+// Map generic viewPolicy() from Blade templates to the detailed view handler
+window.viewPolicy = viewPolicyDetails;
 window.downloadDocument = downloadDocument;
 window.removeDocument = removeDocument;
 window.deleteVersionHistory = deleteVersionHistory;
