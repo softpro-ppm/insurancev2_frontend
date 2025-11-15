@@ -97,18 +97,25 @@
                                 <option value="SBI General">SBI General</option>
                                 <option value="IFFCO-Tokio">IFFCO-Tokio</option>
                                 <option value="Royal Sundaram">Royal Sundaram</option>
+                                <option value="Kotak Mahindra">Kotak Mahindra</option>
+                                <option value="Chola MS">Chola MS</option>
+                                <option value="Shriram General">Shriram General</option>
+                                <option value="Universal Sompo">Universal Sompo</option>
+                                <option value="Future Generali">Future Generali</option>
+                                <option value="Magma HDI">Magma HDI</option>
+                                <option value="Raheja QBE">Raheja QBE</option>
+                                <option value="Go Digit">Go Digit</option>
+                                <option value="ACKO">ACKO</option>
+                                <option value="Zuno">Zuno</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="renewInsuranceType">Insurance Type *</label>
                             <select id="renewInsuranceType" name="insuranceType" required>
-                                <option value="">Select Type</option>
+                                <option value="">Select Insurance Type</option>
                                 <option value="Comprehensive">Comprehensive</option>
+                                <option value="Stand Alone OD">Stand Alone OD</option>
                                 <option value="Third Party">Third Party</option>
-                                <option value="Standalone OD">Standalone OD</option>
-                                <option value="Basic">Basic</option>
-                                <option value="Standard">Standard</option>
-                                <option value="Premium">Premium</option>
                             </select>
                         </div>
                     </div>
