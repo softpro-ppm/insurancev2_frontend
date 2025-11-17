@@ -608,7 +608,8 @@
 </style>
 
 <script>
-// Global variables
+(function() {
+// Reports page scoped variables (avoid clashing with global app.js variables)
 let allPolicies = [];
 let allRenewals = [];
 let allAgents = [];
@@ -1314,6 +1315,7 @@ function formatCurrency(amount) {
         maximumFractionDigits: 0
     });
 }
+})();
 </script>
 
 @endsection
