@@ -56,5 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->name('logout');
+        ->name('logout')
+        // Temporarily disable CSRF for logout to prevent 419 errors on some hosts
+        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 });

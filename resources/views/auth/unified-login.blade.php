@@ -34,6 +34,14 @@
             50% { transform: translateY(-20px) rotate(180deg); }
         }
         
+        .auth-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
         .auth-container {
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(20px);
@@ -290,7 +298,7 @@
         /* Responsive design */
         @media (max-width: 480px) {
             .auth-container {
-                margin: 20px;
+                margin: 20px auto;
                 padding: 32px 24px !important;
             }
             
@@ -307,6 +315,7 @@
     <!-- Animated background particles -->
     <div class="particles" id="particles"></div>
 
+    <div class="auth-wrapper">
     <div class="auth-container">
         <div class="logo-section">
             <div class="logo-image-container">
@@ -387,6 +396,7 @@
                 <span id="submitText">Sign In as Admin</span>
             </button>
         </form>
+    </div>
     </div>
 
     <!-- Include Font Awesome and Google Fonts -->
