@@ -1912,16 +1912,23 @@ const renderTable = () => {
         const safeVehicleNumber = typeof vehicleNumber === 'string' ? vehicleNumber : (vehicleNumber?.value || 'N/A');
         const safeVehicleType = typeof vehicleType === 'string' ? vehicleType : (vehicleType?.value || 'N/A');
         
-        row.innerHTML = `
-            <td>${startIndex + idx + 1}</td>
-            <td>${safeVehicleNumber}</td>
-            <td>${customerName}</td>
-            <td>${phone}</td>
-            <td>${safeVehicleType}</td>
-            <td style="white-space: nowrap;">${startDate && startDate.trim() !== '' ? formatDate(startDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
-            <td>₹${premium.toLocaleString()}</td>
-            <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
-            <td>
+        // Check if we're rendering the dashboard recent policies table
+        const isDashboardTable = window.recentPoliciesData && window.recentPoliciesData.length > 0 && $('#dashboard').hasClass('active');
+        
+        // Build action buttons HTML based on context
+        let actionButtonsHTML = '';
+        if (isDashboardTable) {
+            // Dashboard: Only show View button
+            actionButtonsHTML = `
+                <div class="action-buttons">
+                    <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            // Other pages: Show all buttons
+            actionButtonsHTML = `
                 <div class="action-buttons">
                     <button class="action-btn edit" data-policy-id="${policy.id}" title="Edit Policy">
                         <i class="fas fa-edit"></i>
@@ -1936,7 +1943,19 @@ const renderTable = () => {
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-            </td>
+            `;
+        }
+        
+        row.innerHTML = `
+            <td>${startIndex + idx + 1}</td>
+            <td>${safeVehicleNumber}</td>
+            <td>${customerName}</td>
+            <td>${phone}</td>
+            <td>${safeVehicleType}</td>
+            <td style="white-space: nowrap;">${startDate && startDate.trim() !== '' ? formatDate(startDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
+            <td>₹${premium.toLocaleString()}</td>
+            <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
+            <td>${actionButtonsHTML}</td>
         `;
         fragment.appendChild(row);
     });
@@ -1944,25 +1963,32 @@ const renderTable = () => {
     tbody.empty().append(fragment);
     updatePaginationInfo();
     
-    // Add event listeners for action buttons
-    tbody.find('.action-btn.edit').click(async function() {
-        const policyId = parseInt($(this).data('policy-id'));
-        await editPolicy(policyId);
-    });
+    // Check if we're rendering the dashboard recent policies table
+    const isDashboardTable = window.recentPoliciesData && window.recentPoliciesData.length > 0 && $('#dashboard').hasClass('active');
     
-    tbody.find('.action-btn.renew').click(async function() {
-        const policyId = parseInt($(this).data('policy-id'));
-        await renewPolicy(policyId);
-    });
+    // Add event listeners for action buttons (only attach listeners for buttons that exist)
+    if (!isDashboardTable) {
+        // Only attach edit, renew, and delete listeners if not on dashboard
+        tbody.find('.action-btn.edit').click(async function() {
+            const policyId = parseInt($(this).data('policy-id'));
+            await editPolicy(policyId);
+        });
+        
+        tbody.find('.action-btn.renew').click(async function() {
+            const policyId = parseInt($(this).data('policy-id'));
+            await renewPolicy(policyId);
+        });
+        
+        tbody.find('.action-btn.delete').click(function() {
+            const policyId = parseInt($(this).data('policy-id'));
+            deletePolicyHandler(policyId);
+        });
+    }
     
+    // View button listener (always present)
     tbody.find('.action-btn.view').click(function() {
         const policyId = parseInt($(this).data('policy-id'));
         window.location.href = `/policies/${policyId}/view`;
-    });
-    
-    tbody.find('.action-btn.delete').click(function() {
-        const policyId = parseInt($(this).data('policy-id'));
-        deletePolicyHandler(policyId);
     });
     
     tbody.find('.action-btn.history').off('click').on('click', function() {
