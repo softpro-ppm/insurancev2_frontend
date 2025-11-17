@@ -62,37 +62,7 @@
         </div>
     </div>
 
-    <!-- Last Month Expired Policies -->
-    <div class="followup-section glass-effect">
-        <div class="section-header urgent-header">
-            <h2><i class="fas fa-exclamation-circle"></i> Last Month Expired</h2>
-            <span class="count-badge" id="lastMonthBadge">0</span>
-        </div>
-        <div class="table-wrapper">
-            <table class="followup-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Customer Name</th>
-                        <th>Phone</th>
-                        <th>Policy / Type</th>
-                        <th>End Date</th>
-                        <th>Days Overdue</th>
-                        <th>Premium</th>
-                        <th>Last Note</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="lastMonthTable">
-                    <tr>
-                        <td colspan="9" class="text-center loading-row">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Current Month Expiring Policies -->
+    <!-- Current Month Expiring Policies (show first) -->
     <div class="followup-section glass-effect">
         <div class="section-header warning-header">
             <h2><i class="fas fa-clock"></i> Current Month Expiring</h2>
@@ -122,7 +92,37 @@
         </div>
     </div>
 
-    <!-- Next Month Expiring Policies -->
+    <!-- Last Month Expired Policies (now second) -->
+    <div class="followup-section glass-effect">
+        <div class="section-header urgent-header">
+            <h2><i class="fas fa-exclamation-circle"></i> Last Month Expired</h2>
+            <span class="count-badge" id="lastMonthBadge">0</span>
+        </div>
+        <div class="table-wrapper">
+            <table class="followup-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Policy / Type</th>
+                        <th>End Date</th>
+                        <th>Days Overdue</th>
+                        <th>Premium</th>
+                        <th>Last Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="lastMonthTable">
+                    <tr>
+                        <td colspan="9" class="text-center loading-row">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Next Month Expiring Policies (remains third) -->
     <div class="followup-section glass-effect">
         <div class="section-header info-header">
             <h2><i class="fas fa-calendar-alt"></i> Next Month Expiring</h2>
