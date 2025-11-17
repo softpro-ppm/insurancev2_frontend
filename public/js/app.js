@@ -2874,78 +2874,6 @@ const closeAgentModal = () => {
 const closeViewPolicyModal = () => {
     $('#viewPolicyModal').removeClass('show');
 };
-
-window.downloadDocument = (documentType) => {
-    const policyId = $('#viewPolicyModal').data('policy-id');
-    console.log('📥 downloadDocument called:', { documentType, policyId, modalExists: $('#viewPolicyModal').length });
-    
-    if (!policyId) {
-        console.error('❌ Policy ID not found in modal data attribute');
-        showNotification('Policy ID not found', 'error');
-        return;
-    }
-    
-    // Create download URL
-    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`; // cache-bust
-    console.log('📥 Download URL:', downloadUrl);
-    
-    // Show loading notification
-    showNotification(`Downloading ${documentType} document...`, 'info');
-    
-    // Use fetch to handle errors properly
-    fetch(downloadUrl)
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || 'Download failed');
-                });
-            }
-            
-            // Get filename from Content-Disposition header
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `${documentType}_document.pdf`; // Default fallback
-            
-            if (contentDisposition) {
-                // Try to extract filename from Content-Disposition header
-                // Handle both quoted and unquoted filenames, and different formats
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                } else {
-                    // Try alternative pattern for filename
-                    const altMatch = contentDisposition.match(/filename\*?=([^;]+)/);
-                    if (altMatch && altMatch[1]) {
-                        filename = altMatch[1].replace(/['"]/g, '');
-                    } else {
-                        // Try to extract filename from the end of the header
-                        const endMatch = contentDisposition.match(/filename[^=]*=([^;]+)/);
-                        if (endMatch && endMatch[1]) {
-                            filename = endMatch[1].replace(/['"]/g, '');
-                        }
-                    }
-                }
-            }
-            
-            return response.blob().then(blob => ({ blob, filename }));
-        })
-        .then(({ blob, filename }) => {
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            
-            showNotification(`${documentType} document downloaded successfully!`, 'success');
-        })
-        .catch(error => {
-            console.error('Download error:', error);
-            showNotification(error.message || 'Download failed', 'error');
-        });
-};
 // Remove a document from a policy
 window.removeDocument = async (documentType) => {
     const policyId = $('#viewPolicyModal').data('policy-id');
@@ -11138,9 +11066,82 @@ const populatePolicyHistory = (versions) => {
     container.html(html);
 };
 
-// Download Document for Current Policy
+// Download Document for a Policy (used by dashboard + view policy modal)
 const downloadDocument = (policyId, documentType) => {
-    window.location.href = `/api/policies/${policyId}/download/${documentType}`;
+    console.log('📥 downloadDocument called:', { policyId, documentType });
+
+    if (!policyId) {
+        console.error('❌ Policy ID not provided');
+        showNotification('Policy ID not found', 'error');
+        return;
+    }
+
+    if (!documentType) {
+        console.error('❌ Document type not provided');
+        showNotification('Document type not specified', 'error');
+        return;
+    }
+
+    // Create download URL (with cache-busting query)
+    const downloadUrl = `/api/policies/${policyId}/download/${documentType}?_=${Date.now()}`;
+    console.log('📥 Download URL:', downloadUrl);
+
+    // Show loading notification
+    const readableType = documentType === 'policy'
+        ? 'policy'
+        : documentType.toUpperCase();
+    showNotification(`Downloading ${readableType} document...`, 'info');
+
+    // Use fetch so we can surface server error messages cleanly
+    fetch(downloadUrl)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Download failed');
+                });
+            }
+
+            // Get filename from Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `${documentType}_document.pdf`; // Default fallback
+
+            if (contentDisposition) {
+                // Handle both quoted and unquoted filenames, and different formats
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                } else {
+                    const altMatch = contentDisposition.match(/filename\*?=([^;]+)/);
+                    if (altMatch && altMatch[1]) {
+                        filename = altMatch[1].replace(/['"]/g, '');
+                    } else {
+                        const endMatch = contentDisposition.match(/filename[^=]*=([^;]+)/);
+                        if (endMatch && endMatch[1]) {
+                            filename = endMatch[1].replace(/['"]/g, '');
+                        }
+                    }
+                }
+            }
+
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            // Trigger browser download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showNotification(`${readableType} document downloaded successfully!`, 'success');
+        })
+        .catch(error => {
+            console.error('Download error:', error);
+            showNotification(error.message || 'Download failed', 'error');
+        });
 };
 
 // Delete Policy Version History
