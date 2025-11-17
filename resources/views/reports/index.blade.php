@@ -570,6 +570,12 @@
     100% { transform: rotate(360deg); }
 }
 
+/* Ensure top navigation (Admin profile dropdown) stays clickable above any reports overlays */
+.top-nav {
+    position: relative;
+    z-index: 11000;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .reports-controls {
