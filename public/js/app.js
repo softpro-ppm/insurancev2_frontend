@@ -11068,11 +11068,24 @@ const populatePolicyHistory = (versions) => {
 
 // Download Document for a Policy (used by dashboard + view policy modal)
 const downloadDocument = (policyId, documentType) => {
-    console.log('📥 downloadDocument called:', { policyId, documentType });
+    console.log('📥 downloadDocument called (raw):', { policyId, documentType });
+
+    // Robustly resolve policyId if not passed correctly
+    if (!policyId) {
+        const modalPolicyId = $('#viewPolicyModal').data('policy-id');
+        console.log('📥 Fallback modal policy-id:', modalPolicyId);
+        
+        if (modalPolicyId) {
+            policyId = modalPolicyId;
+        } else if (window.currentViewingPolicyId) {
+            console.log('📥 Fallback currentViewingPolicyId:', window.currentViewingPolicyId);
+            policyId = window.currentViewingPolicyId;
+        }
+    }
 
     if (!policyId) {
-        console.error('❌ Policy ID not provided');
-        showNotification('Policy ID not found', 'error');
+        console.error('❌ Policy ID not resolved');
+        showNotification('Policy ID not found for download', 'error');
         return;
     }
 
