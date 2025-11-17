@@ -24,7 +24,30 @@
                 <input type="hidden" name="_method" value="PUT">
                 <input type="hidden" id="renewPolicyId" name="policy_id">
                 <input type="hidden" id="renewPolicyType" name="policy_type">
-                <input type="hidden" id="renewBusinessType" name="business_type">
+                
+                <!-- Business Type and Agent Selection -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user-tie"></i> Business Type & Agent</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="renewBusinessTypeSelect">Business Type *</label>
+                            <select id="renewBusinessTypeSelect" name="business_type" required>
+                                <option value="">Select Business Type</option>
+                                <option value="Self">Self</option>
+                                <option value="Agent">Agent</option>
+                            </select>
+                            <small class="hint" style="color: #666; font-size: 12px;">Previous policy's business type will be pre-selected</small>
+                        </div>
+                        <div class="form-group" id="renewAgentNameGroup" style="display: none;">
+                            <label for="renewAgentName">Agent Name</label>
+                            <select id="renewAgentName" name="agent_name">
+                                <option value="">Select Agent</option>
+                                <!-- Agent options will be populated dynamically -->
+                            </select>
+                            <small class="hint" style="color: #666; font-size: 12px;">Previous policy's agent will be pre-selected</small>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Customer Information (Editable) -->
                 <div class="form-section">

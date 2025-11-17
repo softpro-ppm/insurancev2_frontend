@@ -4321,7 +4321,57 @@ const renewPolicy = async (id) => {
         // Pre-fill renew modal with existing data
         $('#renewPolicyId').val(policy.id);
         $('#renewPolicyType').val(policy.policyType || policy.policy_type || policy.type);
-        $('#renewBusinessType').val(policy.businessType || policy.business_type || 'Self');
+        
+        // Business Type and Agent Selection
+        const previousBusinessType = policy.businessType || policy.business_type || 'Self';
+        const previousAgentName = policy.agentName || policy.agent_name || '';
+        
+        // Load agents if not already loaded
+        if (!allAgents || allAgents.length === 0) {
+            await loadAgentsData();
+        }
+        
+        // Populate agent dropdown
+        const renewAgentSelect = $('#renewAgentName');
+        renewAgentSelect.find('option:not(:first)').remove();
+        (allAgents || []).forEach((agent) => {
+            if (agent && agent.name) {
+                renewAgentSelect.append(`<option value="${agent.name}">${agent.name}</option>`);
+            }
+        });
+        
+        // Pre-select business type
+        $('#renewBusinessTypeSelect').val(previousBusinessType);
+        
+        // Show/hide agent name field based on business type
+        if (previousBusinessType === 'Agent') {
+            $('#renewAgentNameGroup').show();
+            $('#renewAgentName').prop('required', true);
+            // Pre-select agent name if available
+            if (previousAgentName) {
+                // Ensure the option exists in the dropdown, if not add it
+                const agentOptionExists = renewAgentSelect.find(`option[value="${CSS.escape(previousAgentName)}"]`).length > 0;
+                if (!agentOptionExists && previousAgentName) {
+                    renewAgentSelect.append(`<option value="${previousAgentName}">${previousAgentName}</option>`);
+                }
+                renewAgentSelect.val(previousAgentName);
+            }
+        } else {
+            $('#renewAgentNameGroup').hide();
+            $('#renewAgentName').prop('required', false).val('');
+        }
+        
+        // Add event listener for business type change
+        $('#renewBusinessTypeSelect').off('change').on('change', function() {
+            const selectedBusinessType = $(this).val();
+            if (selectedBusinessType === 'Agent') {
+                $('#renewAgentNameGroup').show();
+                $('#renewAgentName').prop('required', true);
+            } else {
+                $('#renewAgentNameGroup').hide();
+                $('#renewAgentName').prop('required', false).val('');
+            }
+        });
         
         // Customer info (read-only)
         $('#renewCustomerName').val(policy.customerName || policy.customer_name || policy.owner);
@@ -4444,7 +4494,9 @@ const handleRenewPolicySubmit = async (e) => {
     
     // Add basic fields
     formData.append('policy_type', $('#renewPolicyType').val());
-    formData.append('business_type', $('#renewBusinessType').val());
+    formData.append('business_type', $('#renewBusinessTypeSelect').val());
+    const agentName = $('#renewBusinessTypeSelect').val() === 'Agent' ? $('#renewAgentName').val() : '';
+    formData.append('agent_name', agentName);
     formData.append('customerName', $('#renewCustomerName').val());
     formData.append('customerPhone', $('#renewCustomerPhone').val());
     formData.append('customerEmail', $('#renewCustomerEmail').val() || '');
