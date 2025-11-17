@@ -21,10 +21,8 @@
                     <label for="renewalTimePeriodFilter">Time Period:</label>
                     <select id="renewalTimePeriodFilter">
                         <option value="current_month">Current Month</option>
-                        <option value="past_30">Past 30 Days</option>
-                        <option value="past_60">Past 60 Days</option>
-                        <option value="next_30">Next 30 Days</option>
-                        <option value="next_60">Next 60 Days</option>
+                        <option value="previous_month">Previous Month</option>
+                        <option value="next_month">Next Month</option>
                     </select>
                 </div>
                 
@@ -492,44 +490,46 @@
         console.log('🔍 getTimePeriodRange called with:', timePeriod);
         console.log('🔍 Current date info:', { today: today.toISOString().split('T')[0], currentYear, currentMonth });
         
+        const formatRangeForMonth = (year, monthIndex) => {
+            const month = monthIndex + 1; // 1-based
+            const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+            const endDate = `${year}-${month.toString().padStart(2, '0')}-${new Date(year, monthIndex + 1, 0).getDate().toString().padStart(2, '0')}`;
+            return { start: startDate, end: endDate };
+        };
+        
         switch (timePeriod) {
-            case 'current_month':
-                // Fix: Use proper date calculation for current month
-                const year = currentYear;
-                const month = currentMonth + 1; // Convert to 1-based month
-                const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-                const endDate = `${year}-${month.toString().padStart(2, '0')}-${new Date(year, currentMonth + 1, 0).getDate().toString().padStart(2, '0')}`;
-                const range = { start: startDate, end: endDate };
+            case 'current_month': {
+                const range = formatRangeForMonth(currentYear, currentMonth);
                 console.log('🔍 getTimePeriodRange current_month:', range);
                 return range;
-            case 'past_30':
-                const past30 = new Date(today);
-                past30.setDate(today.getDate() - 30);
-                return {
-                    start: past30.toISOString().split('T')[0],
-                    end: today.toISOString().split('T')[0]
-                };
-            case 'past_60':
-                const past60 = new Date(today);
-                past60.setDate(today.getDate() - 60);
-                return {
-                    start: past60.toISOString().split('T')[0],
-                    end: today.toISOString().split('T')[0]
-                };
-            case 'next_30':
-                const next30 = new Date(today);
-                next30.setDate(today.getDate() + 30);
-                return {
-                    start: today.toISOString().split('T')[0],
-                    end: next30.toISOString().split('T')[0]
-                };
-            case 'next_60':
-                const next60 = new Date(today);
-                next60.setDate(today.getDate() + 60);
-                return {
-                    start: today.toISOString().split('T')[0],
-                    end: next60.toISOString().split('T')[0]
-                };
+            }
+            case 'previous_month': {
+                let year = currentYear;
+                let monthIndex = currentMonth - 1;
+                if (monthIndex < 0) {
+                    monthIndex = 11;
+                    year = currentYear - 1;
+                }
+                const range = formatRangeForMonth(year, monthIndex);
+                console.log('🔍 getTimePeriodRange previous_month:', range);
+                return range;
+            }
+            case 'next_month': {
+                let year = currentYear;
+                let monthIndex = currentMonth + 1;
+                if (monthIndex > 11) {
+                    monthIndex = 0;
+                    year = currentYear + 1;
+                }
+                const range = formatRangeForMonth(year, monthIndex);
+                console.log('🔍 getTimePeriodRange next_month:', range);
+                return range;
+            }
+            default: {
+                const range = formatRangeForMonth(currentYear, currentMonth);
+                console.log('🔍 getTimePeriodRange default (current_month):', range);
+                return range;
+            }
         }
     }
 
@@ -586,8 +586,8 @@
             return { label: 'Renewed', cls: 'completed' };
         }
         
-        // For past periods, all non-renewed policies are overdue
-        if (timePeriod === 'past_30' || timePeriod === 'past_60') {
+        // For previous month, all non-renewed policies are overdue
+        if (timePeriod === 'previous_month') {
             return { label: 'Overdue', cls: 'overdue' };
         }
         
@@ -599,8 +599,8 @@
     }
 
     function priorityFromDaysLeft(n, timePeriod) {
-        // For past periods, all policies are high priority (overdue)
-        if (timePeriod === 'past_30' || timePeriod === 'past_60') {
+        // For previous month, all policies are high priority (overdue)
+        if (timePeriod === 'previous_month') {
             return { label: 'High', cls: 'high' };
         }
         
