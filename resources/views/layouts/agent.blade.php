@@ -245,7 +245,7 @@
     </div>
 
     <!-- Scripts - Load with defer -->
-    <script src="{{ asset('js/app.js') }}?v=2.7" defer></script>
+    <script src="{{ asset('js/app.js') }}?v=2.8" defer></script>
     
     @stack('scripts')
 </body>
