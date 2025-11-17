@@ -206,8 +206,9 @@ public function getRecentPolicies()
                     'vehicleType' => $policy->vehicle_type,
                     'companyName' => $policy->company_name,
                     'insuranceType' => $policy->insurance_type,
-                    'startDate' => $policy->start_date->format('d-m-Y'),
-                    'endDate' => $policy->end_date->format('d-m-Y'),
+                    // Guard against null dates to avoid 500 errors
+                    'startDate' => $policy->start_date ? $policy->start_date->format('d-m-Y') : null,
+                    'endDate' => $policy->end_date ? $policy->end_date->format('d-m-Y') : null,
                     'premium' => $policy->premium,
                     'payout' => $policy->payout,
                     'customerPaidAmount' => $policy->customer_paid_amount,
@@ -215,12 +216,11 @@ public function getRecentPolicies()
                     'status' => $policy->status,
                     'businessType' => $policy->business_type,
                     'agentName' => $policy->agent_name,
-                    'createdAt' => $policy->created_at->format('Y-m-d'),
+                    'createdAt' => $policy->created_at ? $policy->created_at->format('Y-m-d') : null,
                     'policy_copy_path' => $policy->policy_copy_path,
                     'rc_copy_path' => $policy->rc_copy_path,
                     'aadhar_copy_path' => $policy->aadhar_copy_path,
                     'pan_copy_path' => $policy->pan_copy_path,
-
                 ];
             });
         

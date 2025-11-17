@@ -50,8 +50,9 @@ class PolicyController extends Controller
                 'policyTerm' => $policy->policy_term,
                 'premiumFrequency' => $policy->premium_frequency,
                 'policyIssueDate' => $policy->policy_issue_date ? $policy->policy_issue_date->format('Y-m-d') : null,
-                'startDate' => $policy->start_date->format('Y-m-d'),
-                'endDate' => $policy->end_date->format('Y-m-d'),
+                // Use null-safe formatting to avoid 500s when dates are missing
+                'startDate' => $policy->start_date ? $policy->start_date->format('Y-m-d') : null,
+                'endDate' => $policy->end_date ? $policy->end_date->format('Y-m-d') : null,
                 'premium' => $policy->premium,
                 'payout' => $policy->payout,
                 'customerPaidAmount' => $policy->customer_paid_amount,
