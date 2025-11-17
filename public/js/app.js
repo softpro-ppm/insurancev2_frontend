@@ -1414,9 +1414,6 @@ const updateRecentPoliciesTable = (policies) => {
         });
     }
     
-    const tbody = $('#policiesTable tbody');
-    tbody.empty();
-    
     // Default sort by most recent start date if no explicit sort chosen
     if (!window.currentSort || !window.currentSort.column) {
         filteredPolicies.sort((a, b) => {
@@ -1441,45 +1438,12 @@ const updateRecentPoliciesTable = (policies) => {
         });
     }
 
-    filteredPolicies.forEach((policy, index) => {
-        console.log('Recent Policies - Policy data:', policy); // Debug log
-        console.log('Vehicle Number from policy:', policy.vehicleNumber); // Debug vehicle number
-        
-        // Extract vehicle type or use policy type
-        const vehicleType = policy.vehicleType || policy.vehicle_type || (policy.policyType === 'Motor' ? 'Motor' : policy.policyType);
-        
-        const row = `
-            <tr>
-                <td>${index + 1}</td>
-                <td>
-                    <span class="policy-type-badge ${(policy.policyType || '').toLowerCase()}">${policy.policyType}</span>
-                    <div style="font-size: 11px; color: #666; margin-top: 2px;">${policy.vehicleNumber || ''}</div>
-                </td>
-                <td>${policy.customerName}</td>
-                <td>${policy.phone}</td>
-                <td>${vehicleType}</td>
-                <td style="white-space: nowrap;">${policy.startDate ? formatDate(policy.startDate) : '<span style="color: #999; font-style: italic;">Not set</span>'}</td>
-                <td>₹${policy.premium}</td>
-                <td><span class="status-badge ${(policy.status || 'Active').toLowerCase()}">${policy.status || 'Active'}</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="action-btn view" data-policy-id="${policy.id}" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        tbody.append(row);
-    });
-
-    // Bind View button for recent policies
-    tbody.find('.action-btn.view').off('click').on('click', function() {
-        const policyId = parseInt($(this).data('policy-id'));
-        if (!isNaN(policyId)) {
-            viewPolicyDetails(policyId);
-        }
-    });
+    // Sync with main table data + pagination so rowsPerPage works correctly
+    allPolicies = [...filteredPolicies];
+    filteredData = [...filteredPolicies];
+    currentPage = 1;
+    renderTable();
+    updatePagination();
 };
 
 // Update expiring policies list
