@@ -185,15 +185,15 @@ $monthlyRenewed = Policy::whereMonth('end_date', $currentMonth->month)
     }
     
     /**
-     * Get recent policies for dashboard (last 30 days)
+     * Get recent policies for dashboard
+     * 
+     * Returns all policies ordered by most recent start_date first.
+     * Frontend already handles pagination (10 rows per page by default).
      */
-public function getRecentPolicies()
+    public function getRecentPolicies()
     {
-        // Get policies from the last 30 days only
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
-        
-        $recentPolicies = Policy::where('start_date', '>=', $thirtyDaysAgo)
-            ->orderBy('start_date', 'desc')
+        // Get ALL policies, most recent start_date on top
+        $recentPolicies = Policy::orderBy('start_date', 'desc')
             ->get()
             ->map(function ($policy) {
                 return [
