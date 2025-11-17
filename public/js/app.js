@@ -3169,7 +3169,8 @@ const setupDocumentDownloadButtons = (policy) => {
                 const currentPolicyId = $('#viewPolicyModal').data('policy-id');
                 console.log('📥 Current policy ID from modal:', currentPolicyId);
                 if (currentPolicyId) {
-                    window.downloadDocument(docType);
+                    // Call the global downloadDocument(policyId, documentType)
+                    downloadDocument(currentPolicyId, docType);
                 } else {
                     showNotification('Policy ID not found', 'error');
                 }
