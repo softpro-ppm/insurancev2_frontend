@@ -2202,6 +2202,16 @@ const initializeEventListeners = () => {
     // Close dropdown when clicking outside - use proper event delegation
     $(document).off('click.profileDropdown touchend.profileDropdown').on('click.profileDropdown touchend.profileDropdown', function(e) {
         // Don't close if clicking inside the dropdown or on the profile button
+        // Also allow links and form buttons to work normally
+        const target = $(e.target);
+        const isLink = target.is('a') || target.closest('a').length > 0;
+        const isFormButton = target.is('button[type="submit"]') || target.closest('button[type="submit"]').length > 0;
+        
+        if (isLink || isFormButton) {
+            // Allow link/form button clicks to proceed normally
+            return true;
+        }
+        
         if (!$(e.target).closest('.profile-dropdown').length) {
             const dropdown = $('#profileDropdown');
             if (dropdown.hasClass('show')) {
@@ -2216,6 +2226,22 @@ const initializeEventListeners = () => {
                 console.log('🔄 Dropdown closed by outside click');
             }
         }
+    });
+    
+    // Ensure dropdown items with links work properly - don't interfere with link navigation
+    $('#profileDropdown .dropdown-item a').off('click.profileLink').on('click.profileLink', function(e) {
+        // Stop propagation to prevent dropdown close handler from interfering
+        e.stopPropagation();
+        // Close dropdown immediately
+        $('#profileDropdown').removeClass('show').css({
+            'display': 'none',
+            'opacity': '0',
+            'visibility': 'hidden',
+            'transform': 'translateY(-10px)',
+            'pointer-events': 'none'
+        });
+        console.log('🔄 Profile link clicked, navigating to:', $(this).attr('href'));
+        // Don't prevent default - allow the browser to navigate normally
     });
     
     // Modal controls - Agent Modal
