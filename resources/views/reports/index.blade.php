@@ -738,14 +738,24 @@ function setupPaginationControls(tableType) {
     // Remove existing event listeners by cloning and replacing elements
     const rowsSelect = document.getElementById(tableType + 'RowsPerPage');
     if (rowsSelect) {
+        // Preserve current value before cloning
+        const currentValue = rowsSelect.value;
+        
         // Clone and replace to remove old listeners
         const newRowsSelect = rowsSelect.cloneNode(true);
+        newRowsSelect.value = currentValue; // Preserve selected value
         rowsSelect.parentNode.replaceChild(newRowsSelect, rowsSelect);
         
         newRowsSelect.addEventListener('change', function() {
-            console.log(`📊 ${tableType} rows per page changed to:`, this.value);
-            paginationState[tableType].rowsPerPage = parseInt(this.value);
+            const newValue = parseInt(this.value);
+            console.log(`📊 ${tableType} rows per page changed to:`, newValue);
+            console.log(`📊 Current data available:`, currentReportData[tableType]?.length || 0, 'items');
+            
+            // Update pagination state
+            paginationState[tableType].rowsPerPage = newValue;
             paginationState[tableType].currentPage = 1;
+            
+            // Re-render table
             renderTableWithPagination(tableType);
         });
     }
@@ -810,17 +820,20 @@ function getFilteredData(tableType) {
     const searchInput = document.getElementById(tableType + 'Search');
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
+    // Get data from currentReportData
     switch(tableType) {
         case 'policies':
-            data = currentReportData.policies || [];
+            data = Array.isArray(currentReportData.policies) ? currentReportData.policies : [];
             break;
         case 'renewals':
-            data = currentReportData.renewals || [];
+            data = Array.isArray(currentReportData.renewals) ? currentReportData.renewals : [];
             break;
         case 'agents':
-            data = currentReportData.agents || [];
+            data = Array.isArray(currentReportData.agents) ? currentReportData.agents : [];
             break;
     }
+    
+    console.log(`🔍 ${tableType} raw data:`, data.length, 'items');
     
     // Apply search filter
     if (searchTerm) {
@@ -834,7 +847,7 @@ function getFilteredData(tableType) {
         });
     }
     
-    console.log(`🔍 ${tableType} filtered data:`, data.length, 'items (search term:', searchTerm, ')');
+    console.log(`🔍 ${tableType} filtered data:`, data.length, 'items (search term:', searchTerm || 'none', ')');
     return data;
 }
 
@@ -1143,31 +1156,69 @@ function renderCharts() {
 
 function renderTables(data) {
     console.log('📊 Rendering tables with data:', data);
+    console.log('📊 Data structure:', {
+        policies: Array.isArray(data.policies) ? data.policies.length : 'not array',
+        renewals: Array.isArray(data.renewals) ? data.renewals.length : 'not array',
+        agents: Array.isArray(data.agents) ? data.agents.length : 'not array'
+    });
     
-    // Store current data for export
-    currentReportData = data;
+    // Store current data for export - ensure it's a proper object
+    currentReportData = {
+        policies: Array.isArray(data.policies) ? data.policies : [],
+        renewals: Array.isArray(data.renewals) ? data.renewals : [],
+        agents: Array.isArray(data.agents) ? data.agents : []
+    };
     
     // Reset pagination for all tables
     paginationState.policies.currentPage = 1;
     paginationState.renewals.currentPage = 1;
     paginationState.agents.currentPage = 1;
     
-    // Render each table with pagination
-    renderTableWithPagination('policies');
-    renderTableWithPagination('renewals');
-    renderTableWithPagination('agents');
+    // Small delay to ensure DOM is ready, then render each table with pagination
+    setTimeout(() => {
+        renderTableWithPagination('policies');
+        renderTableWithPagination('renewals');
+        renderTableWithPagination('agents');
+        
+        // Re-setup pagination controls after rendering to ensure they're attached
+        setupPaginationControls('policies');
+        setupPaginationControls('renewals');
+        setupPaginationControls('agents');
+    }, 50);
 }
 
 function renderTableWithPagination(tableType) {
+    console.log(`🔄 Rendering ${tableType} table...`);
+    console.log(`📊 Pagination state:`, paginationState[tableType]);
+    console.log(`📊 Current report data:`, currentReportData);
+    
     const data = getFilteredData(tableType);
+    console.log(`📊 Filtered data length:`, data.length);
+    
     const { currentPage, rowsPerPage } = paginationState[tableType];
+    console.log(`📊 Current page:`, currentPage, `Rows per page:`, rowsPerPage);
     
     // Calculate pagination
     const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const totalPages = Math.ceil(totalItems / rowsPerPage) || 1; // Ensure at least 1 page
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const pageData = data.slice(startIndex, endIndex);
+    
+    console.log(`📊 Pagination calculation:`, {
+        totalItems,
+        totalPages,
+        startIndex,
+        endIndex,
+        pageDataLength: pageData.length
+    });
+    
+    // Ensure current page doesn't exceed total pages
+    if (currentPage > totalPages && totalPages > 0) {
+        paginationState[tableType].currentPage = totalPages;
+        // Re-render with corrected page
+        return renderTableWithPagination(tableType);
+    }
     
     // Render based on table type
     switch(tableType) {
