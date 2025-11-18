@@ -184,7 +184,7 @@
     </div>
 
     <!-- Scripts - Load with defer for better performance -->
-    <script src="{{ asset('js/app.js') }}?v=2.12" defer></script>
+    <script src="{{ asset('js/app.js') }}?v=2.13" defer></script>
     
     @stack('scripts')
 </body>

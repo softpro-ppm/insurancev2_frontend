@@ -5469,46 +5469,60 @@ const populatePolicyModal = async (policy) => {
 
 const exportPoliciesData = async () => {
     try {
-        console.log('Export function called');
+        console.log('📥 Export function called');
         
         // Show loading state
         const exportBtn = $('#exportPoliciesBtn');
         const originalText = exportBtn.html();
         exportBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Exporting...');
         
-        // Get current filter values
-        const filters = {
-            policy_type: $('#policyTypeFilter').val(),
-            status: $('#statusFilter').val(),
-            format: 'csv' // Default to CSV for better compatibility
-        };
+        // Ensure filters are applied before export
+        applyPoliciesFilters();
         
-        console.log('Filters:', filters);
-        
-        // Build URL with filters
-        const params = new URLSearchParams();
-        Object.keys(filters).forEach(key => {
-            if (filters[key]) {
-                params.append(key, filters[key]);
-            }
+        // Use the filtered data that's currently displayed
+        const dataToExport = policiesFilteredData || [];
+        console.log('📥 Exporting filtered data:', dataToExport.length, 'policies');
+        console.log('📥 Current filters:', {
+            search: $('#policiesSearch').val(),
+            policyType: $('#policyTypeFilter').val(),
+            status: $('#statusFilter').val()
         });
         
-        const url = '/api/policies/export?' + params.toString();
-        console.log('Export URL:', url);
+        if (!dataToExport || dataToExport.length === 0) {
+            showNotification('No data to export', 'error');
+            exportBtn.prop('disabled', false).html(originalText);
+            return;
+        }
         
-        // Create temporary link to download file
+        // Generate CSV from filtered data
+        const csv = generatePoliciesCSVFromData(dataToExport);
+        
+        if (!csv || csv.trim() === '') {
+            showNotification('No data to export', 'error');
+            exportBtn.prop('disabled', false).html(originalText);
+            return;
+        }
+        
+        // Get filter info for filename
+        const statusFilter = $('#statusFilter').val() || 'all';
+        const policyTypeFilter = $('#policyTypeFilter').val() || 'all';
+        const filename = `policies_${policyTypeFilter}_${statusFilter}_${new Date().toISOString().split('T')[0]}.csv`;
+        
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = url;
-        link.download = ''; // Let server determine filename
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        console.log('Download link clicked');
-        showNotification('Export started! Your download will begin shortly.', 'success');
+        console.log('✅ Export completed:', dataToExport.length, 'records');
+        showNotification(`Export completed! (${dataToExport.length} records)`, 'success');
         
     } catch (error) {
-        console.error('Export error:', error);
+        console.error('❌ Export error:', error);
+        console.error('Error stack:', error.stack);
         showNotification('Failed to export policies. Please try again.', 'error');
     } finally {
         // Restore button state
@@ -5533,6 +5547,63 @@ const generatePoliciesCSV = () => {
             (policy.endDate || ''),
             (policy.premium || 0),
             (policy.status || '')
+        ];
+        csvRows.push(row.join(','));
+    });
+    
+    return csvRows.join('\n');
+};
+
+// Generate CSV from specific data array (for Policies page export)
+const generatePoliciesCSVFromData = (policies) => {
+    const escapeValue = (value) => {
+        const str = String(value || '');
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+    
+    const headers = [
+        'Sl. No',
+        'Customer Name',
+        'Phone',
+        'Email',
+        'Policy Type',
+        'Vehicle Number',
+        'Vehicle Type',
+        'Insurance Company',
+        'Premium',
+        'Revenue',
+        'Status',
+        'Business Type',
+        'Agent Name',
+        'Start Date',
+        'End Date'
+    ];
+    
+    const csvRows = [
+        headers.map(escapeValue).join(',')
+    ];
+    
+    policies.forEach((policy, index) => {
+        const row = [
+            index + 1,
+            escapeValue(policy.customerName || policy.owner || ''),
+            escapeValue(policy.phone || ''),
+            escapeValue(policy.email || policy.customerEmail || ''),
+            escapeValue(policy.policyType || policy.type || ''),
+            escapeValue(policy.vehicleNumber || policy.vehicle || ''),
+            escapeValue(policy.vehicleType || policy.vehicle_type || ''),
+            escapeValue(policy.companyName || policy.company || ''),
+            parseFloat(policy.premium || 0),
+            parseFloat(policy.revenue || 0),
+            escapeValue(policy.status || ''),
+            escapeValue(policy.businessType || policy.business_type || ''),
+            escapeValue(policy.agentName || policy.agent_name || ''),
+            escapeValue(policy.startDate || ''),
+            escapeValue(policy.endDate || '')
         ];
         csvRows.push(row.join(','));
     });
