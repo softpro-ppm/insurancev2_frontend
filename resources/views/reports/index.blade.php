@@ -698,7 +698,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function bindEventListeners() {
     // Export Report button
-    document.getElementById('exportReportBtn').addEventListener('click', exportReport);
+    const exportBtn = document.getElementById('exportReportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportReport);
+    }
     
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -708,23 +711,39 @@ function bindEventListeners() {
     });
     
     // Date range changes
-    document.getElementById('reportStartDate').addEventListener('change', loadAllData);
-    document.getElementById('reportEndDate').addEventListener('change', loadAllData);
+    const startDateInput = document.getElementById('reportStartDate');
+    const endDateInput = document.getElementById('reportEndDate');
+    if (startDateInput) {
+        startDateInput.addEventListener('change', loadAllData);
+    }
+    if (endDateInput) {
+        endDateInput.addEventListener('change', loadAllData);
+    }
     
     // Business type filter change
-    document.getElementById('businessTypeFilter').addEventListener('change', loadAllData);
+    const businessTypeFilter = document.getElementById('businessTypeFilter');
+    if (businessTypeFilter) {
+        businessTypeFilter.addEventListener('change', loadAllData);
+    }
     
-    // Pagination controls for each table
-    setupPaginationControls('policies');
-    setupPaginationControls('renewals');
-    setupPaginationControls('agents');
+    // Pagination controls for each table - setup after a small delay to ensure DOM is ready
+    setTimeout(() => {
+        setupPaginationControls('policies');
+        setupPaginationControls('renewals');
+        setupPaginationControls('agents');
+    }, 100);
 }
 
 function setupPaginationControls(tableType) {
-    // Rows per page change
+    // Remove existing event listeners by cloning and replacing elements
     const rowsSelect = document.getElementById(tableType + 'RowsPerPage');
     if (rowsSelect) {
-        rowsSelect.addEventListener('change', function() {
+        // Clone and replace to remove old listeners
+        const newRowsSelect = rowsSelect.cloneNode(true);
+        rowsSelect.parentNode.replaceChild(newRowsSelect, rowsSelect);
+        
+        newRowsSelect.addEventListener('change', function() {
+            console.log(`📊 ${tableType} rows per page changed to:`, this.value);
             paginationState[tableType].rowsPerPage = parseInt(this.value);
             paginationState[tableType].currentPage = 1;
             renderTableWithPagination(tableType);
@@ -734,9 +753,15 @@ function setupPaginationControls(tableType) {
     // Previous page button
     const prevBtn = document.getElementById(tableType + 'PrevPage');
     if (prevBtn) {
-        prevBtn.addEventListener('click', function() {
+        // Remove old listener
+        const newPrevBtn = prevBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+        
+        newPrevBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             if (paginationState[tableType].currentPage > 1) {
                 paginationState[tableType].currentPage--;
+                console.log(`📄 ${tableType} previous page:`, paginationState[tableType].currentPage);
                 renderTableWithPagination(tableType);
             }
         });
@@ -745,28 +770,45 @@ function setupPaginationControls(tableType) {
     // Next page button
     const nextBtn = document.getElementById(tableType + 'NextPage');
     if (nextBtn) {
-        nextBtn.addEventListener('click', function() {
+        // Remove old listener
+        const newNextBtn = nextBtn.cloneNode(true);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+        
+        newNextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             const totalPages = Math.ceil(getFilteredData(tableType).length / paginationState[tableType].rowsPerPage);
             if (paginationState[tableType].currentPage < totalPages) {
                 paginationState[tableType].currentPage++;
+                console.log(`📄 ${tableType} next page:`, paginationState[tableType].currentPage);
                 renderTableWithPagination(tableType);
             }
         });
     }
     
-    // Search input
+    // Search input - use debounce for better performance
     const searchInput = document.getElementById(tableType + 'Search');
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            paginationState[tableType].currentPage = 1;
-            renderTableWithPagination(tableType);
+        // Clone and replace to remove old listeners
+        const newSearchInput = searchInput.cloneNode(true);
+        newSearchInput.value = searchInput.value; // Preserve value
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        
+        let searchTimeout;
+        newSearchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                console.log(`🔍 ${tableType} search:`, this.value);
+                paginationState[tableType].currentPage = 1;
+                renderTableWithPagination(tableType);
+            }, 300); // Debounce 300ms
         });
     }
 }
 
 function getFilteredData(tableType) {
     let data = [];
-    const searchTerm = document.getElementById(tableType + 'Search').value.toLowerCase();
+    const searchInput = document.getElementById(tableType + 'Search');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
     switch(tableType) {
         case 'policies':
@@ -783,12 +825,16 @@ function getFilteredData(tableType) {
     // Apply search filter
     if (searchTerm) {
         data = data.filter(item => {
-            return Object.values(item).some(val => 
-                String(val).toLowerCase().includes(searchTerm)
-            );
+            // Search across all string/number fields
+            return Object.values(item).some(val => {
+                if (val === null || val === undefined) return false;
+                const strVal = String(val).toLowerCase();
+                return strVal.includes(searchTerm);
+            });
         });
     }
     
+    console.log(`🔍 ${tableType} filtered data:`, data.length, 'items (search term:', searchTerm, ')');
     return data;
 }
 
@@ -1163,49 +1209,67 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
     
     // Update page numbers - generate clickable page numbers like Policies page
     const pageNumbersElement = document.getElementById(tableType + 'PageNumbers');
-    if (pageNumbersElement && totalPages > 0) {
+    if (pageNumbersElement) {
         const currentPage = paginationState[tableType].currentPage;
         let pageNumbersHtml = '';
         
-        // Show max 5 page numbers at a time
-        const maxVisible = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-        
-        if (endPage - startPage < maxVisible - 1) {
-            startPage = Math.max(1, endPage - maxVisible + 1);
-        }
-        
-        // Previous ellipsis
-        if (startPage > 1) {
-            pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', 1)">1</span>`;
-            if (startPage > 2) {
-                pageNumbersHtml += `<span class="page-ellipsis">...</span>`;
+        if (totalPages === 0) {
+            pageNumbersHtml = '<span class="page-number" style="padding: 4px 8px; margin: 0 2px;">0</span>';
+        } else if (totalPages <= 7) {
+            // Show all pages if 7 or fewer
+            for (let i = 1; i <= totalPages; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                const style = i === currentPage 
+                    ? 'background: #4f46e5; color: white; cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;'
+                    : 'cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;';
+                pageNumbersHtml += `<span class="page-number ${activeClass}" onclick="setPage('${tableType}', ${i})" style="${style}">${i}</span>`;
             }
-        }
-        
-        // Page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            const activeClass = i === currentPage ? 'active' : '';
-            pageNumbersHtml += `<span class="page-number ${activeClass}" onclick="setPage('${tableType}', ${i})">${i}</span>`;
-        }
-        
-        // Next ellipsis
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                pageNumbersHtml += `<span class="page-ellipsis">...</span>`;
+        } else {
+            // Show max 5 page numbers at a time with ellipsis
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
             }
-            pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', ${totalPages})">${totalPages}</span>`;
+            
+            // Previous ellipsis
+            if (startPage > 1) {
+                pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', 1)" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">1</span>`;
+                if (startPage > 2) {
+                    pageNumbersHtml += `<span class="page-ellipsis" style="padding: 4px 8px; margin: 0 2px; display: inline-block;">...</span>`;
+                }
+            }
+            
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                const style = i === currentPage 
+                    ? 'background: #4f46e5; color: white; cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;'
+                    : 'cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;';
+                pageNumbersHtml += `<span class="page-number ${activeClass}" onclick="setPage('${tableType}', ${i})" style="${style}">${i}</span>`;
+            }
+            
+            // Next ellipsis
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pageNumbersHtml += `<span class="page-ellipsis" style="padding: 4px 8px; margin: 0 2px; display: inline-block;">...</span>`;
+                }
+                pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', ${totalPages})" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">${totalPages}</span>`;
+            }
         }
         
         pageNumbersElement.innerHTML = pageNumbersHtml;
     }
 }
 
-function setPage(tableType, page) {
-    paginationState[tableType].currentPage = page;
+// Make setPage accessible globally for onclick handlers
+window.setPage = function(tableType, page) {
+    console.log(`📄 ${tableType} set page to:`, page);
+    paginationState[tableType].currentPage = parseInt(page);
     renderTableWithPagination(tableType);
-}
+};
 
 function renderPoliciesTable(policies) {
     const tbody = document.getElementById('policiesTableBody');
