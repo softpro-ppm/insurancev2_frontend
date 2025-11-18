@@ -1274,7 +1274,7 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
                 const style = i === currentPage 
                     ? 'background: #4f46e5; color: white; cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;'
                     : 'cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;';
-                pageNumbersHtml += `<span class="page-number ${activeClass}" onclick="setPage('${tableType}', ${i})" style="${style}">${i}</span>`;
+                pageNumbersHtml += `<span class="page-number ${activeClass}" data-page="${i}" data-table="${tableType}" style="${style}">${i}</span>`;
             }
         } else {
             // Show max 5 page numbers at a time with ellipsis
@@ -1288,7 +1288,7 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
             
             // Previous ellipsis
             if (startPage > 1) {
-                pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', 1)" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">1</span>`;
+                pageNumbersHtml += `<span class="page-number" data-page="1" data-table="${tableType}" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">1</span>`;
                 if (startPage > 2) {
                     pageNumbersHtml += `<span class="page-ellipsis" style="padding: 4px 8px; margin: 0 2px; display: inline-block;">...</span>`;
                 }
@@ -1300,7 +1300,7 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
                 const style = i === currentPage 
                     ? 'background: #4f46e5; color: white; cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;'
                     : 'cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;';
-                pageNumbersHtml += `<span class="page-number ${activeClass}" onclick="setPage('${tableType}', ${i})" style="${style}">${i}</span>`;
+                pageNumbersHtml += `<span class="page-number ${activeClass}" data-page="${i}" data-table="${tableType}" style="${style}">${i}</span>`;
             }
             
             // Next ellipsis
@@ -1308,16 +1308,28 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
                 if (endPage < totalPages - 1) {
                     pageNumbersHtml += `<span class="page-ellipsis" style="padding: 4px 8px; margin: 0 2px; display: inline-block;">...</span>`;
                 }
-                pageNumbersHtml += `<span class="page-number" onclick="setPage('${tableType}', ${totalPages})" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">${totalPages}</span>`;
+                pageNumbersHtml += `<span class="page-number" data-page="${totalPages}" data-table="${tableType}" style="cursor: pointer; padding: 4px 8px; margin: 0 2px; border-radius: 4px; display: inline-block;">${totalPages}</span>`;
             }
         }
         
         pageNumbersElement.innerHTML = pageNumbersHtml;
+        
+        // Attach event listeners using event delegation
+        pageNumbersElement.querySelectorAll('.page-number[data-page]').forEach(span => {
+            span.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const page = parseInt(this.getAttribute('data-page'));
+                const table = this.getAttribute('data-table');
+                console.log(`📄 Clicked page ${page} for table ${table}`);
+                setPage(table, page);
+            });
+        });
     }
 }
 
 // Make setPage accessible globally for onclick handlers
-window.setPage = function(tableType, page) {
+function setPage(tableType, page) {
     const pageNum = parseInt(page);
     console.log(`📄 ${tableType} set page to:`, pageNum);
     console.log(`📄 Current pagination state before:`, paginationState[tableType]);
@@ -1330,7 +1342,10 @@ window.setPage = function(tableType, page) {
     
     // Force re-render the table
     renderTableWithPagination(tableType);
-};
+}
+
+// Also expose to window for backwards compatibility
+window.setPage = setPage;
 
 function renderPoliciesTable(policies) {
     console.log(`📋 Rendering policies table with ${policies.length} items`);
