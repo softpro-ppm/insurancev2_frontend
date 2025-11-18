@@ -10177,6 +10177,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if ($('#businessAnalytics').length > 0) {
         initializeBusinessAnalytics();
     }
+    
+    // Set up event handler using event delegation (works even if element loads later)
+    $(document).on('change', '#periodSelector', function() {
+        console.log('📅 Period selector changed:', $(this).val());
+        if (typeof loadBusinessAnalytics === 'function') {
+            loadBusinessAnalytics();
+        } else {
+            console.error('loadBusinessAnalytics function not found');
+        }
+    });
 });
 
 // ==================== BUSINESS ANALYTICS FUNCTIONS ====================
@@ -10195,17 +10205,21 @@ const initializeBusinessAnalytics = async () => {
     console.log('🚀 Initializing Business Analytics page...');
     
     try {
-        // Load all data
+        // Wait a bit to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Load all data first
         await loadBusinessAnalytics();
         
-        // Setup period selector with proper event delegation
-        $(document).off('change', '#periodSelector').on('change', '#periodSelector', function() {
-            console.log('📅 Period selector changed to:', $(this).val());
-            loadBusinessAnalytics();
-        });
-        
         // Setup export button
-        $(document).off('click', '#exportBusinessReport').on('click', '#exportBusinessReport', exportBusinessReport);
+        const exportBtn = $('#exportBusinessReport');
+        if (exportBtn.length > 0) {
+            exportBtn.off('click');
+            exportBtn.on('click', exportBusinessReport);
+            console.log('✅ Export button event handler attached');
+        }
+        
+        console.log('✅ Business Analytics initialized');
         
     } catch (error) {
         console.error('Failed to initialize business analytics:', error);
