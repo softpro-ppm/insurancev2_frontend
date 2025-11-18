@@ -10224,6 +10224,46 @@ const loadBusinessAnalytics = async () => {
         
         const period = $('#periodSelector').val() || '12months';
         
+        // Calculate date range based on period
+        const getDateRange = (period) => {
+            const today = new Date();
+            const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            let startDate = new Date();
+            
+            switch(period) {
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    break;
+                case 'quarter':
+                    const quarter = Math.floor(today.getMonth() / 3);
+                    startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                    break;
+                case '6months':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    break;
+                case 'all':
+                    // Will be handled by backend
+                    startDate = null;
+                    endDate = null;
+                    break;
+                default: // 12months
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+            }
+            
+            return {
+                start_date: startDate ? startDate.toISOString().split('T')[0] : null,
+                end_date: endDate ? endDate.toISOString().split('T')[0] : null
+            };
+        };
+        
+        const dateRange = getDateRange(period);
+        const overviewParams = dateRange.start_date && dateRange.end_date 
+            ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
+            : '';
+        
         // Fetch all data in parallel for better performance
         const [
             overview,
@@ -10236,7 +10276,7 @@ const loadBusinessAnalytics = async () => {
             growth,
             renewals
         ] = await Promise.all([
-            apiCall('/api/business/overview'),
+            apiCall(`/api/business/overview${overviewParams}`),
             apiCall(`/api/business/revenue-trend?period=${period}`),
             apiCall('/api/business/policy-distribution'),
             apiCall('/api/business/business-type-performance'),

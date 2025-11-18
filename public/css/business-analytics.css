@@ -20,11 +20,20 @@
     background: white;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .period-selector:hover {
     border-color: #4f46e5;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
+    transform: translateY(-1px);
+}
+
+.period-selector:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 /* Section Styling */
@@ -52,7 +61,7 @@
 /* KPI Cards */
 .kpi-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -64,13 +73,34 @@
     display: flex;
     gap: 20px;
     align-items: flex-start;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 140px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .kpi-card:hover {
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    border-color: rgba(79, 70, 229, 0.2);
+}
+
+.kpi-card:hover::before {
+    opacity: 1;
 }
 
 .dark-theme .kpi-card {
@@ -87,6 +117,12 @@
     justify-content: center;
     font-size: 24px;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s;
+}
+
+.kpi-card:hover .kpi-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
 .kpi-icon.total-value {
@@ -184,7 +220,13 @@
     background: white;
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s;
+}
+
+.analytics-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .dark-theme .analytics-card {
@@ -210,7 +252,13 @@
     background: white;
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s;
+}
+
+.chart-container:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .dark-theme .chart-container {
@@ -260,7 +308,8 @@
     border-radius: 16px;
     padding: 24px;
     overflow-x: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .dark-theme .table-container {
@@ -372,9 +421,11 @@
 
 /* Renewal Cards */
 .renewal-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
 }
 
 .renewal-card {
@@ -384,13 +435,36 @@
     display: flex;
     gap: 16px;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 120px;
+    flex: 1 1 0;
+    min-width: 220px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.renewal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .renewal-card:hover {
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    border-color: rgba(79, 70, 229, 0.2);
+}
+
+.renewal-card:hover::before {
+    opacity: 1;
 }
 
 .dark-theme .renewal-card {
@@ -411,6 +485,12 @@
     font-size: 20px;
     color: white;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s;
+}
+
+.renewal-card:hover .renewal-icon {
+    transform: scale(1.15) rotate(-5deg);
 }
 
 .renewal-icon.next-30 {
@@ -467,6 +547,12 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1400px) {
+    .kpi-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 1024px) {
     .kpi-cards {
         grid-template-columns: repeat(2, 1fr);
@@ -474,6 +560,16 @@
     
     .analytics-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1200px) {
+    .renewal-cards {
+        flex-wrap: wrap;
+    }
+    .renewal-card {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 200px;
     }
 }
 
@@ -499,7 +595,11 @@
     }
     
     .renewal-cards {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    .renewal-card {
+        flex: 1 1 100%;
+        min-width: 100%;
     }
 }
 
