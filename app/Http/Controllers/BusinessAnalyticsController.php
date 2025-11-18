@@ -155,13 +155,22 @@ class BusinessAnalyticsController extends Controller
         $endDate = $today->copy()->endOfMonth();
         
         // Get monthly aggregated data - use policy_issue_date, fallback to created_at
-        $monthlyData = Policy::where(function($q) use ($startDate, $endDate) {
-            $q->whereBetween('policy_issue_date', [$startDate, $endDate])
-              ->orWhere(function($subQ) use ($startDate, $endDate) {
-                  $subQ->whereNull('policy_issue_date')
-                       ->whereBetween('created_at', [$startDate, $endDate]);
-              });
-        })
+        $query = Policy::query();
+        
+        // Only apply date filter if not "all" period
+        if ($period !== 'all' && $startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->where(function($subQuery) use ($startDate, $endDate) {
+                    $subQuery->whereNotNull('policy_issue_date')
+                             ->whereBetween('policy_issue_date', [$startDate, $endDate]);
+                })->orWhere(function($subQ) use ($startDate, $endDate) {
+                    $subQ->whereNull('policy_issue_date')
+                         ->whereBetween('created_at', [$startDate, $endDate]);
+                });
+            });
+        }
+        
+        $monthlyData = $query
             ->select(
                 DB::raw('DATE_FORMAT(COALESCE(policy_issue_date, created_at), "%Y-%m") as month'),
                 DB::raw('SUM(premium) as total_premium'),
@@ -490,23 +499,28 @@ class BusinessAnalyticsController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         
-        // Default to last 12 months if no dates provided
-        if (!$startDate || !$endDate) {
-            $startDate = Carbon::now()->subMonths(12)->startOfMonth();
-            $endDate = Carbon::now()->endOfMonth();
-        } else {
+        // Build query
+        $query = Policy::query();
+        
+        // Only apply date filter if dates are provided
+        if ($startDate && $endDate) {
             $startDate = Carbon::parse($startDate);
             $endDate = Carbon::parse($endDate);
+            
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->where(function($subQuery) use ($startDate, $endDate) {
+                    $subQuery->whereNotNull('policy_issue_date')
+                             ->whereBetween('policy_issue_date', [$startDate, $endDate]);
+                })->orWhere(function($subQ) use ($startDate, $endDate) {
+                    $subQ->whereNull('policy_issue_date')
+                         ->whereBetween('created_at', [$startDate, $endDate]);
+                });
+            });
         }
+        // If no dates provided, get all data (for "All Time" option)
         
         // Get monthly data - use policy_issue_date, fallback to created_at
-        $monthlyData = Policy::where(function($q) use ($startDate, $endDate) {
-            $q->whereBetween('policy_issue_date', [$startDate, $endDate])
-              ->orWhere(function($subQ) use ($startDate, $endDate) {
-                  $subQ->whereNull('policy_issue_date')
-                       ->whereBetween('created_at', [$startDate, $endDate]);
-              });
-        })
+        $monthlyData = $query
             ->select(
                 DB::raw('DATE_FORMAT(COALESCE(policy_issue_date, created_at), "%Y-%m") as month'),
                 DB::raw('COUNT(*) as count'),

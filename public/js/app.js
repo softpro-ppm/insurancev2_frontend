@@ -10327,15 +10327,42 @@ const loadBusinessAnalytics = async () => {
             growth,
             renewals
         ] = await Promise.all([
-            apiCall(`/api/business/overview${overviewParams}`),
-            apiCall(`/api/business/revenue-trend?period=${period}`),
-            apiCall(`/api/business/policy-distribution${dateParams}`),
-            apiCall(`/api/business/business-type-performance${dateParams}`),
-            apiCall(`/api/business/agent-performance${dateParams}`),
-            apiCall(`/api/business/top-companies${dateParams}`),
-            apiCall(`/api/business/profitability-breakdown${dateParams}`),
-            apiCall(`/api/business/monthly-growth${dateParams}`),
-            apiCall('/api/business/renewal-opportunities'),
+            apiCall(`/api/business/overview${overviewParams}`).catch(err => {
+                console.error('❌ Overview API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/revenue-trend?period=${period}`).catch(err => {
+                console.error('❌ Revenue trend API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/policy-distribution${dateParams}`).catch(err => {
+                console.error('❌ Policy distribution API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/business-type-performance${dateParams}`).catch(err => {
+                console.error('❌ Business type API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/agent-performance${dateParams}`).catch(err => {
+                console.error('❌ Agent performance API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/top-companies${dateParams}`).catch(err => {
+                console.error('❌ Top companies API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/profitability-breakdown${dateParams}`).catch(err => {
+                console.error('❌ Profitability API error:', err);
+                throw err;
+            }),
+            apiCall(`/api/business/monthly-growth${dateParams}`).catch(err => {
+                console.error('❌ Monthly growth API error:', err);
+                throw err;
+            }),
+            apiCall('/api/business/renewal-opportunities').catch(err => {
+                console.error('❌ Renewal opportunities API error:', err);
+                throw err;
+            }),
         ]);
 
         console.log('✅ All business data loaded');
@@ -10355,6 +10382,7 @@ const loadBusinessAnalytics = async () => {
         
     } catch (error) {
         console.error('❌ Failed to load business analytics:', error);
+        console.error('Error details:', error.message, error.stack);
         showNotification('Failed to load business data. Please try again.', 'error');
     }
 };
