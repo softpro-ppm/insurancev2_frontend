@@ -24,6 +24,11 @@
                 </div>
             </div>
             <div class="controls-right">
+                <select id="businessTypeFilter" class="business-type-filter">
+                    <option value="all">All</option>
+                    <option value="Self">Self</option>
+                    <!-- Agent options will be populated dynamically -->
+                </select>
                 <button class="export-report-btn" id="exportReportBtn">
                     <i class="fas fa-download"></i>
                     Export
@@ -264,6 +269,38 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.business-type-filter {
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    min-width: 150px;
+    transition: all 0.3s ease;
+}
+
+.business-type-filter:hover {
+    border-color: #4F46E5;
+}
+
+.business-type-filter:focus {
+    outline: none;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.dark-theme .business-type-filter {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #F1F5F9;
+}
+
+.dark-theme .business-type-filter:hover {
+    border-color: #6366F1;
 }
 
 .filter-group {
@@ -674,6 +711,9 @@ function bindEventListeners() {
     document.getElementById('reportStartDate').addEventListener('change', loadAllData);
     document.getElementById('reportEndDate').addEventListener('change', loadAllData);
     
+    // Business type filter change
+    document.getElementById('businessTypeFilter').addEventListener('change', loadAllData);
+    
     // Pagination controls for each table
     setupPaginationControls('policies');
     setupPaginationControls('renewals');
@@ -759,8 +799,10 @@ async function loadAllData() {
     try {
         const startDate = document.getElementById('reportStartDate').value;
         const endDate = document.getElementById('reportEndDate').value;
+        const businessTypeFilter = document.getElementById('businessTypeFilter').value;
         
         console.log('📅 Date range:', startDate, 'to', endDate);
+        console.log('🔍 Business type filter:', businessTypeFilter);
         
         // Fetch all data in parallel
         const [policiesRes, agentsRes] = await Promise.all([
@@ -772,14 +814,17 @@ async function loadAllData() {
         allRenewals = []; // We'll use policies for pending renewals
         allAgents = agentsRes.agents || [];
         
+        // Populate business type filter dropdown with agents
+        populateBusinessTypeFilter();
+        
         console.log('📊 Data loaded:', {
             policies: allPolicies.length,
             renewals: allRenewals.length,
             agents: allAgents.length
         });
         
-        // Filter data by date range
-        const filteredData = filterDataByDateRange(startDate, endDate);
+        // Filter data by date range and business type
+        const filteredData = filterDataByDateRange(startDate, endDate, businessTypeFilter);
         
         // Update UI
         updateKPIs(filteredData);
@@ -794,7 +839,31 @@ async function loadAllData() {
     }
 }
 
-function filterDataByDateRange(startDate, endDate) {
+function populateBusinessTypeFilter() {
+    const filterSelect = document.getElementById('businessTypeFilter');
+    if (!filterSelect) return;
+    
+    // Keep "All" and "Self" options, remove old agent options
+    const currentValue = filterSelect.value;
+    filterSelect.innerHTML = '<option value="all">All</option><option value="Self">Self</option>';
+    
+    // Add agent options
+    (allAgents || []).forEach(agent => {
+        if (agent && agent.name) {
+            const option = document.createElement('option');
+            option.value = agent.name;
+            option.textContent = agent.name;
+            filterSelect.appendChild(option);
+        }
+    });
+    
+    // Restore previous selection if it still exists
+    if (currentValue && Array.from(filterSelect.options).some(opt => opt.value === currentValue)) {
+        filterSelect.value = currentValue;
+    }
+}
+
+function filterDataByDateRange(startDate, endDate, businessTypeFilter = 'all') {
     const start = new Date(startDate);
     start.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
@@ -802,6 +871,7 @@ function filterDataByDateRange(startDate, endDate) {
     
     console.log('=== FILTER DEBUG ===');
     console.log('Date Range:', start.toLocaleDateString(), 'to', end.toLocaleDateString());
+    console.log('Business Type Filter:', businessTypeFilter);
     console.log('Total policies available:', allPolicies.length);
     
     // Debug: Show first 3 policies with their dates
@@ -811,16 +881,19 @@ function filterDataByDateRange(startDate, endDate) {
             console.log('Policy:', p.customerName, {
                 created_at: p.created_at,
                 startDate: p.startDate,
-                endDate: p.endDate
+                endDate: p.endDate,
+                businessType: p.businessType || p.business_type,
+                agentName: p.agentName || p.agent_name
             });
         });
     }
     
-    // Filter policies by created_at date (when policy was added to system)
+    // Filter policies by created_at date (when policy was added to system) and business type/agent
     const filteredPolicies = allPolicies.filter(policy => {
-        // Use created_at (when policy was added) as the primary filter
+        // Date filter: Use created_at (when policy was added) as the primary filter
         const createdDate = policy.created_at ? new Date(policy.created_at) : null;
         
+        let isInDateRange = false;
         if (!createdDate) {
             // If no created_at, try startDate as fallback
             const startDate = policy.startDate ? new Date(policy.startDate) : null;
@@ -828,30 +901,57 @@ function filterDataByDateRange(startDate, endDate) {
                 console.log('❌ Policy has no dates:', policy.customerName);
                 return false;
             }
-            const isInRange = startDate >= start && startDate <= end;
-            if (isInRange) {
-                console.log('✓ Policy (by startDate):', policy.customerName, startDate.toLocaleDateString());
-            }
-            return isInRange;
+            isInDateRange = startDate >= start && startDate <= end;
+        } else {
+            isInDateRange = createdDate >= start && createdDate <= end;
         }
         
-        const isInRange = createdDate >= start && createdDate <= end;
-        
-        if (isInRange) {
-            console.log('✓ Policy included:', policy.customerName, 'Created:', createdDate.toLocaleDateString());
+        if (!isInDateRange) {
+            return false;
         }
         
-        return isInRange;
+        // Business type/agent filter
+        if (businessTypeFilter === 'all') {
+            return true;
+        }
+        
+        const policyBusinessType = policy.businessType || policy.business_type || '';
+        const policyAgentName = policy.agentName || policy.agent_name || '';
+        
+        if (businessTypeFilter === 'Self') {
+            return policyBusinessType === 'Self';
+        } else {
+            // Filter by agent name
+            return policyAgentName === businessTypeFilter;
+        }
     });
     
     console.log('=== FILTERED RESULT ===');
     console.log('Showing', filteredPolicies.length, 'policies out of', allPolicies.length);
     
-    // Filter policies that are expiring (pending renewals) in the date range
+    // Filter policies that are expiring (pending renewals) in the date range and business type/agent
     const filteredRenewals = allPolicies.filter(policy => {
         if (!policy.endDate) return false;
         const endDate = new Date(policy.endDate);
-        return endDate >= start && endDate <= end;
+        const isInDateRange = endDate >= start && endDate <= end;
+        
+        if (!isInDateRange) {
+            return false;
+        }
+        
+        // Apply business type/agent filter
+        if (businessTypeFilter === 'all') {
+            return true;
+        }
+        
+        const policyBusinessType = policy.businessType || policy.business_type || '';
+        const policyAgentName = policy.agentName || policy.agent_name || '';
+        
+        if (businessTypeFilter === 'Self') {
+            return policyBusinessType === 'Self';
+        } else {
+            return policyAgentName === businessTypeFilter;
+        }
     });
     
     console.log('=== RENEWALS FILTER DEBUG ===');
@@ -863,32 +963,62 @@ function filterDataByDateRange(startDate, endDate) {
     }
     
     // Filter agents who have policies in the date range and add "Self" business
+    // Only show agents/self that match the filter (or all if filter is "all")
     const agentMap = new Map();
     
-    // First, add actual agents
-    allAgents.forEach(agent => {
-        const agentPolicies = filteredPolicies.filter(p => 
-            p.agentName === agent.name || p.agent_name === agent.name
+    if (businessTypeFilter === 'all') {
+        // Show all agents and Self
+        allAgents.forEach(agent => {
+            const agentPolicies = filteredPolicies.filter(p => 
+                p.agentName === agent.name || p.agent_name === agent.name
+            );
+            agentMap.set(agent.name, {
+                name: agent.name,
+                phone: agent.phone || agent.contact || '',
+                policies: agentPolicies.length,
+                totalPremium: agentPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
+            });
+        });
+        
+        // Add "Self" business
+        const selfPolicies = filteredPolicies.filter(p => 
+            p.businessType === 'Self' || p.business_type === 'Self'
         );
-        agentMap.set(agent.name, {
-            name: agent.name,
-            phone: agent.phone || agent.contact || '',
-            policies: agentPolicies.length,
-            totalPremium: agentPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
-        });
-    });
-    
-    // Add "Self" business
-    const selfPolicies = filteredPolicies.filter(p => 
-        p.businessType === 'Self' || p.business_type === 'Self'
-    );
-    if (selfPolicies.length > 0) {
-        agentMap.set('Self', {
-            name: 'Self',
-            phone: '-',
-            policies: selfPolicies.length,
-            totalPremium: selfPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
-        });
+        if (selfPolicies.length > 0) {
+            agentMap.set('Self', {
+                name: 'Self',
+                phone: '-',
+                policies: selfPolicies.length,
+                totalPremium: selfPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
+            });
+        }
+    } else if (businessTypeFilter === 'Self') {
+        // Only show Self
+        const selfPolicies = filteredPolicies.filter(p => 
+            p.businessType === 'Self' || p.business_type === 'Self'
+        );
+        if (selfPolicies.length > 0) {
+            agentMap.set('Self', {
+                name: 'Self',
+                phone: '-',
+                policies: selfPolicies.length,
+                totalPremium: selfPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
+            });
+        }
+    } else {
+        // Show only the selected agent
+        const agentPolicies = filteredPolicies.filter(p => 
+            (p.agentName === businessTypeFilter || p.agent_name === businessTypeFilter)
+        );
+        const agent = allAgents.find(a => a.name === businessTypeFilter);
+        if (agentPolicies.length > 0 && agent) {
+            agentMap.set(agent.name, {
+                name: agent.name,
+                phone: agent.phone || agent.contact || '',
+                policies: agentPolicies.length,
+                totalPremium: agentPolicies.reduce((sum, p) => sum + (parseFloat(p.premium) || 0), 0)
+            });
+        }
     }
     
     // Convert to array and calculate performance
