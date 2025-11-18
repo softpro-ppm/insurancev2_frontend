@@ -799,7 +799,10 @@ async function loadAllData() {
     try {
         const startDate = document.getElementById('reportStartDate').value;
         const endDate = document.getElementById('reportEndDate').value;
-        const businessTypeFilter = document.getElementById('businessTypeFilter').value;
+        
+        // Get filter value BEFORE repopulating dropdown
+        const filterSelect = document.getElementById('businessTypeFilter');
+        const businessTypeFilter = filterSelect ? filterSelect.value : 'all';
         
         console.log('📅 Date range:', startDate, 'to', endDate);
         console.log('🔍 Business type filter:', businessTypeFilter);
@@ -814,8 +817,8 @@ async function loadAllData() {
         allRenewals = []; // We'll use policies for pending renewals
         allAgents = agentsRes.agents || [];
         
-        // Populate business type filter dropdown with agents
-        populateBusinessTypeFilter();
+        // Populate business type filter dropdown with agents (preserving current selection)
+        populateBusinessTypeFilter(businessTypeFilter);
         
         console.log('📊 Data loaded:', {
             policies: allPolicies.length,
@@ -826,25 +829,37 @@ async function loadAllData() {
         // Filter data by date range and business type
         const filteredData = filterDataByDateRange(startDate, endDate, businessTypeFilter);
         
+        console.log('📊 Filtered data:', {
+            policies: filteredData.policies.length,
+            renewals: filteredData.renewals.length,
+            agents: filteredData.agents.length
+        });
+        
         // Update UI
         updateKPIs(filteredData);
         renderTables(filteredData);
         
-        hideLoading();
+        // Small delay to ensure UI updates
+        setTimeout(() => {
+            hideLoading();
+        }, 100);
         
     } catch (error) {
         console.error('❌ Error loading data:', error);
-        showNotification('Failed to load data', 'error');
+        console.error('Error details:', error.stack);
+        showNotification('Failed to load data: ' + error.message, 'error');
         hideLoading();
     }
 }
 
-function populateBusinessTypeFilter() {
+function populateBusinessTypeFilter(preserveValue = null) {
     const filterSelect = document.getElementById('businessTypeFilter');
     if (!filterSelect) return;
     
+    // Get current value to preserve
+    const currentValue = preserveValue !== null ? preserveValue : filterSelect.value;
+    
     // Keep "All" and "Self" options, remove old agent options
-    const currentValue = filterSelect.value;
     filterSelect.innerHTML = '<option value="all">All</option><option value="Self">Self</option>';
     
     // Add agent options
@@ -860,6 +875,9 @@ function populateBusinessTypeFilter() {
     // Restore previous selection if it still exists
     if (currentValue && Array.from(filterSelect.options).some(opt => opt.value === currentValue)) {
         filterSelect.value = currentValue;
+    } else {
+        // If the preserved value doesn't exist, default to "all"
+        filterSelect.value = 'all';
     }
 }
 
@@ -915,8 +933,9 @@ function filterDataByDateRange(startDate, endDate, businessTypeFilter = 'all') {
             return true;
         }
         
-        const policyBusinessType = policy.businessType || policy.business_type || '';
-        const policyAgentName = policy.agentName || policy.agent_name || '';
+        // Normalize field names - check multiple possible field names
+        const policyBusinessType = (policy.businessType || policy.business_type || '').toString().trim();
+        const policyAgentName = (policy.agentName || policy.agent_name || '').toString().trim();
         
         if (businessTypeFilter === 'Self') {
             return policyBusinessType === 'Self';
@@ -1427,6 +1446,15 @@ function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
         overlay.style.display = 'none';
+        overlay.style.visibility = 'hidden';
+        overlay.style.opacity = '0';
+    }
+    // Also try class-based overlay
+    const classOverlay = document.querySelector('.loading-overlay');
+    if (classOverlay) {
+        classOverlay.style.display = 'none';
+        classOverlay.style.visibility = 'hidden';
+        classOverlay.style.opacity = '0';
     }
 }
 
