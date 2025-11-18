@@ -1500,27 +1500,41 @@ function exportReport() {
         console.log('📊 Exporting tab:', tab);
         console.log('📊 Current data:', currentReportData);
         
+        // Get filtered data (includes search filter)
+        const filteredData = getFilteredData(tab);
+        console.log('📊 Filtered data for export:', filteredData.length, 'items');
+        
+        if (!filteredData || filteredData.length === 0) {
+            showNotification('No data to export', 'error');
+            return;
+        }
+        
         let csv = '';
         let filename = '';
         
+        // Get date range for filename
+        const startDate = document.getElementById('reportStartDate')?.value || '';
+        const endDate = document.getElementById('reportEndDate')?.value || '';
+        const dateSuffix = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
+        
         switch(tab) {
             case 'policies':
-                csv = generatePoliciesCSV(currentReportData.policies || []);
-                filename = 'policies_report';
+                csv = generatePoliciesCSV(filteredData);
+                filename = `policies_report${dateSuffix}`;
                 break;
             case 'renewals':
-                csv = generateRenewalsCSV(currentReportData.renewals || []);
-                filename = 'renewals_report';
+                csv = generateRenewalsCSV(filteredData);
+                filename = `renewals_report${dateSuffix}`;
                 break;
             case 'agents':
-                csv = generateAgentsCSV(currentReportData.agents || []);
-                filename = 'agents_report';
+                csv = generateAgentsCSV(filteredData);
+                filename = `agents_report${dateSuffix}`;
                 break;
             default:
                 throw new Error('Unknown tab type');
         }
         
-        if (!csv) {
+        if (!csv || csv.trim() === '') {
             showNotification('No data to export', 'error');
             return;
         }
@@ -1534,10 +1548,11 @@ function exportReport() {
         link.click();
         document.body.removeChild(link);
         
-        showNotification('Report exported successfully!', 'success');
+        showNotification(`Report exported successfully! (${filteredData.length} records)`, 'success');
         
     } catch (error) {
         console.error('❌ Export error:', error);
+        console.error('Error stack:', error.stack);
         showNotification('Export failed: ' + error.message, 'error');
     }
 }
@@ -1564,20 +1579,22 @@ function generatePoliciesCSV(policies) {
 }
 
 function generateRenewalsCSV(renewals) {
-    const headers = ['Sl. No', 'Customer Name', 'Due Date', 'Days Left', 'Status', 'Priority', 'Assigned To'];
+    const headers = ['Sl. No', 'Customer Name', 'Phone', 'Policy Type', 'Company', 'End Date', 'Days Left', 'Premium', 'Status'];
     const rows = renewals.map((renewal, index) => {
-        const dueDate = renewal.dueDate ? new Date(renewal.dueDate) : null;
-        const daysLeft = dueDate ? Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
-        const priority = daysLeft === '' ? '' : (daysLeft <= 7 ? 'High' : daysLeft <= 14 ? 'Medium' : 'Low');
+        const endDate = renewal.endDate ? new Date(renewal.endDate) : null;
+        const daysLeft = endDate ? Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24)) : '';
+        const status = daysLeft < 0 ? 'Expired' : daysLeft <= 7 ? 'Pending' : 'Active';
         
         return [
             index + 1,
             renewal.customerName || '',
-            formatDate(renewal.dueDate),
+            renewal.phone || '',
+            renewal.policyType || '',
+            renewal.companyName || '',
+            formatDate(renewal.endDate),
             daysLeft,
-            renewal.status || '',
-            priority,
-            renewal.agentName || ''
+            parseFloat(renewal.premium || 0),
+            status
         ];
     });
     
@@ -1585,7 +1602,7 @@ function generateRenewalsCSV(renewals) {
 }
 
 function generateAgentsCSV(agents) {
-    const headers = ['Sl. No', 'Business Type', 'Phone', 'Policies Sold', 'Total Premium', 'Performance'];
+    const headers = ['Sl. No', 'Agent Name', 'Phone', 'Policies Sold', 'Total Premium', 'Performance'];
     const rows = agents.map((agent, index) => [
         index + 1,
         agent.name || '',
