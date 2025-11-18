@@ -524,22 +524,24 @@
     }
 }
 
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
+.loading-overlay,
+#loadingOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 12000 !important;
 }
 
-.dark-theme .loading-overlay {
-    background: rgba(15, 23, 42, 0.9);
+.dark-theme .loading-overlay,
+.dark-theme #loadingOverlay {
+    background: rgba(15, 23, 42, 0.9) !important;
 }
 
 .loading-content {
