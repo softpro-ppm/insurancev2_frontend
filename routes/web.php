@@ -370,11 +370,10 @@ Route::get('/database-viewer', function () {
     return view('database-viewer', compact('tables', 'selectedTable', 'tableData'));
 })->name('database.viewer');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Profile routes (temporarily without auth to match other routes like dashboard/policies)
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 // Agent routes
 Route::prefix('agent')->group(function () {

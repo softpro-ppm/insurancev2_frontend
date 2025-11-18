@@ -9,7 +9,7 @@
 
         <div>
             <label for="name">{{ __('Name') }}</label>
-            <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name" />
+            <input id="name" name="name" type="text" value="{{ old('name', $user->name ?? '') }}" required autofocus autocomplete="name" />
             @error('name')
                 <span class="text-red-600 text-sm">{{ $message }}</span>
             @enderror
@@ -17,12 +17,12 @@
 
         <div>
             <label for="email">{{ __('Email') }}</label>
-            <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required autocomplete="username" />
+            <input id="email" name="email" type="email" value="{{ old('email', $user->email ?? '') }}" required autocomplete="username" />
             @error('email')
                 <span class="text-red-600 text-sm">{{ $message }}</span>
             @enderror
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
+            @if ($user && $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div style="margin-top: 12px;">
                     <p style="font-size: 13px; color: #EF4444;">
                         {{ __('Your email address is unverified.') }}
