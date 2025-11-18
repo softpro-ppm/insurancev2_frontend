@@ -572,8 +572,25 @@
 
 /* Ensure top navigation (Admin profile dropdown) stays clickable above any reports overlays */
 .top-nav {
+    position: fixed !important;
+    z-index: 11000 !important;
+    overflow: visible !important;
+}
+
+.top-nav .nav-right {
+    overflow: visible !important;
     position: relative;
-    z-index: 11000;
+    z-index: 11001 !important;
+}
+
+.top-nav .profile-dropdown {
+    overflow: visible !important;
+    position: relative;
+    z-index: 11002 !important;
+}
+
+.top-nav .dropdown-menu {
+    z-index: 11003 !important;
 }
 
 /* Responsive Design */
