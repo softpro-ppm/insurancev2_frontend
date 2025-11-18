@@ -29,7 +29,11 @@ const updateNavDateTime = () => {
     
     const dateTimeElement = document.getElementById('currentDateTime');
     if (dateTimeElement) {
+        // Force update - clear any existing content first
+        dateTimeElement.textContent = '';
         dateTimeElement.textContent = formattedTime;
+        // Also update innerHTML to ensure it's set
+        dateTimeElement.innerHTML = formattedTime;
     }
 };
 
@@ -40,8 +44,12 @@ const initializeNavDateTime = () => {
         const dateTimeElement = document.getElementById('currentDateTime');
         if (dateTimeElement) {
             console.log('✅ Navbar date/time element found, initializing...');
+            // Clear any existing interval first
+            if (dateTimeInterval) {
+                clearInterval(dateTimeInterval);
+            }
             updateNavDateTime(); // Update immediately
-            dateTimeInterval = setInterval(updateNavDateTime, 1000); // Then update every second
+            dateTimeInterval = setInterval(updateNavDateTime, 60000); // Update every minute (not every second)
         } else {
             console.log('⚠️ Navbar date/time element not found yet, will retry...');
             // Retry after 500ms in case element loads later
@@ -10237,39 +10245,44 @@ const loadBusinessAnalytics = async () => {
         // Calculate date range based on period
         const getDateRange = (period) => {
             const today = new Date();
-            const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            let startDate = new Date();
+            // Set end date to end of today (23:59:59)
+            const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+            let startDate = null;
             
             switch(period) {
                 case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    // This month: Start of current month to end of today
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
                     break;
                 case 'quarter':
+                    // This quarter: Start of current quarter to end of today
                     const quarter = Math.floor(today.getMonth() / 3);
-                    startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                    startDate = new Date(today.getFullYear(), quarter * 3, 1, 0, 0, 0);
                     break;
                 case '6months':
-                    startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+                    // Last 6 months: 6 months ago to end of today
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1, 0, 0, 0);
                     break;
                 case 'year':
-                    // Financial Year: April 1 to March 31
+                    // Financial Year: April 1 to March 31 (current financial year)
                     const currentMonth = today.getMonth(); // 0-11 (Jan=0, Dec=11)
                     const currentYear = today.getFullYear();
                     if (currentMonth >= 3) {
                         // April to December: Current financial year started April 1 of current year
-                        startDate = new Date(currentYear, 3, 1); // April 1
+                        startDate = new Date(currentYear, 3, 1, 0, 0, 0); // April 1
                     } else {
                         // January to March: Current financial year started April 1 of previous year
-                        startDate = new Date(currentYear - 1, 3, 1); // April 1 of previous year
+                        startDate = new Date(currentYear - 1, 3, 1, 0, 0, 0); // April 1 of previous year
                     }
                     break;
                 case 'all':
-                    // Will be handled by backend
+                    // All time: No date filter
                     startDate = null;
                     endDate = null;
                     break;
                 default: // 12months
-                    startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+                    // Last 12 months
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1, 0, 0, 0);
             }
             
             return {
@@ -10279,6 +10292,8 @@ const loadBusinessAnalytics = async () => {
         };
         
         const dateRange = getDateRange(period);
+        console.log('📅 Date range for period "' + period + '":', dateRange);
+        
         const overviewParams = dateRange.start_date && dateRange.end_date 
             ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
             : '';
@@ -10287,6 +10302,8 @@ const loadBusinessAnalytics = async () => {
         const dateParams = dateRange.start_date && dateRange.end_date 
             ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
             : '';
+        
+        console.log('📊 API params:', { overviewParams, dateParams, period });
         
         // Fetch all data in parallel for better performance
         const [

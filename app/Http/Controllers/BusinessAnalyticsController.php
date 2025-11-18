@@ -25,6 +25,12 @@ class BusinessAnalyticsController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         
+        \Log::info('Business Analytics - getOverview', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'request_all' => $request->all()
+        ]);
+        
         // Build query with optional date filters - use policy_issue_date instead of created_at
         $query = Policy::query();
         if ($startDate && $endDate) {
@@ -37,6 +43,9 @@ class BusinessAnalyticsController extends Controller
                   });
             });
         }
+        
+        $policyCount = $query->count();
+        \Log::info('Business Analytics - Policies found', ['count' => $policyCount]);
         
         // Get all policies for current period
         $currentPolicies = $query->get();
