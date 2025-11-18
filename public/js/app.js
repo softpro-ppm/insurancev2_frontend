@@ -5216,6 +5216,7 @@ const applyPoliciesFilters = () => {
             (policy.companyName || policy.company || '').toLowerCase().includes(searchTerm) ||
             (policy.policyType || policy.type || '').toLowerCase().includes(searchTerm) ||
             (policy.vehicleNumber || policy.vehicle || '').toLowerCase().includes(searchTerm) ||
+            (policy.vehicleType || policy.vehicle_type || '').toLowerCase().includes(searchTerm) ||
             (policy.email || '').toLowerCase().includes(searchTerm) ||
             policy.id.toString().includes(searchTerm);
         
