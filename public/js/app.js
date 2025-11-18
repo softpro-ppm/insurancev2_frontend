@@ -1326,7 +1326,8 @@ const updateRecentPoliciesTable = (policies) => {
     let filteredPolicies = [...window.recentPoliciesData];
     
     if (searchTerm !== '') {
-        console.log('Applying search filter:', searchTerm);
+        console.log('🔍 Applying search filter:', searchTerm);
+        console.log('🔍 Sample policy data:', window.recentPoliciesData[0]);
         filteredPolicies = window.recentPoliciesData.filter(policy => {
             // Search across ALL possible fields in recent policies
             const searchableFields = [
@@ -1359,12 +1360,30 @@ const updateRecentPoliciesTable = (policies) => {
                 (policy.id || '').toString()
             ];
             
-            // Check if any field contains the search term
-            return searchableFields.some(field => 
-                field.toString().toLowerCase().includes(searchTerm)
-            );
+            // Create a combined search string for easier matching
+            const combinedSearchString = searchableFields
+                .map(field => String(field || '').toLowerCase())
+                .join(' ');
+            
+            // Check if the combined string contains the search term
+            const matches = combinedSearchString.includes(searchTerm);
+            
+            // Debug logging for vehicle type searches
+            if (searchTerm.toLowerCase().includes('auto') || searchTerm.toLowerCase().includes('car')) {
+                const vehicleType = (policy.vehicleType || policy.vehicle_type || '').toLowerCase();
+                if (vehicleType && vehicleType.includes(searchTerm.toLowerCase())) {
+                    console.log('✅ Vehicle type match found:', {
+                        vehicleType: policy.vehicleType || policy.vehicle_type,
+                        searchTerm: searchTerm,
+                        customerName: policy.customerName
+                    });
+                }
+            }
+            
+            return matches;
         });
-        console.log('Filtered policies count:', filteredPolicies.length);
+        console.log('🔍 Filtered policies count:', filteredPolicies.length);
+        console.log('🔍 Sample filtered policy:', filteredPolicies[0]);
     }
     
     // Apply sorting if there's a current sort
