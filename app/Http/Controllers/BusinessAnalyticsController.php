@@ -25,23 +25,28 @@ class BusinessAnalyticsController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         
-        \Log::info('Business Analytics - getOverview', [
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'request_all' => $request->all()
-        ]);
-        
         // Build query with optional date filters - use policy_issue_date instead of created_at
         $query = Policy::query();
+        
         if ($startDate && $endDate) {
+            \Log::info('Business Analytics - Filtering by dates', [
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+            
             $query->where(function($q) use ($startDate, $endDate) {
-                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
-                  ->orWhere(function($subQ) use ($startDate, $endDate) {
-                      // Fallback to created_at if policy_issue_date is null
-                      $subQ->whereNull('policy_issue_date')
-                           ->whereBetween('created_at', [$startDate, $endDate]);
-                  });
+                $q->where(function($subQuery) use ($startDate, $endDate) {
+                    // Policies with policy_issue_date in range
+                    $subQuery->whereNotNull('policy_issue_date')
+                             ->whereBetween('policy_issue_date', [$startDate, $endDate]);
+                })->orWhere(function($subQuery) use ($startDate, $endDate) {
+                    // Fallback to created_at if policy_issue_date is null
+                    $subQuery->whereNull('policy_issue_date')
+                             ->whereBetween('created_at', [$startDate, $endDate]);
+                });
             });
+        } else {
+            \Log::info('Business Analytics - No date filter applied');
         }
         
         $policyCount = $query->count();

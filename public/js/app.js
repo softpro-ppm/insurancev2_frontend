@@ -39,26 +39,28 @@ const updateNavDateTime = () => {
 
 // Initialize navbar date/time display (only once)
 const initializeNavDateTime = () => {
-    if (!dateTimeInterval) {
-        // Try to find the element
-        const dateTimeElement = document.getElementById('currentDateTime');
-        if (dateTimeElement) {
-            console.log('✅ Navbar date/time element found, initializing...');
-            // Clear any existing interval first
-            if (dateTimeInterval) {
-                clearInterval(dateTimeInterval);
-            }
-            updateNavDateTime(); // Update immediately
-            dateTimeInterval = setInterval(updateNavDateTime, 60000); // Update every minute (not every second)
-        } else {
-            console.log('⚠️ Navbar date/time element not found yet, will retry...');
-            // Retry after 500ms in case element loads later
-            setTimeout(() => {
-                if (!dateTimeInterval) {
-                    initializeNavDateTime();
-                }
-            }, 500);
-        }
+    // Clear any existing interval first
+    if (dateTimeInterval) {
+        clearInterval(dateTimeInterval);
+        dateTimeInterval = null;
+    }
+    
+    // Try to find the element
+    const dateTimeElement = document.getElementById('currentDateTime');
+    if (dateTimeElement) {
+        console.log('✅ Navbar date/time element found, initializing...');
+        // Update immediately
+        updateNavDateTime();
+        // Update every minute (since we only show hours:minutes)
+        dateTimeInterval = setInterval(() => {
+            updateNavDateTime();
+        }, 60000);
+    } else {
+        console.log('⚠️ Navbar date/time element not found yet, will retry...');
+        // Retry after 500ms in case element loads later
+        setTimeout(() => {
+            initializeNavDateTime();
+        }, 500);
     }
 };
 
@@ -10292,8 +10294,12 @@ const loadBusinessAnalytics = async () => {
         };
         
         const dateRange = getDateRange(period);
-        console.log('📅 Date range for period "' + period + '":', dateRange);
+        console.log('📅 Period selected:', period);
+        console.log('📅 Date range calculated:', dateRange);
+        console.log('📅 Start date:', dateRange.start_date);
+        console.log('📅 End date:', dateRange.end_date);
         
+        // Build query parameters
         const overviewParams = dateRange.start_date && dateRange.end_date 
             ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
             : '';
@@ -10303,7 +10309,11 @@ const loadBusinessAnalytics = async () => {
             ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
             : '';
         
-        console.log('📊 API params:', { overviewParams, dateParams, period });
+        console.log('📊 API URLs:', {
+            overview: `/api/business/overview${overviewParams}`,
+            distribution: `/api/business/policy-distribution${dateParams}`,
+            period: period
+        });
         
         // Fetch all data in parallel for better performance
         const [
