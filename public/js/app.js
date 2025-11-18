@@ -1336,8 +1336,10 @@ const updateRecentPoliciesTable = (policies) => {
                 policy.customerEmail || policy.email || '',
                 policy.policyType || '',
                 policy.vehicleNumber || '',
+                policy.vehicleType || policy.vehicle_type || '',
                 
                 // Insurance details
+                policy.companyName || policy.company || '',
                 policy.insuranceType || policy.planType || '',
                 policy.startDate || '',
                 policy.endDate || '',
