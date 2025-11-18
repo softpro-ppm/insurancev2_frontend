@@ -18,23 +18,18 @@ let dateTimeInterval = null;
 const updateNavDateTime = () => {
     const now = new Date();
     
-    // Format: Day, DD MMM YYYY, HH:MM:SS AM/PM IST
-    const options = {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-    };
+    // Format: HH:MM AM/PM only (big hr:min)
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
     
-    const formattedDateTime = now.toLocaleString('en-IN', options) + ' IST';
+    const formattedTime = `${displayHours.toString().padStart(2, '0')}:${displayMinutes} ${ampm}`;
     
     const dateTimeElement = document.getElementById('currentDateTime');
     if (dateTimeElement) {
-        dateTimeElement.textContent = formattedDateTime;
+        dateTimeElement.textContent = formattedTime;
     }
 };
 
@@ -10203,13 +10198,14 @@ const initializeBusinessAnalytics = async () => {
         // Load all data
         await loadBusinessAnalytics();
         
-        // Setup period selector
-        $('#periodSelector').change(function() {
+        // Setup period selector with proper event delegation
+        $(document).off('change', '#periodSelector').on('change', '#periodSelector', function() {
+            console.log('📅 Period selector changed to:', $(this).val());
             loadBusinessAnalytics();
         });
         
         // Setup export button
-        $('#exportBusinessReport').click(exportBusinessReport);
+        $(document).off('click', '#exportBusinessReport').on('click', '#exportBusinessReport', exportBusinessReport);
         
     } catch (error) {
         console.error('Failed to initialize business analytics:', error);

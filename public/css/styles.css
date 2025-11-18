@@ -120,14 +120,20 @@ body.dark-theme {
     padding: 8px 16px;
     background: rgba(79, 70, 229, 0.1);
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 20px;
+    font-weight: 600;
     color: #4f46e5;
     white-space: nowrap;
 }
 
 .nav-datetime i {
-    font-size: 16px;
+    font-size: 18px;
+}
+
+#currentDateTime {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .dark-theme .nav-datetime {

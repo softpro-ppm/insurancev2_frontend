@@ -42,9 +42,9 @@ class BusinessAnalyticsController extends Controller
         $totalPolicies = $currentPolicies->count();
         $activePolicies = $currentPolicies->where('status', 'Active')->count();
         
-        // Calculate profit margin (Net Profit / Premium * 100)
-        $netProfit = $totalRevenue - $totalPayout;
-        $profitMargin = $totalPremium > 0 ? ($netProfit / $totalPremium) * 100 : 0;
+        // Calculate profit margin (Revenue = Profit from customer/agent, so Revenue / Premium * 100)
+        // Revenue already represents profit earned from customer/agent
+        $profitMargin = $totalPremium > 0 ? ($totalRevenue / $totalPremium) * 100 : 0;
         
         // Calculate average policy value
         $avgPolicyValue = $totalPolicies > 0 ? $totalPremium / $totalPolicies : 0;
@@ -161,8 +161,8 @@ class BusinessAnalyticsController extends Controller
         
         return response()->json([
             'distribution' => $distribution->map(function ($item) {
-                $netProfit = $item->total_revenue - $item->total_payout;
-                $profitMargin = $item->total_premium > 0 ? ($netProfit / $item->total_premium) * 100 : 0;
+                // Revenue = Profit from customer/agent
+                $profitMargin = $item->total_premium > 0 ? ($item->total_revenue / $item->total_premium) * 100 : 0;
                 return [
                     'type' => $item->policy_type,
                     'count' => $item->count,
@@ -190,8 +190,8 @@ class BusinessAnalyticsController extends Controller
         return response()->json([
             'performance' => $performance->map(function ($item) {
                 $avgPolicyValue = $item->count > 0 ? $item->total_premium / $item->count : 0;
-                $netProfit = $item->total_revenue - $item->total_payout;
-                $profitMargin = $item->total_premium > 0 ? ($netProfit / $item->total_premium) * 100 : 0;
+                // Revenue = Profit from customer/agent
+                $profitMargin = $item->total_premium > 0 ? ($item->total_revenue / $item->total_premium) * 100 : 0;
                 
                 return [
                     'businessType' => $item->business_type,
@@ -231,8 +231,8 @@ class BusinessAnalyticsController extends Controller
         
         $performance = $agentStats->map(function ($agent) {
             $avgPolicyValue = $agent->policy_count > 0 ? $agent->total_premium / $agent->policy_count : 0;
-            $netProfit = $agent->total_revenue - $agent->total_payout;
-            $profitMargin = $agent->total_premium > 0 ? ($netProfit / $agent->total_premium) * 100 : 0;
+            // Revenue = Profit from customer/agent
+            $profitMargin = $agent->total_premium > 0 ? ($agent->total_revenue / $agent->total_premium) * 100 : 0;
             
             return [
                 'name' => $agent->agent_name,
@@ -248,8 +248,8 @@ class BusinessAnalyticsController extends Controller
         // Add Self business
         if ($selfStats && $selfStats->policy_count > 0) {
             $avgPolicyValue = $selfStats->total_premium / $selfStats->policy_count;
-            $netProfit = $selfStats->total_revenue - $selfStats->total_payout;
-            $profitMargin = $selfStats->total_premium > 0 ? ($netProfit / $selfStats->total_premium) * 100 : 0;
+            // Revenue = Profit from customer/agent
+            $profitMargin = $selfStats->total_premium > 0 ? ($selfStats->total_revenue / $selfStats->total_premium) * 100 : 0;
             
             array_unshift($performance, [
                 'name' => 'Self',
@@ -284,8 +284,8 @@ class BusinessAnalyticsController extends Controller
         
         return response()->json([
             'companies' => $companies->map(function ($company) {
-                $netProfit = $company->total_revenue - $company->total_payout;
-                $profitMargin = $company->total_premium > 0 ? ($netProfit / $company->total_premium) * 100 : 0;
+                // Revenue = Profit from customer/agent
+                $profitMargin = $company->total_premium > 0 ? ($company->total_revenue / $company->total_premium) * 100 : 0;
                 
                 return [
                     'name' => $company->company_name,
@@ -321,8 +321,8 @@ class BusinessAnalyticsController extends Controller
         ];
         
         $data = $breakdown->map(function ($item) use (&$total) {
-            $netProfit = $item->total_revenue - $item->total_payout;
-            $profitMargin = $item->total_premium > 0 ? ($netProfit / $item->total_premium) * 100 : 0;
+            // Revenue = Profit from customer/agent
+            $profitMargin = $item->total_premium > 0 ? ($item->total_revenue / $item->total_premium) * 100 : 0;
             
             $total['count'] += $item->count;
             $total['premium'] += $item->total_premium;
@@ -341,9 +341,8 @@ class BusinessAnalyticsController extends Controller
             ];
         });
         
-        // Calculate overall profit margin
-        $totalNetProfit = $total['revenue'] - $total['payout'];
-        $total['profitMargin'] = $total['premium'] > 0 ? ($totalNetProfit / $total['premium']) * 100 : 0;
+        // Calculate overall profit margin (Revenue = Profit)
+        $total['profitMargin'] = $total['premium'] > 0 ? ($total['revenue'] / $total['premium']) * 100 : 0;
         
         return response()->json([
             'breakdown' => $data,
