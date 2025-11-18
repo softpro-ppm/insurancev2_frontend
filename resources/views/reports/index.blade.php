@@ -1220,7 +1220,8 @@ function renderTableWithPagination(tableType) {
         return renderTableWithPagination(tableType);
     }
     
-    // Render based on table type
+    // Render based on table type - pass the sliced pageData
+    console.log(`📋 About to render ${tableType} table with ${pageData.length} items`);
     switch(tableType) {
         case 'policies':
             renderPoliciesTable(pageData);
@@ -1233,7 +1234,7 @@ function renderTableWithPagination(tableType) {
             break;
     }
     
-    // Update pagination UI
+    // Update pagination UI AFTER rendering table
     updatePaginationUI(tableType, totalItems, totalPages, startIndex + 1, Math.min(endIndex, totalItems));
 }
 
@@ -1317,20 +1318,43 @@ function updatePaginationUI(tableType, totalItems, totalPages, start, end) {
 
 // Make setPage accessible globally for onclick handlers
 window.setPage = function(tableType, page) {
-    console.log(`📄 ${tableType} set page to:`, page);
-    paginationState[tableType].currentPage = parseInt(page);
+    const pageNum = parseInt(page);
+    console.log(`📄 ${tableType} set page to:`, pageNum);
+    console.log(`📄 Current pagination state before:`, paginationState[tableType]);
+    
+    // Update pagination state
+    paginationState[tableType].currentPage = pageNum;
+    
+    console.log(`📄 Updated pagination state:`, paginationState[tableType]);
+    console.log(`📄 Current report data:`, currentReportData);
+    
+    // Force re-render the table
     renderTableWithPagination(tableType);
 };
 
 function renderPoliciesTable(policies) {
+    console.log(`📋 Rendering policies table with ${policies.length} items`);
     const tbody = document.getElementById('policiesTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ policiesTableBody not found!');
+        return;
+    }
     
+    // Clear existing rows
     tbody.innerHTML = '';
+    
+    if (policies.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="8" style="text-align: center; padding: 20px;">No data available</td>';
+        tbody.appendChild(row);
+        return;
+    }
     
     // Get current pagination state to calculate starting serial number
     const { currentPage, rowsPerPage } = paginationState.policies;
     const startSerialNumber = (currentPage - 1) * rowsPerPage + 1;
+    
+    console.log(`📋 Rendering policies: startSerialNumber=${startSerialNumber}, currentPage=${currentPage}, rowsPerPage=${rowsPerPage}`);
     
     policies.forEach((policy, index) => {
         const row = document.createElement('tr');
@@ -1346,17 +1370,33 @@ function renderPoliciesTable(policies) {
         `;
         tbody.appendChild(row);
     });
+    
+    console.log(`✅ Policies table rendered with ${policies.length} rows`);
 }
 
 function renderRenewalsTable(policies) {
+    console.log(`📋 Rendering renewals table with ${policies.length} items`);
     const tbody = document.getElementById('renewalsTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ renewalsTableBody not found!');
+        return;
+    }
     
+    // Clear existing rows
     tbody.innerHTML = '';
+    
+    if (policies.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="9" style="text-align: center; padding: 20px;">No data available</td>';
+        tbody.appendChild(row);
+        return;
+    }
     
     // Get current pagination state to calculate starting serial number
     const { currentPage, rowsPerPage } = paginationState.renewals;
     const startSerialNumber = (currentPage - 1) * rowsPerPage + 1;
+    
+    console.log(`📋 Rendering renewals: startSerialNumber=${startSerialNumber}, currentPage=${currentPage}, rowsPerPage=${rowsPerPage}`);
     
     policies.forEach((policy, index) => {
         const endDate = policy.endDate ? new Date(policy.endDate) : null;
@@ -1376,19 +1416,34 @@ function renderRenewalsTable(policies) {
         `;
         tbody.appendChild(row);
     });
+    
+    console.log(`✅ Renewals table rendered with ${policies.length} rows`);
 }
 
 function renderAgentsTable(agents) {
+    console.log(`📋 Rendering agents table with ${agents.length} items`);
     const tbody = document.getElementById('agentsTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ agentsTableBody not found!');
+        return;
+    }
     
+    // Clear existing rows
     tbody.innerHTML = '';
+    
+    if (agents.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="6" style="text-align: center; padding: 20px;">No data available</td>';
+        tbody.appendChild(row);
+        return;
+    }
     
     // Get current pagination state to calculate starting serial number
     const { currentPage, rowsPerPage } = paginationState.agents;
     const startSerialNumber = (currentPage - 1) * rowsPerPage + 1;
     
-    console.log('Rendering agents:', agents);
+    console.log(`📋 Rendering agents: startSerialNumber=${startSerialNumber}, currentPage=${currentPage}, rowsPerPage=${rowsPerPage}`);
+    console.log('📋 Agents data:', agents);
     
     agents.forEach((agent, index) => {
         const row = document.createElement('tr');
@@ -1402,6 +1457,8 @@ function renderAgentsTable(agents) {
         `;
         tbody.appendChild(row);
     });
+    
+    console.log(`✅ Agents table rendered with ${agents.length} rows`);
 }
 
 function switchTab(tabName) {
