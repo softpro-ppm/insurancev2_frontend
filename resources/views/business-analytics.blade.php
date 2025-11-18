@@ -15,8 +15,8 @@
                 <option value="month">This Month</option>
                 <option value="quarter">This Quarter</option>
                 <option value="6months">Last 6 Months</option>
-                <option value="12months" selected>Last 12 Months</option>
-                <option value="year">This Year</option>
+                <option value="12months">Last 12 Months</option>
+                <option value="year" selected>This Year (Financial Year)</option>
                 <option value="all">All Time</option>
             </select>
             <button class="btn btn-primary" id="exportBusinessReport">

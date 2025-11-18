@@ -25,10 +25,17 @@ class BusinessAnalyticsController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         
-        // Build query with optional date filters
+        // Build query with optional date filters - use policy_issue_date instead of created_at
         $query = Policy::query();
         if ($startDate && $endDate) {
-            $query->whereBetween('created_at', [$startDate, $endDate]);
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+                  ->orWhere(function($subQ) use ($startDate, $endDate) {
+                      // Fallback to created_at if policy_issue_date is null
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$startDate, $endDate]);
+                  });
+            });
         }
         
         // Get all policies for current period
@@ -58,7 +65,13 @@ class BusinessAnalyticsController extends Controller
             $prevStart = $start->copy()->subDays($duration + 1);
             $prevEnd = $start->copy()->subDay();
             
-            $previousPolicies = Policy::whereBetween('created_at', [$prevStart, $prevEnd])->get();
+            $previousPolicies = Policy::where(function($q) use ($prevStart, $prevEnd) {
+                $q->whereBetween('policy_issue_date', [$prevStart, $prevEnd])
+                  ->orWhere(function($subQ) use ($prevStart, $prevEnd) {
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$prevStart, $prevEnd]);
+                  });
+            })->get();
             $previousRevenue = $previousPolicies->sum('revenue');
             $previousPolicies = $previousPolicies->count();
             
@@ -95,29 +108,48 @@ class BusinessAnalyticsController extends Controller
      */
     public function getRevenueTrend(Request $request)
     {
-        $period = $request->get('period', '12months'); // 6months, 12months, year, custom
+        $period = $request->get('period', 'year'); // 6months, 12months, year, custom
         
         // Determine date range based on period
+        $today = Carbon::now();
         switch ($period) {
             case '6months':
-                $startDate = Carbon::now()->subMonths(6)->startOfMonth();
+                $startDate = $today->copy()->subMonths(6)->startOfMonth();
                 break;
             case 'year':
-                $startDate = Carbon::now()->startOfYear();
+                // Financial Year: April 1 to March 31
+                $currentMonth = $today->month; // 1-12
+                if ($currentMonth >= 4) {
+                    // April to December: Current financial year started April 1 of current year
+                    $startDate = Carbon::create($today->year, 4, 1)->startOfDay();
+                } else {
+                    // January to March: Current financial year started April 1 of previous year
+                    $startDate = Carbon::create($today->year - 1, 4, 1)->startOfDay();
+                }
                 break;
             case 'all':
-                $startDate = Policy::min('created_at') ? Carbon::parse(Policy::min('created_at'))->startOfMonth() : Carbon::now()->subYear();
+                $minDate = Policy::whereNotNull('policy_issue_date')->min('policy_issue_date');
+                if (!$minDate) {
+                    $minDate = Policy::min('created_at');
+                }
+                $startDate = $minDate ? Carbon::parse($minDate)->startOfMonth() : $today->copy()->subYear();
                 break;
             default: // 12months
-                $startDate = Carbon::now()->subMonths(12)->startOfMonth();
+                $startDate = $today->copy()->subMonths(12)->startOfMonth();
         }
         
-        $endDate = Carbon::now()->endOfMonth();
+        $endDate = $today->copy()->endOfMonth();
         
-        // Get monthly aggregated data
-        $monthlyData = Policy::whereBetween('created_at', [$startDate, $endDate])
+        // Get monthly aggregated data - use policy_issue_date, fallback to created_at
+        $monthlyData = Policy::where(function($q) use ($startDate, $endDate) {
+            $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+              ->orWhere(function($subQ) use ($startDate, $endDate) {
+                  $subQ->whereNull('policy_issue_date')
+                       ->whereBetween('created_at', [$startDate, $endDate]);
+              });
+        })
             ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
+                DB::raw('DATE_FORMAT(COALESCE(policy_issue_date, created_at), "%Y-%m") as month'),
                 DB::raw('SUM(premium) as total_premium'),
                 DB::raw('SUM(revenue) as total_revenue'),
                 DB::raw('SUM(payout) as total_payout'),
@@ -149,15 +181,29 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get policy type distribution
      */
-    public function getPolicyDistribution()
+    public function getPolicyDistribution(Request $request)
     {
-        $distribution = Policy::select('policy_type')
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $query = Policy::select('policy_type')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(premium) as total_premium')
             ->selectRaw('SUM(revenue) as total_revenue')
-            ->selectRaw('SUM(payout) as total_payout')
-            ->groupBy('policy_type')
-            ->get();
+            ->selectRaw('SUM(payout) as total_payout');
+        
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+                  ->orWhere(function($subQ) use ($startDate, $endDate) {
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$startDate, $endDate]);
+                  });
+            });
+        }
+        
+        $distribution = $query->groupBy('policy_type')->get();
         
         return response()->json([
             'distribution' => $distribution->map(function ($item) {
@@ -177,15 +223,29 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get business type performance (Self vs Agent)
      */
-    public function getBusinessTypePerformance()
+    public function getBusinessTypePerformance(Request $request)
     {
-        $performance = Policy::select('business_type')
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $query = Policy::select('business_type')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(premium) as total_premium')
             ->selectRaw('SUM(revenue) as total_revenue')
-            ->selectRaw('SUM(payout) as total_payout')
-            ->groupBy('business_type')
-            ->get();
+            ->selectRaw('SUM(payout) as total_payout');
+        
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+                  ->orWhere(function($subQ) use ($startDate, $endDate) {
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$startDate, $endDate]);
+                  });
+            });
+        }
+        
+        $performance = $query->groupBy('business_type')->get();
         
         return response()->json([
             'performance' => $performance->map(function ($item) {
@@ -209,9 +269,31 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get agent performance statistics
      */
-    public function getAgentPerformance()
+    public function getAgentPerformance(Request $request)
     {
-        $agentStats = Policy::where('business_type', 'Agent')
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $agentQuery = Policy::where('business_type', 'Agent');
+        $selfQuery = Policy::where('business_type', 'Self');
+        
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $dateFilter = function($q) use ($startDate, $endDate) {
+                $q->where(function($query) use ($startDate, $endDate) {
+                    $query->whereBetween('policy_issue_date', [$startDate, $endDate])
+                          ->orWhere(function($subQ) use ($startDate, $endDate) {
+                              $subQ->whereNull('policy_issue_date')
+                                   ->whereBetween('created_at', [$startDate, $endDate]);
+                          });
+                });
+            };
+            
+            $agentQuery->where($dateFilter);
+            $selfQuery->where($dateFilter);
+        }
+        
+        $agentStats = $agentQuery
             ->select('agent_name')
             ->selectRaw('COUNT(*) as policy_count')
             ->selectRaw('SUM(premium) as total_premium')
@@ -222,7 +304,7 @@ class BusinessAnalyticsController extends Controller
             ->get();
         
         // Include Self business
-        $selfStats = Policy::where('business_type', 'Self')
+        $selfStats = $selfQuery
             ->selectRaw('COUNT(*) as policy_count')
             ->selectRaw('SUM(premium) as total_premium')
             ->selectRaw('SUM(revenue) as total_revenue')
@@ -270,14 +352,29 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get top performing insurance companies
      */
-    public function getTopCompanies()
+    public function getTopCompanies(Request $request)
     {
-        $companies = Policy::select('company_name')
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $query = Policy::select('company_name')
             ->selectRaw('COUNT(*) as policy_count')
             ->selectRaw('SUM(premium) as total_premium')
             ->selectRaw('SUM(revenue) as total_revenue')
-            ->selectRaw('SUM(payout) as total_payout')
-            ->groupBy('company_name')
+            ->selectRaw('SUM(payout) as total_payout');
+        
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+                  ->orWhere(function($subQ) use ($startDate, $endDate) {
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$startDate, $endDate]);
+                  });
+            });
+        }
+        
+        $companies = $query->groupBy('company_name')
             ->orderBy('total_revenue', 'desc')
             ->limit(10)
             ->get();
@@ -301,16 +398,30 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get profitability breakdown by policy type
      */
-    public function getProfitabilityBreakdown()
+    public function getProfitabilityBreakdown(Request $request)
     {
-        $breakdown = Policy::select('policy_type')
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $query = Policy::select('policy_type')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(premium) as total_premium')
             ->selectRaw('SUM(customer_paid_amount) as total_customer_paid')
             ->selectRaw('SUM(payout) as total_payout')
-            ->selectRaw('SUM(revenue) as total_revenue')
-            ->groupBy('policy_type')
-            ->get();
+            ->selectRaw('SUM(revenue) as total_revenue');
+        
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+                  ->orWhere(function($subQ) use ($startDate, $endDate) {
+                      $subQ->whereNull('policy_issue_date')
+                           ->whereBetween('created_at', [$startDate, $endDate]);
+                  });
+            });
+        }
+        
+        $breakdown = $query->groupBy('policy_type')->get();
         
         $total = [
             'count' => 0,
@@ -360,12 +471,30 @@ class BusinessAnalyticsController extends Controller
     /**
      * Get monthly growth comparison
      */
-    public function getMonthlyGrowth()
+    public function getMonthlyGrowth(Request $request)
     {
-        // Get data for last 12 months
-        $monthlyData = Policy::where('created_at', '>=', Carbon::now()->subMonths(12)->startOfMonth())
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        // Default to last 12 months if no dates provided
+        if (!$startDate || !$endDate) {
+            $startDate = Carbon::now()->subMonths(12)->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+        } else {
+            $startDate = Carbon::parse($startDate);
+            $endDate = Carbon::parse($endDate);
+        }
+        
+        // Get monthly data - use policy_issue_date, fallback to created_at
+        $monthlyData = Policy::where(function($q) use ($startDate, $endDate) {
+            $q->whereBetween('policy_issue_date', [$startDate, $endDate])
+              ->orWhere(function($subQ) use ($startDate, $endDate) {
+                  $subQ->whereNull('policy_issue_date')
+                       ->whereBetween('created_at', [$startDate, $endDate]);
+              });
+        })
             ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
+                DB::raw('DATE_FORMAT(COALESCE(policy_issue_date, created_at), "%Y-%m") as month'),
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(revenue) as revenue')
             )

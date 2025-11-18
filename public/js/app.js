@@ -10218,7 +10218,7 @@ const loadBusinessAnalytics = async () => {
     try {
         console.log('📊 Loading business analytics data...');
         
-        const period = $('#periodSelector').val() || '12months';
+        const period = $('#periodSelector').val() || 'year';
         
         // Calculate date range based on period
         const getDateRange = (period) => {
@@ -10238,7 +10238,16 @@ const loadBusinessAnalytics = async () => {
                     startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
                     break;
                 case 'year':
-                    startDate = new Date(today.getFullYear(), 0, 1);
+                    // Financial Year: April 1 to March 31
+                    const currentMonth = today.getMonth(); // 0-11 (Jan=0, Dec=11)
+                    const currentYear = today.getFullYear();
+                    if (currentMonth >= 3) {
+                        // April to December: Current financial year started April 1 of current year
+                        startDate = new Date(currentYear, 3, 1); // April 1
+                    } else {
+                        // January to March: Current financial year started April 1 of previous year
+                        startDate = new Date(currentYear - 1, 3, 1); // April 1 of previous year
+                    }
                     break;
                 case 'all':
                     // Will be handled by backend
@@ -10260,6 +10269,11 @@ const loadBusinessAnalytics = async () => {
             ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
             : '';
         
+        // Build params for all API calls that need date filtering
+        const dateParams = dateRange.start_date && dateRange.end_date 
+            ? `?start_date=${dateRange.start_date}&end_date=${dateRange.end_date}` 
+            : '';
+        
         // Fetch all data in parallel for better performance
         const [
             overview,
@@ -10274,12 +10288,12 @@ const loadBusinessAnalytics = async () => {
         ] = await Promise.all([
             apiCall(`/api/business/overview${overviewParams}`),
             apiCall(`/api/business/revenue-trend?period=${period}`),
-            apiCall('/api/business/policy-distribution'),
-            apiCall('/api/business/business-type-performance'),
-            apiCall('/api/business/agent-performance'),
-            apiCall('/api/business/top-companies'),
-            apiCall('/api/business/profitability-breakdown'),
-            apiCall('/api/business/monthly-growth'),
+            apiCall(`/api/business/policy-distribution${dateParams}`),
+            apiCall(`/api/business/business-type-performance${dateParams}`),
+            apiCall(`/api/business/agent-performance${dateParams}`),
+            apiCall(`/api/business/top-companies${dateParams}`),
+            apiCall(`/api/business/profitability-breakdown${dateParams}`),
+            apiCall(`/api/business/monthly-growth${dateParams}`),
             apiCall('/api/business/renewal-opportunities'),
         ]);
 
